@@ -68,7 +68,7 @@ def nonblank(value):
 
 def config_binding(path):
     """Read the two plain or quoted scalars in the server's deployed block-style YAML."""
-    values, gm_indent, section = {}, None, None
+    values, child_indent, section = {}, None, None
     scalar = re.compile(r"""("[^"\\]*"|'(?:[^']|'')*'|[A-Za-z0-9_./:\\-]+)(?:\s+#.*)?$""")
     for line in path.read_text(encoding="utf-8-sig").splitlines():
         if not line.strip() or line.lstrip().startswith("#"):
@@ -77,10 +77,12 @@ def config_binding(path):
         key, sep, value = line.strip().partition(":")
         if not indent:
             section = key if sep else None
-            gm_indent = None
-        elif section == "gm" and gm_indent is None:
-            gm_indent = indent
-        if not ((not indent and key == "db_path") or (section == "gm" and indent == gm_indent and key == "shard_id")):
+            child_indent = None
+        elif child_indent is None:
+            child_indent = indent
+        # The deployed configs keep db_path under server: (internal/config); a top-level one is accepted too.
+        if not ((not indent and key == "db_path") or (section == "server" and indent == child_indent and key == "db_path")
+                or (section == "gm" and indent == child_indent and key == "shard_id")):
             continue
         match = scalar.fullmatch(value.strip())
         require(sep and match and key not in values, f"invalid or repeated {key} in shard config")

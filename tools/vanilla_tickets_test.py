@@ -178,6 +178,14 @@ class Release(unittest.TestCase):
         with contextlib.closing(sqlite3.connect(self.h)) as db:
             with self.assertRaisesRegex(vt.ReviewError, "differs"):
                 vt.bound_shard(db, cfg)
+        # The deployed layout: db_path under server:, shard_id under gm:, other keys between.
+        cfg.write_text('server:\n  game_port: 10071\n  db_path: "l.db"\n  nested:\n    db_path: "h.db"\n'
+                       'gm:\n  port: 8081\n  shard_id: "live"  # comment\n', encoding="utf-8")
+        with contextlib.closing(sqlite3.connect(self.l)) as db:
+            self.assertEqual(vt.bound_shard(db, cfg), "live")
+        cfg.write_text('server:\n  db_path: "l.db"\ndb_path: "h.db"\ngm:\n  shard_id: "live"\n', encoding="utf-8")
+        with self.assertRaisesRegex(vt.ReviewError, "repeated db_path"):
+            vt.config_binding(cfg)
         cfg.unlink()
         with contextlib.closing(sqlite3.connect(self.l)) as db:
             with self.assertRaisesRegex(vt.ReviewError, "unbound"):

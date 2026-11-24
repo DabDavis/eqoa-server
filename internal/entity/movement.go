@@ -572,8 +572,8 @@ func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]flo
 		case keepsToWater:
 			if w.keepsInLocked(npc, sx, y, sz) {
 				stranded = false
-			} else if !stranded || y > lastY || !w.waterAtLocked(npc.World, sx, y+bodyAbove, sz) {
-				return false
+			} else if !stranded || y > lastY || !w.waterAtLocked(npc.World, sx, y+bodyAbove, sz) || w.inGroundLocked(npc.World, sx, y, sz) {
+				return false // out of its water, or under the sand where its leaf runs on (water.go, petition 5582)
 			}
 			if !onGround && w.ground != nil {
 				if f, ok := w.floorLocked(npc.World, sx, y, sz); ok && f > y {

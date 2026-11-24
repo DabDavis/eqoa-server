@@ -678,3 +678,93 @@ func TestACreatureOfBothSwimsInDeepWater(t *testing.T) {
 		}
 	}
 }
+
+// steepShore is a sea floor at 26 east of x 2005 and the island's sand at 54 west of it, a face between (as Croc
+// Island's south shore by Blackwater: the bed at 26-42, the sand at 52.8-54.1): seaWater's leaf (below 50) runs on
+// under the sand.
+type steepShore struct{}
+
+func steepShoreFloor(x float32) float32 {
+	if x > 2005 {
+		return 26
+	}
+	return 54
+}
+
+func (steepShore) Floor(_ uint8, x, y, _ float32) (float32, bool) {
+	f := steepShoreFloor(x)
+	return f, f <= y+2
+}
+
+// Live petition 5582 (2026-11-24): "mako sharks on land at croc island by bbw". The island's sharks swim at the
+// sea's surface (spawned at 50.1 over a bed at 26-42), and the sea's water leaf runs on under the island's beach:
+// a point at a swimmer's height under the sand is in the water. A wander leg was judged there by its floor alone,
+// and under the sand none is found below it (the sand is over it), so the leg went in, and the ground lifted the
+// shark out onto the sand (groundnpc.go's liftOutLocked), stranded: seven of the island's in view stood on the sand
+// at 52.8-54.1, the heights the lift gives, not fighting. Here a shark swimming at 45 over the bed at 26 by a
+// steep shore wanders: no leg ends under the sand, and a chase's step there is no water ahead. The control: the
+// point under the sand is in the water by the env alone.
+func TestASwimmerNeverWandersUnderTheBeach(t *testing.T) {
+	w := roamWorld(t)
+	w.SetGround(steepShore{})
+	w.SetEnv(seaWater{})
+	shark := addNPC(w, 100, "mako shark", 2015, 1000, creatureModel, 0)
+	shark.Y, shark.SpawnY = 45, 45 // under seaWater's surface (50)
+	w.mu.Lock()
+	if w.spawnOnGroundLocked(shark) || w.keepsToLocked(shark) != keepsToWater {
+		t.Fatalf("the shark: on the ground %v, keeps to %q; want a swimmer of the water", w.spawnOnGroundLocked(shark), w.keepsToLocked(shark))
+	}
+	if !w.waterAtLocked(0, 1995, shark.Y+bodyAbove, 1000) || !w.inGroundLocked(0, 1995, shark.Y, 1000) {
+		t.Fatal("the fixture: the water should run on under the sand")
+	}
+	if w.legLocked(shark, 1995, 1000, nil, legWhole) {
+		t.Error("a wander leg under the sand is taken")
+	}
+	if w.waterAheadLocked(shark, 2004, 1000) {
+		t.Error("a chase's step under the sand is taken as the water ahead")
+	}
+	if !w.legLocked(shark, 2030, 1000, nil, legWhole) || !w.waterAheadLocked(shark, 2010, 1000) {
+		t.Error("the control: a leg and a step out to sea are refused")
+	}
+	w.mu.Unlock()
+	ls := legs(w, shark, 300)
+	under := 0
+	for _, l := range ls {
+		if l[0] <= 2005 {
+			under++
+		}
+	}
+	if under != 0 || len(ls) < 100 {
+		t.Errorf("a swimmer: %d of %d legs under the sand, want none of a hundred and more", under, len(ls))
+	}
+}
+
+// And one already up on the sand (lifted there before the fix, and kept there by a restart: keepnpc.go) is set back
+// on its spawn at its next leg, rather than standing on the sand until it dies: no leg of the water's takes it back
+// from there, and a walk home sloping down to its height runs into this steep shore. The control (the roam.go change
+// undone): it stood at (1995, 54) for the 90 s.
+func TestASwimmerOnTheSandGoesBackToItsSpawn(t *testing.T) {
+	w := roamWorld(t)
+	w.SetGround(steepShore{})
+	w.SetEnv(seaWater{})
+	shark := addNPC(w, 100, "mako shark", 2015, 1000, creatureModel, 0)
+	shark.Y, shark.SpawnY = 45, 45
+	shark.X, shark.Y = 1995, 54 // on the sand
+	p := w.Players[1]
+	p.X, p.Y = 1985, 54 // a viewer on the sand, so it wanders
+	w.SpatialIndex.Update(p.ServerID, 1000, 1000, p.X, p.Z)
+	start := time.Unix(1_800_000_000, 0)
+	back := false
+	run(w, start, 90*time.Second, func(now time.Time) {
+		w.pathSystem(now)
+		if distXZ(shark.X, shark.Z, shark.SpawnX, shark.SpawnZ) <= 0.5 && shark.Y == shark.SpawnY {
+			back = true
+		}
+	})
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if !back || !w.npcInWaterLocked(shark) {
+		t.Errorf("the shark on the sand: never back on its spawn (now at %.1f, %.1f, %.1f), in the water %v",
+			shark.X, shark.Y, shark.Z, w.npcInWaterLocked(shark))
+	}
+}

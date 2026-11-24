@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"log"
 	"math"
 	"time"
 
@@ -242,14 +243,45 @@ func (w *World) slimeSettlesLocked(npc *NPC, y float32) bool {
 // the slime no more than slimeLevel over its pool's flat top
 // (slimeSurfaceLocked). Must be called with
 // the lock held.
+//
+// Never a point in the ground: a sea's water leaf runs on under its beach, so a point at a swimmer's height under
+// the sand is in the water by the env alone, and a swimmer let in there was lifted out onto the sand
+// (groundnpc.go's liftOutLocked), stranded (Live petition 5582, 2026-11-24: Croc Island's mako sharks by Blackwater
+// "on land").
 func (w *World) keepsInLocked(npc *NPC, x, y, z float32) bool {
-	if !w.waterAtLocked(npc.World, x, y+bodyAbove, z) {
+	if !w.waterAtLocked(npc.World, x, y+bodyAbove, z) || w.inGroundLocked(npc.World, x, y, z) {
 		return false
 	}
 	if !slimeSurfaces || !w.slimeOnlyLocked(npc.World, x, y+bodyAbove, z) || !w.spawnOnGroundLocked(npc) {
 		return true
 	}
 	return y <= npc.spawnFloor+slimeLevel // its pool's top, or its bed below it
+}
+
+// swimmerAshoreLocked reports a creature of the water that swims off the ground (spawned in it, over the bed) and
+// stands out of its water: no wander leg takes it back in (a leg's every point in the water, at its height), so it
+// stood there until it died. Croc Island's mako sharks by Blackwater were lifted onto the sand before keepsInLocked
+// knew the ground (Live petition 5582), and a restart keeps a creature where it stood (keepnpc.go). At its next leg
+// it is set back on its spawn instead (backInTheWaterLocked), as its death and return would: a walk home slopes
+// from the sand down to its swimming height, and that line runs into the ground wherever the shore falls steeper,
+// where its steps are refused and it would stand on the sand again. Must be called with the lock held.
+func (w *World) swimmerAshoreLocked(npc *NPC) bool {
+	return w.env != nil && w.ground != nil && !w.spawnOnGroundLocked(npc) && w.keepsToLocked(npc) == keepsToWater &&
+		w.spawnInWaterLocked(npc) && !w.npcInWaterLocked(npc)
+}
+
+// backInTheWaterLocked sets a swimmer ashore back on its spawn, standing (swimmerAshoreLocked). Must be called
+// with the lock held.
+func (w *World) backInTheWaterLocked(npc *NPC) {
+	oldX, oldZ := npc.X, npc.Z
+	npc.stopMoving()
+	npc.X, npc.Y, npc.Z, npc.Facing = npc.SpawnX, npc.SpawnY, npc.SpawnZ, npc.SpawnFacing
+	npc.roam.walking = false
+	w.swimLocked(npc)
+	if w.SpatialIndex != nil {
+		w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.X, npc.Z)
+	}
+	log.Printf("Water: %s (id %d) was out of its water at (%.1f, %.1f): back on its spawn", npc.Name, npc.ServerID, oldX, oldZ)
 }
 
 // waterAheadLocked reports the water at (x, z) where a creature would stand
@@ -267,7 +299,8 @@ func (w *World) waterAheadLocked(npc *NPC, x, z float32) bool {
 	if w.keepsInLocked(npc, x, y, z) {
 		return true
 	}
-	return y <= npc.Y && !w.keepsInLocked(npc, npc.X, npc.Y, npc.Z) && w.waterAtLocked(npc.World, x, y+bodyAbove, z)
+	return y <= npc.Y && !w.keepsInLocked(npc, npc.X, npc.Y, npc.Z) && w.waterAtLocked(npc.World, x, y+bodyAbove, z) &&
+		!w.inGroundLocked(npc.World, x, y, z)
 }
 
 // bodyWet is how far above its feet a body is tested for water at its feet:

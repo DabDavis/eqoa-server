@@ -152,6 +152,12 @@ type QuestEngine struct {
 	// dropFor puts a loot step's item on one character's own view of a corpse (the windows'
 	// AddQuestDrop): a player of the kill on the step's copy (questpreloot.go); nil, drop's
 	dropFor func(npc entity.EntityID, died time.Time, serverID uint32, rec database.CharInventoryEntry)
+	// pending and placed bracket a kill's time in the queue (the windows'
+	// QuestDropsPending and QuestDropsPlaced, questloot.go): its corpse is not
+	// taken away emptied before its loot steps' drops are on it (Heirloom
+	// petition 2833: a quest ring placed two seconds after its corpse was emptied
+	// and gone). pending runs under the World's lock; nil, neither
+	pending, placed func(npc entity.EntityID, died time.Time)
 	// questItems is every item a quest step names (questItemsOf), for the loot's sharing
 	// (QuestItem): read with no lock, so a corpse's roll never waits on the quests
 	questItems atomic.Pointer[map[int]bool]
@@ -469,6 +475,9 @@ func (q *QuestEngine) Stop() {
 func (q *QuestEngine) heardKill(k entity.KillCredit) {
 	select {
 	case q.kills <- k:
+		if q.pending != nil {
+			q.pending(k.NPCID, k.Died) // its corpse waits for its drops (placed, in run)
+		}
 	default:
 		log.Printf("Quests: a kill of %q was not counted (the queue is full)", k.NPCName)
 	}
@@ -484,6 +493,9 @@ func (q *QuestEngine) run() {
 		case k := <-q.kills:
 			q.killed(k)
 			q.killFlags(k) // raidportal.go: a raid's flag at a kill
+			if q.placed != nil {
+				q.placed(k.NPCID, k.Died) // with no quest lock held: the loot's, then the World's
+			}
 		case h := <-q.infections:
 			q.infect(h) // wereinfect.go
 		case <-q.wake:

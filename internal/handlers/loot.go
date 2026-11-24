@@ -75,6 +75,10 @@ type lootState struct {
 	open    map[*session.Session]entity.EntityID
 	since   map[*session.Session]time.Time  // each open window's last opening or take (lootrights.go)
 	drops   map[entity.EntityID]*questDrops // loot steps' drops (questloot.go)
+	// pending is the deaths (time.Time, by NPC) whose kill the quests have not
+	// worked yet: their loot steps' drops still to come (questloot.go). A
+	// sync.Map: marked under the World's lock, never the loot's
+	pending sync.Map
 	// rolls are a raid's need before greed rolls going on, by id, and nextRoll the
 	// last id given (raidloot.go)
 	rolls    map[int]*lootRoll
@@ -449,6 +453,7 @@ func (h *NPCWindowHandler) corpseGoneLocked(ls *lootState, id entity.EntityID) {
 	h.raidCorpseGoneLocked(ls, id) // its rolls end with it (raidloot.go)
 	delete(ls.corpses, id)
 	delete(ls.drops, id)
+	ls.pending.Delete(id)
 	h.killRights.Delete(id) // its kill group with it (lootrights.go)
 }
 
@@ -481,6 +486,10 @@ func (h *NPCWindowHandler) resendCorpse(sess *session.Session, ls *lootState, c 
 	h.servedHoldersLocked(c, sess, h.charOf(sess), sessionInvList(sess))
 	view := ls.viewLocked(id, c, h.charOf(sess))
 	if len(view) == 0 {
+		if now := h.lootClock(); open && ls.pendingLocked(id, c, now) {
+			ls.since[sess] = now // the kill's quest drops to come: shown when placed (QuestDropsPlaced)
+			return
+		}
 		delete(ls.open, sess)
 		delete(ls.since, sess)
 		if now := h.lootClock(); open && ls.emptyLocked(id, c, now) {

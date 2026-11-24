@@ -27,6 +27,19 @@ transaction, a gm_audit line a row, log petpass_both_1124f_log; --undo exact. np
 server's start.
 
     python3 -E -s tools/petpass_both_1124f.py --db eqoa.db [--apply | --undo]
+
+Step 2 (--step 2, the coordinator after 2833: the same check of Fayspire's level 17 target): Tesarin Moonstrider
+(npcs 109131, world 0, atop the black pyramid in Sslathis, about (22716, 29314)), step 1 of "Tesarin Moonstrider"
+(100747, a loot step for 700718). EQOA-Data Quests/17/fayspire.json: "Tesarin is a Necromancer and has a pet
+(CONs grn). Kill, loot, and return"; the GameFAQs walkthrough: "Adrwyiel asks you to kill Tesarin Moonstrider".
+  - Body: no source names her race (questmasters calls her a traitor of the Fayspires, "her pet"); she wears the elf
+    woman's body with race 1, which agree: left as is.
+  - Peaceful: the elf body and no rule, as Ulria: an npcaggro row (aggressive, her own radius and leash).
+  - Class: npcclass had her a Warrior (0, "return home"); the guide says a Necromancer: 11. Her pet, the decaying
+    servant (109132), stands beside her already.
+Live's rows are the same: mirrored. Its own log, petpass_both_1124f_tesarin_log, so its --undo stands alone.
+
+    python3 -E -s tools/petpass_both_1124f.py --step 2 --db eqoa.db [--apply | --undo]
 """
 import os
 import sys
@@ -94,5 +107,63 @@ def changes(db):
 SPEC = {"log": LOG, "detail": DETAIL, "needs": ("npcs", "npcaggro", "npcfaction", "charactermodel"),
         "changes": changes}
 
+LOG2 = "petpass_both_1124f_tesarin_log"
+DETAIL2 = ("After Heirloom petition 2833: Tesarin Moonstrider, Fayspire's level 17 target, aggressive and a "
+           "necromancer (tools/petpass_both_1124f.py --step 2)")
+NAME2, ROW2, NECROMANCER = "Tesarin Moonstrider", 109131, 11
+
+
+def changes2(db):
+    out, lines, refusals = [], [], []
+    n = tr.get(db, "npcs", {"id": ROW2})
+    if n is None or n["npc_name"] != NAME2:
+        refusals.append(f"npcs {ROW2} is not {NAME2}: {n and n['npc_name']}")
+    elif n["modelid"] != ELF_F or str(n["race"]) != "1":
+        lines.append(f"note: npcs {ROW2}'s body is {n['modelid']} race {n['race']!r}, not the elf woman's (left)")
+    others = tr.rows(db, "SELECT count(*) AS c FROM npcs WHERE npc_name = ? AND id != ?", (NAME2, ROW2))[0]["c"]
+    if others:
+        refusals.append(f"{others} other npcs rows are named {NAME2}")
+
+    k = {"npc_name": NAME2}
+    rule = tr.get(db, "npcaggro", k)
+    if rule is not None and rule.get("source") != SOURCE:
+        refusals.append(f"npcaggro already has {NAME2}: {rule}")
+    else:
+        out.append(("npcaggro", k, dict(k, aggressive=1, radius=0.0, leash=0.0, holding=0, see_invis=0, holds=0,
+                                        note="After Heirloom petition 2833: Fayspire's level 17 quest's target, "
+                                             "killed in the guides; her players' race body (an elf) left her "
+                                             "peaceful", source=SOURCE)))
+        lines.append(f"step 2: npcaggro {NAME2} -> aggressive")
+
+    c = tr.rows(db, "SELECT name, class, source FROM npcclass WHERE lower(name) = lower(?)", (NAME2,))
+    if len(c) != 1:
+        refusals.append(f"{len(c)} npcclass rows for {NAME2}, expected 1")
+    elif c[0]["class"] not in (0, NECROMANCER):
+        refusals.append(f"npcclass {NAME2} is class {c[0]['class']}, not the Warrior it was (a GM's edit?)")
+    else:
+        kc = {"name": c[0]["name"]}
+        out.append(("npcclass", kc, dict(c[0], **{"class": NECROMANCER})))
+        lines.append(f"step 2: npcclass {c[0]['name']} class {c[0]['class']} -> {NECROMANCER} (Necromancer, "
+                     "EQOA-Data's walkthrough)")
+
+    if refusals:
+        out = []
+    applied = bool(out) and all(tr.get(db, t, kk) is not None and
+                                all(tr.get(db, t, kk).get(col) == v for col, v in a.items()) for t, kk, a in out)
+    lines.insert(0, f"{len(out)} rows")
+    return out, lines, refusals, applied
+
+
+SPEC2 = {"log": LOG2, "detail": DETAIL2, "needs": ("npcs", "npcaggro", "npcclass"), "changes": changes2}
+
 if __name__ == "__main__":
-    sys.exit(tr.main(SPEC, doc=__doc__))
+    argv = sys.argv[1:]
+    spec = SPEC
+    if "--step" in argv:
+        i = argv.index("--step")
+        step = argv[i + 1] if i + 1 < len(argv) else ""
+        if step not in ("1", "2"):
+            sys.exit("--step takes 1 or 2")
+        spec = {"1": SPEC, "2": SPEC2}[step]
+        del argv[i:i + 2]
+    sys.exit(tr.main(spec, argv=argv, doc=__doc__))

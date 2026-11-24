@@ -1452,8 +1452,51 @@ func NewSQLiteAccountStore(db *SQLiteDB) *SQLiteAccountStore {
 	return &SQLiteAccountStore{db: db}
 }
 
-// GetByUsername retrieves an account by username (case-insensitive).
+// GetByUsername retrieves an account by username (case-insensitive), the
+// whitespace around it forgiven (Heirloom petition 2830, 2026-11-24: a phone
+// keyboard's trailing space made a second account at the login's
+// auto-register). Account names never carry surrounding whitespace now
+// (Create trims), but six made before do, so:
+//   - a name typed with whitespace around it is the trimmed name's account
+//     when there is one (the name the player meant; after a merge the spaced
+//     twin is left empty), else the exact name's (an old spaced account);
+//   - a name typed without is its own account, else the one older account
+//     whose name is it with whitespace around (the oldest if several).
+//
+// Every login (Station's, the UDP handshake's re-check, the website's) and
+// every "is it taken" check of account creation reads through here, so a
+// name and its spaced twin are one name everywhere.
 func (s *SQLiteAccountStore) GetByUsername(username string) (*AccountRecord, error) {
+	trimmed := strings.TrimSpace(username)
+	if trimmed == "" {
+		return nil, ErrAccountNotFound
+	}
+	if trimmed != username {
+		a, err := s.getByExactUsername(trimmed)
+		if !errors.Is(err, ErrAccountNotFound) {
+			return a, err
+		}
+		return s.getByExactUsername(username)
+	}
+	a, err := s.getByExactUsername(username)
+	if !errors.Is(err, ErrAccountNotFound) {
+		return a, err
+	}
+	var spaced string
+	err = s.db.QueryRow(`SELECT username FROM accountinfo
+		WHERE LOWER(TRIM(username, ' '||char(9)||char(10)||char(13))) = LOWER(?) AND username <> TRIM(username, ' '||char(9)||char(10)||char(13))
+		ORDER BY accountid LIMIT 1`, trimmed).Scan(&spaced)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrAccountNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	return s.getByExactUsername(spaced)
+}
+
+// getByExactUsername is the account whose name is username, case aside.
+func (s *SQLiteAccountStore) getByExactUsername(username string) (*AccountRecord, error) {
 	// acctstatus carries account state in one column: > 0 active, 0 inactive,
 	// < 0 banned. There is no separate ban column.
 	//
@@ -1524,7 +1567,12 @@ func (s *SQLiteAccountStore) Username(accountID int) (string, error) {
 }
 
 // Create creates a new account. Password should already be hashed if needed.
+// The name is kept trimmed of the whitespace around it (GetByUsername).
 func (s *SQLiteAccountStore) Create(username, passwordHash string) (*AccountRecord, error) {
+	username = strings.TrimSpace(username)
+	if username == "" {
+		return nil, errors.New("empty username")
+	}
 	result, err := s.db.Exec(`
 		INSERT INTO accountinfo (username, pwhash, acctstatus, acctlevel, acctcreation) VALUES (?, ?, 1, 0, CURRENT_TIMESTAMP)
 	`, username, passwordHash)

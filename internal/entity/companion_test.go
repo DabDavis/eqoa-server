@@ -392,3 +392,50 @@ func TestAVigilantSpiritIsItsSpiritistsPet(t *testing.T) {
 		t.Errorf("the spiritist noticed a player: its spirit's threats %v", sp.Threats)
 	}
 }
+
+// Heirloom petitions 2905/2907 (2026-11-24, Guk's froglok tal shamans: "companion spirits are not being summoned by
+// froglok tal shamans and are not attacking with them"): a creature's own pet killed before its owner, or by the same
+// blows (no death with its master), came back on its own respawn while its owner lay dead and stood alone on its
+// spawn. Now it waits for its owner and comes back with it (companionAwaitsOwnerLocked). The control: its owner
+// alive, a pet killed alone comes back on its own time as before; the griffawn, no one's pet, too.
+func TestACreaturesPetComesBackWithItsOwnerNotAlone(t *testing.T) {
+	w, owner, pet, other, _ := companionWorld(t)
+	w.SetCorpseLinger(-1)
+	owner.RespawnTime, pet.RespawnTime, other.RespawnTime = time.Hour, time.Minute, time.Minute
+	w.mu.Lock()
+	w.linkCompanionsLocked()
+	w.killNPC(pet) // the pet first, then its owner: no death with its master
+	w.killNPC(owner)
+	w.killNPC(other)
+	gone := owner.corpseEnds(w.corpseDecay)
+	if e := pet.corpseEnds(w.corpseDecay); e.After(gone) {
+		gone = e
+	}
+	w.corpseSystem(gone.Add(time.Second))
+	w.corpseSystem(gone.Add(2 * time.Minute))
+	petBack, otherBack, ownerBack := !pet.Dead, !other.Dead, !owner.Dead
+	w.corpseSystem(gone.Add(time.Hour + time.Minute))
+	w.mu.Unlock()
+	if petBack || ownerBack || !otherBack {
+		t.Fatalf("at its own respawn, its owner dead: the pet back %v (want false), its owner %v, the griffawn %v (want true)",
+			petBack, ownerBack, otherBack)
+	}
+	if owner.Dead || pet.Dead || pet.X != pet.SpawnX || pet.Z != pet.SpawnZ {
+		t.Fatalf("its owner back: owner dead %v, pet dead %v at (%v, %v)", owner.Dead, pet.Dead, pet.X, pet.Z)
+	}
+
+	// the control: its owner alive, the pet killed alone is back on its own time
+	w, owner, pet, _, _ = companionWorld(t)
+	w.SetCorpseLinger(-1)
+	pet.RespawnTime = time.Minute
+	w.mu.Lock()
+	w.linkCompanionsLocked()
+	w.killNPC(pet)
+	end := pet.corpseEnds(w.corpseDecay)
+	w.corpseSystem(end.Add(time.Second))
+	w.corpseSystem(end.Add(2 * time.Minute))
+	w.mu.Unlock()
+	if pet.Dead || owner.Dead {
+		t.Fatalf("its owner alive: the pet dead %v at its own respawn, the owner dead %v", pet.Dead, owner.Dead)
+	}
+}

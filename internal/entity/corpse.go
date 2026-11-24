@@ -284,6 +284,9 @@ func (w *World) corpseSystem(now time.Time) []EntityID {
 		if now.Sub(npc.CorpseGone) < npc.RespawnTime || npc.GMHeld {
 			continue // a GM's Kill Spawner holds it (gmchannel.go)
 		}
+		if w.companionAwaitsOwnerLocked(npc) {
+			continue // a creature's own pet comes back with its owner, not before it (companion.go)
+		}
 		w.respawnNPCLocked(npc)
 		if w.offHoursLocked(npc, now) {
 			npc.offHours = true // back outside its time of day: held until it (npctime.go)

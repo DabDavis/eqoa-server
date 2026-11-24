@@ -472,6 +472,26 @@ func (w *World) companionsBackLocked(owner *NPC) {
 	}
 }
 
+// companionAwaitsOwnerLocked is whether a dead creature's own pet waits for its owner to come back before it
+// does (corpseSystem): its owner dead, it returns with it (companionsBackLocked) and never alone. Heirloom
+// petitions 2905/2907 (2026-11-24, Guk's froglok tal shamans: "companion spirits are not being summoned by froglok
+// tal shamans and are not attacking with them"): a Companion Spirit killed beside its shaman (by the same blows,
+// so no death with its master) came back on its own respawn 95 s later while the shaman lay dead, and stood alone
+// on its spawn, no one's to fight with; a pet killed first did the same. An owner alive (the pet killed alone),
+// gone, or no creature's pet at all: the pet's own respawn, as ever. Must be called with the lock held.
+func (w *World) companionAwaitsOwnerLocked(pet *NPC) bool {
+	if !companionFighter(pet) {
+		return false
+	}
+	w.linkCompanionsLocked()
+	o, ok := w.companionOf[pet.ServerID]
+	if !ok {
+		return false
+	}
+	m := w.NPCs[o]
+	return m != nil && companionFighter(m) && m.Dead
+}
+
 // companionsFollowLocked walks an owner's pets with it as it wanders (the
 // owner, 2026-11-11: "there are many pets not connected to their master"): a
 // Companion Spirit stood on its spawn while its hobgoblin oracle wandered up

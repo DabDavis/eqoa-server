@@ -22,6 +22,12 @@ transaction, a gm_audit line a row, log petpass_both_1124d_log; --undo exact. An
 next login.
 
     python3 -E -s tools/petpass_both_1124d.py --db eqoa.db [--apply | --undo]
+
+Step 2 (--step 2, the coordinator after 2825: "a stud looks like a stud"): the seed's three other tailor studs, Marr
+Blessed Studs, Rallosian Studs and Takish Ivory Studs (Heirloom 998464/998466/998467, Live 982582/982584/982585),
+wear the same studs icon -1836445075. Its own log, petpass_both_1124d_studs_log, so its --undo stands alone.
+
+    python3 -E -s tools/petpass_both_1124d.py --step 2 --db eqoa.db [--apply | --undo]
 """
 import os
 import sys
@@ -77,5 +83,55 @@ def changes(db):
 
 SPEC = {"log": LOG, "detail": DETAIL, "needs": ("itempattern",), "changes": changes}
 
+LOG2 = "petpass_both_1124d_studs_log"
+DETAIL2 = ("After Heirloom petition 2825: the seed's other tailor studs wear the studs icon "
+           "(tools/petpass_both_1124d.py --step 2)")
+STUDS_ICON, STUDS_WEARER = -1836445075, "Heartsblood Alloy Studs"
+STUDS = ("Marr Blessed Studs", "Rallosian Studs", "Takish Ivory Studs")
+STUDS_MARK = "a tailor works into cloth or leather"
+
+
+def changes2(db):
+    out, lines, refusals = [], [], []
+
+    wearers = tr.rows(db, "SELECT count(*) AS c FROM itempattern WHERE itemname = ? AND itemicon = ?",
+                      (STUDS_WEARER, STUDS_ICON))[0]["c"]
+    if not wearers:
+        refusals.append(f"no {STUDS_WEARER} wears {STUDS_ICON}: the studs decimal is not confirmed here")
+
+    for name in STUDS:
+        recs = tr.rows(db, "SELECT patternid FROM itempattern WHERE itemname = ? AND itemdesc LIKE ?",
+                       (name, f"%{STUDS_MARK}%"))
+        if len(recs) != 1:
+            refusals.append(f"{len(recs)} {name} modifier records, expected 1")
+            continue
+        key = {"patternid": recs[0]["patternid"]}
+        it = tr.get(db, "itempattern", key)
+        if it["itemicon"] not in (ALLOY_ICON, STUDS_ICON):
+            refusals.append(f"itempattern {key['patternid']}'s icon is {it['itemicon']}, not the alloy's "
+                            "(a GM's edit since?)")
+            continue
+        out.append(("itempattern", key, dict(it, itemicon=STUDS_ICON)))
+        lines.append(f"studs: itempattern {key['patternid']} {name} itemicon {it['itemicon']} -> {STUDS_ICON} "
+                     f"(the studs; {wearers} {STUDS_WEARER} records wear it)")
+
+    if refusals:
+        out = []
+    applied = bool(out) and all(tr.get(db, t, k) == a for t, k, a in out)
+    lines.insert(0, f"{len(out)} rows")
+    return out, lines, refusals, applied
+
+
+SPEC2 = {"log": LOG2, "detail": DETAIL2, "needs": ("itempattern",), "changes": changes2}
+
 if __name__ == "__main__":
-    sys.exit(tr.main(SPEC, doc=__doc__))
+    argv = sys.argv[1:]
+    spec = SPEC
+    if "--step" in argv:
+        i = argv.index("--step")
+        step = argv[i + 1] if i + 1 < len(argv) else ""
+        if step not in ("1", "2"):
+            sys.exit("--step takes 1 or 2")
+        spec = SPEC2 if step == "2" else SPEC
+        del argv[i:i + 2]
+    sys.exit(tr.main(spec, argv=argv, doc=__doc__))

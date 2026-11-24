@@ -311,6 +311,31 @@ func (m *HeirloomMarks) buy(sess *session.Session, p *entity.Player, what int) {
 	}
 	marksSay(sess, HeirloomKeeperName, keeperDone)
 	SendClientMessage(sess, fmt.Sprintf("You spend %s Heirloom Marks: %s. %s left.", commas(price), label, commas(after.Marks)))
+	if what == keeperRank {
+		// what the rank did, said: two players read their heirlooms' "Level 1" (the level to wear
+		// them) as the rank not taken (Heirloom petitions 2910/2911)
+		ac := 0
+		if m.heir != nil {
+			ac = m.heir.rankACFor(int(p.Class), after.HeirloomRank)
+		}
+		SendClientMessage(sess, keeperRankWords(p.Level, after.HeirloomRank, ac))
+	}
+}
+
+// keeperRankWords is what a rank just bought does for a character of level: its heirloom
+// armour's AC at once, the level its heirlooms may grow to, and when the item windows show it (the
+// records are sent at a login: heirloom.go).
+func keeperRankWords(level, rank, ac int) string {
+	top := heirloomTopLevel + rank
+	grow := fmt.Sprintf("Your heirlooms are now of level %d.", min(level, top))
+	if level < top {
+		grow = fmt.Sprintf("Your heirlooms grow with you up to level %d.", top)
+	}
+	words := grow
+	if ac > 0 {
+		words = fmt.Sprintf("Your heirloom armour gains %d AC now. %s", ac, grow)
+	}
+	return words + " Your item windows show it from your next login; the Level 1 on an heirloom is the level to wear it."
 }
 
 // giveRing gives a character of rank 1 or more that holds no ring a new one.

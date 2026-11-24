@@ -251,7 +251,8 @@ func (h *Heirlooms) figuresFor(def database.HeirloomDef, race, level, rank int, 
 		// its best of the role deals (Heirloom petition 2680, 2026-11-22)
 		p.WeaponDamage = 0
 	}
-	h.rankArmour(def, rank, p) // the rank's AC on an armour piece (heirloomrank.go)
+	ac := h.rankArmour(def, rank, p) // the rank's AC on an armour piece (heirloomrank.go)
+	p.ItemDesc = heirloomDesc(p.ItemDesc, level, rank, ac)
 }
 
 // epicStatless is whether an epic carries none of the stats, hit points or

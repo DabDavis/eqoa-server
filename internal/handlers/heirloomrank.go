@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"strings"
 	"sync/atomic"
@@ -109,14 +110,14 @@ func (h *Heirlooms) SetRank(serverID uint32, rank int) {
 	h.mu.Unlock()
 }
 
-// rankArmour adds the rank's AC to an armour piece's view.
-func (h *Heirlooms) rankArmour(def database.HeirloomDef, rank int, p *database.ItemPatternRecord) {
+// rankArmour adds the rank's AC to an armour piece's view, and is the AC it added.
+func (h *Heirlooms) rankArmour(def database.HeirloomDef, rank int, p *database.ItemPatternRecord) int {
 	if rank <= 0 || !heirloomRankArmour[def.Role] {
-		return
+		return 0
 	}
 	ac := h.rankACFor(def.Class, rank)
 	if ac == 0 {
-		return
+		return 0
 	}
 	cur := 0
 	if p.AC != nil {
@@ -124,6 +125,27 @@ func (h *Heirlooms) rankArmour(def database.HeirloomDef, rank int, p *database.I
 	}
 	v := cur + ac
 	p.AC = &v
+	return ac
+}
+
+// heirloomDesc is an heirloom's description with the level its figures are of and its wearer's Heirloom
+// Rank after it (Heirloom petitions 2910/2911, 2026-11-24: two players bought rank 1 and read the
+// record's "Level 1", its level to wear it, which stays 1, as the rank not taken; the item window says
+// nothing else of an heirloom's level). level is the figures' (min of the wearer's and 49 + the rank),
+// ac what the rank added (0 on a piece it adds none to). Its words carry no figure a weapon's proc is
+// read from (entity.WeaponProcFromText), held by a test.
+func heirloomDesc(desc string, level, rank, ac int) string {
+	add := fmt.Sprintf("Now of level %d.", max(level, 1))
+	switch {
+	case rank > 0 && ac > 0:
+		add += fmt.Sprintf(" Heirloom Rank %d: up to level %d, AC +%d.", rank, heirloomTopLevel+rank, ac)
+	case rank > 0:
+		add += fmt.Sprintf(" Heirloom Rank %d: up to level %d.", rank, heirloomTopLevel+rank)
+	}
+	if strings.TrimSpace(desc) == "" {
+		return cutRunes(add, itemDescMax)
+	}
+	return cutRunes(strings.TrimRight(desc, " ")+" "+add, itemDescMax)
 }
 
 // rankACFor is the table's AC for class at rank, the table read again once heirloomRankTTL old.

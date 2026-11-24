@@ -248,6 +248,14 @@ func (db *SQLiteDB) SpendMarks(serverID uint32, price int, what string, change f
 		return CharMarks{}, err
 	}
 	defer tx.Rollback()
+	m, err := spendMarksTx(tx, serverID, price, what, change, now)
+	if err != nil {
+		return m, err
+	}
+	return m, tx.Commit()
+}
+
+func spendMarksTx(tx *sql.Tx, serverID uint32, price int, what string, change func(*CharMarks) error, now time.Time) (CharMarks, error) {
 	m, err := charMarksTx(tx, serverID)
 	if err != nil {
 		return m, err
@@ -269,7 +277,7 @@ func (db *SQLiteDB) SpendMarks(serverID uint32, price int, what string, change f
 			return m, err
 		}
 	}
-	return m, tx.Commit()
+	return m, nil
 }
 
 // HotZone is a hotzones row.

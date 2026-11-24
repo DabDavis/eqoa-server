@@ -331,6 +331,7 @@ func shieldDefault(name string, level int, caster *Player) (int, int) {
 // of, and whether a defensive proc made it.
 type shieldHit struct {
 	n      int
+	heal   int
 	name   string
 	proc   bool
 	resist Stat // the effect's (a creature strong in it: creatureResists)
@@ -357,7 +358,17 @@ func shieldAnswers(effects []*ActiveEffect, bearerLevel, attackerLevel, resistOf
 	}
 	var best *ActiveEffect
 	for _, ae := range effects {
-		if ae.Shield != nil && ae.Shield.Max > 0 && (best == nil || ae.Shield.Max > best.Shield.Max) && on(ae) {
+		if ae.Shield == nil || ae.Shield.Max <= 0 {
+			continue
+		}
+		if isDrunkUncleProtection(ae.SpellID, ae.Name) {
+			if on(ae) {
+				// Both halves use the same fixed amount, scaled when drunk.
+				hits = append(hits, shieldHit{n: ae.Shield.Max, heal: ae.Shield.Max, name: ae.Name})
+			}
+			continue
+		}
+		if (best == nil || ae.Shield.Max > best.Shield.Max) && on(ae) {
 			best = ae
 		}
 	}
@@ -406,6 +417,9 @@ func (w *World) playerShieldsLocked(sess *session.Session, p *Player, npc *NPC, 
 			log.Printf("Shield: %s's defensive proc resisted by %s", p.Name, npc.Name)
 		}
 		for _, h := range hits {
+			if h.heal > 0 {
+				w.procHealLocked(p, sess, p, h.heal)
+			}
 			w.broadcastCastLocked(p, npc.ServerID, 0, fxShieldHit)
 			n := -creatureResists(h.resist, npc, -h.n, now)
 			log.Printf("Shield: %s's %q answers %s for %d (proc %v)", p.Name, h.name, npc.Name, n, h.proc)

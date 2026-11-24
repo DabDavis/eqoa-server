@@ -102,8 +102,12 @@ func (s *InventoryStore) AddCharItem(serverID uint32, patternID, stack, remainHP
 	if charges == 0 {
 		charges = s.ItemCharges(patternID) // a new one holds them all
 	}
+	return addCharItem(s.db.Exec, serverID, patternID, stack, remainHP, charges, location)
+}
+
+func addCharItem(exec func(string, ...any) (sql.Result, error), serverID uint32, patternID, stack, remainHP, charges, location int) (int, error) {
 	next, nargs := nextListSQL(serverID, location) // the account bank's end (accountbank.go)
-	res, err := s.db.Exec(`
+	res, err := exec(`
 		INSERT INTO charinventory (serverid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber)
 		VALUES (?, ?, ?, ?, ?, -1, ?, `+next+`)
 	`, append([]any{serverID, stack, remainHP, charges, patternID, location}, nargs...)...)

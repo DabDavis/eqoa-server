@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -117,6 +119,7 @@ type tokenWare struct {
 	token   int    // the token's record (0: the database holds none, or a faction's)
 	tname   string // the token's name (a faction's: the faction)
 	faction string // the faction it is paid in ("": an item, token)
+	marks   bool   // paid from the character's Heirloom Marks balance
 }
 
 // priceWords is a ware's price in words: "36 Holly Tokens", "125 faction".
@@ -315,6 +318,12 @@ func (t *TokenShop) stock(shop string) ([]tokenWare, error) {
 			log.Printf("TokenShop: tokenshop row %d (%s) sells record %d, which is no item (%v): not offered", r.ID, r.Shop, r.PatternID, err)
 			continue
 		}
+		if strings.EqualFold(strings.TrimSpace(r.Token), database.HeirloomMarksShopToken) {
+			if HeirloomMarksOn() && pat.MaxStack == 1 {
+				out = append(out, tokenWare{row: r, pat: *pat, tname: "Heirloom Mark", marks: true})
+			}
+			continue
+		}
 		if f := factionOfToken(r.Token); f != "" {
 			out = append(out, tokenWare{row: r, pat: *pat, tname: f, faction: f})
 			continue
@@ -363,6 +372,14 @@ func (t *TokenShop) Talk(sess *session.Session, p *entity.Player, npc *entity.NP
 // have is what the player has to pay a ware's price with: the token's count
 // in its pack, or its standing above factionShopFloor with the ware's faction.
 func (t *TokenShop) have(sess *session.Session, p *entity.Player, w tokenWare) int {
+	if w.marks {
+		row, err := t.db.CharMarksOf(p.CharServerID)
+		if err != nil {
+			log.Printf("TokenShop: %s's marks: %v", p.Name, err)
+			return 0
+		}
+		return row.Marks
+	}
 	if w.faction != "" {
 		s, ok := t.gw.Standing(sess, w.faction)
 		if !ok {
@@ -489,7 +506,14 @@ func (t *TokenShop) refusal(sess *session.Session, p *entity.Player, w tokenWare
 	name := strings.TrimSpace(w.pat.ItemName)
 	var held []database.CharInventoryEntry
 	var have int
-	if w.faction != "" {
+	if w.marks {
+		if !HeirloomMarksOn() {
+			return tokenShopClosed, nil, 0
+		}
+		if have = t.have(sess, p, w); have < w.row.Price {
+			return fmt.Sprintf(tokenShopShort, theItem(name), w.priceWords(w.row.Price), have, w.row.Price-have), nil, have
+		}
+	} else if w.faction != "" {
 		if !t.gw.FactionKnown(w.faction) {
 			return tokenShopClosed, nil, 0
 		}
@@ -540,7 +564,7 @@ func (t *TokenShop) buy(sess *session.Session, p *entity.Player, asked tokenWare
 			w = &wares[i]
 		}
 	}
-	if w == nil || w.row.Price != asked.row.Price || w.row.PatternID != asked.row.PatternID || w.token != asked.token || w.faction != asked.faction {
+	if w == nil || w.row.Price != asked.row.Price || w.row.PatternID != asked.row.PatternID || w.token != asked.token || w.faction != asked.faction || w.marks != asked.marks {
 		t.say(sess, speaker, tokenShopChanged)
 		return
 	}
@@ -549,6 +573,10 @@ func (t *TokenShop) buy(sess *session.Session, p *entity.Player, asked tokenWare
 	if why != "" {
 		log.Printf("TokenShop: %s may not buy %q from %s (%d %s): %s", p.Name, name, speaker, w.row.Price, w.tname, why)
 		t.say(sess, speaker, why)
+		return
+	}
+	if w.marks {
+		t.buyForMarks(sess, p, *w, speaker)
 		return
 	}
 	if w.faction != "" {
@@ -567,6 +595,29 @@ func (t *TokenShop) buy(sess *session.Session, p *entity.Player, asked tokenWare
 		log.Printf("TokenShop: %s's purchase of %q not logged in tokenshop_purchases: %v", p.Name, name, err)
 	}
 	t.say(sess, speaker, fmt.Sprintf(tokenShopBought, theItem(name), reagentWords(w.tname, have-w.row.Price)))
+}
+
+func (t *TokenShop) buyForMarks(sess *session.Session, p *entity.Player, w tokenWare, speaker string) {
+	item, left, err := t.inv.BuyChargedMarkShopItem(w.row.ID, database.TokenShopPurchase{
+		At: t.now(), ServerID: p.CharServerID, CharName: p.Name, AccountID: sess.AccountID(),
+		Shop: w.row.Shop, PatternID: w.pat.PatternID, Item: w.pat.ItemName, Price: w.row.Price, Token: w.row.Token,
+	})
+	name := strings.TrimSpace(w.pat.ItemName)
+	switch {
+	case errors.Is(err, database.ErrMarkShopStockChanged):
+		t.say(sess, speaker, tokenShopChanged)
+	case errors.Is(err, database.ErrNotEnoughMarks):
+		t.say(sess, speaker, fmt.Sprintf(tokenShopShort, theItem(name), w.priceWords(w.row.Price), left, w.row.Price-left))
+	case err != nil:
+		log.Printf("TokenShop: %s's purchase of %q for marks: %v", p.Name, name, err)
+		t.say(sess, speaker, "I could not hand it over. You keep your Heirloom Marks.")
+	default:
+		item.Pattern = w.pat
+		key, _ := sessionInvList(sess).add(item.ItemID, w.pat.PatternID, item.StackLeft, w.pat.MaxStack)
+		out := wireRecord(item)
+		queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(&out, key, readsCapes(sess)))
+		t.say(sess, speaker, fmt.Sprintf(tokenShopBought, theItem(name), reagentWords(w.tname, left)))
+	}
 }
 
 // buyForFaction is a Yes to a ware paid in standing, its refusal checked: the

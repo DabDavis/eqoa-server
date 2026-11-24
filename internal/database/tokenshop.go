@@ -1,10 +1,17 @@
 package database
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 )
+
+// HeirloomMarksShopToken names stock paid from charmarks rather than the pack.
+const HeirloomMarksShopToken = "currency:heirloom-marks"
+
+var ErrMarkShopStockChanged = errors.New("the marks shop's stock is no longer available")
 
 // tokenshop.go — shops paid in an item, not in tunar (the owner, 2026-11-16:
 // "add Toy Shoppe close to the tree by Weapon Enchanter. The NPC will sell our
@@ -89,7 +96,7 @@ type TokenShopRow struct {
 	Shop      string
 	PatternID int
 	Price     int
-	Token     string // "": the season's token
+	Token     string // "": the season's token; HeirloomMarksShopToken: the marks balance
 	Says      string
 	Sort      int
 }
@@ -149,10 +156,52 @@ type TokenShopPurchase struct {
 
 // LogTokenShopPurchase keeps a purchase.
 func (db *SQLiteDB) LogTokenShopPurchase(p TokenShopPurchase) error {
-	_, err := db.Exec(`INSERT INTO tokenshop_purchases (at, serverid, charname, accountid, shop, patternid, item, price, token)
+	return logTokenShopPurchase(db.Exec, p)
+}
+
+func logTokenShopPurchase(exec func(string, ...any) (sql.Result, error), p TokenShopPurchase) error {
+	_, err := exec(`INSERT INTO tokenshop_purchases (at, serverid, charname, accountid, shop, patternid, item, price, token)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		p.At.UTC().Format(time.RFC3339), p.ServerID, p.CharName, p.AccountID, p.Shop, p.PatternID, p.Item, p.Price, p.Token)
 	return err
+}
+
+// BuyChargedMarkShopItem gives one charged item. Stock, season, marks, the
+// inventory row and both logs are checked or written in one transaction.
+// The caller holds the inventory list and checks pack space before calling.
+func (s *InventoryStore) BuyChargedMarkShopItem(stockID int, p TokenShopPurchase) (CharInventoryEntry, int, error) {
+	var item CharInventoryEntry
+	tx, err := s.db.Begin()
+	if err != nil {
+		return item, 0, err
+	}
+	defer tx.Rollback()
+	err = tx.QueryRow(`SELECT p.maxHP, e.charges FROM tokenshop t
+		JOIN itempattern p ON p.patternid = t.patternid JOIN itemeffect e ON e.patternid = t.patternid
+		WHERE t.id = ? AND t.shop = ? AND t.patternid = ? AND p.itemname = ?
+		AND t.price = ? AND t.price > 0 AND trim(t.token) = ? COLLATE NOCASE AND p.maxstack = 1 AND e.charges > 0
+		AND NOT EXISTS (SELECT 1 FROM npcseason n LEFT JOIN gmseasons g ON g.name = n.season
+			WHERE n.name = lower(trim(t.shop)) AND trim(n.season) <> '' AND coalesce(g.active, 0) = 0)`,
+		stockID, p.Shop, p.PatternID, p.Item, p.Price, HeirloomMarksShopToken).Scan(&item.RemainHP, &item.Charges)
+	if errors.Is(err, sql.ErrNoRows) {
+		return item, 0, ErrMarkShopStockChanged
+	}
+	if err != nil {
+		return item, 0, err
+	}
+	marks, err := spendMarksTx(tx, p.ServerID, p.Price, p.Item, nil, p.At)
+	if err != nil {
+		return item, marks.Marks, err
+	}
+	item.StackLeft, item.EquipLoc, item.Location = 1, -1, LocPack
+	item.ItemID, err = addCharItem(tx.Exec, p.ServerID, p.PatternID, item.StackLeft, item.RemainHP, item.Charges, item.Location)
+	if err != nil {
+		return item, 0, err
+	}
+	if err = logTokenShopPurchase(tx.Exec, p); err != nil {
+		return item, 0, err
+	}
+	return item, marks.Marks, tx.Commit()
 }
 
 // ItemOutfitRow is an item's outfit as itemoutfit holds it: each armour

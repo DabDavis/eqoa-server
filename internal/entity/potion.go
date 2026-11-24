@@ -536,6 +536,10 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 	}
 	spell := pe.castSpell()
 	if pe.Thrown() {
+		thanksgivingCharm := pe.IsYellingAtCousins()
+		if thanksgivingCharm && (w.petStateLocked(p) != nil || w.sidePetOfLocked(p)) {
+			return charmHavePet, nil, nil
+		}
 		targets, refusal := w.castTargetsLocked(sess, p, &spell, targetObjectID)
 		if refusal != "" {
 			return refusal, nil, nil
@@ -556,6 +560,15 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 			npc := w.NPCs[targets[0]]
 			if npc == nil {
 				return charmCannot, nil, nil
+			}
+			if thanksgivingCharm {
+				if why := w.thanksgivingCharmRefusalLocked(npc, &spell); why != "" {
+					return why, nil, nil
+				}
+				w.broadcastCastLocked(p, npc.ServerID, 0, spell.visual())
+				w.charmLocked(p, sess, npc, &spell, now)
+				w.potionUsedLocked(p, &pe, now)
+				return "", nil, nil
 			}
 			if spell.Def.CharmByCon {
 				// a charm by consider colour (charmcon.go): the Toy Shoppe's

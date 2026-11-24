@@ -169,7 +169,9 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 		if row.Charges <= 1 && pe.Def.Charms() {
 			// a charm item's last charge takes it (the Puppet Strings: the
 			// owner, 2026-11-17, "the charm has 10 charges then disappears")
-			SendClientMessage(sess, fmt.Sprintf(charmItemSnaps, strings.TrimSpace(row.Pattern.ItemName)))
+			if !pe.IsYellingAtCousins() {
+				SendClientMessage(sess, fmt.Sprintf(charmItemSnaps, strings.TrimSpace(row.Pattern.ItemName)))
+			}
 			log.Printf("Potion: %s's %q: its last charge, the item gone", player.Name, row.Pattern.ItemName)
 		}
 	default:

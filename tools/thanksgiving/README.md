@@ -63,6 +63,15 @@ python3 tools/thanksgiving/install.py /path/to/heirloom.db --apply
 
 Load the staged data using the patched Heirloom server. Fire GM trigger **341, Thanksgiving on**, to open the court and quests. Trigger **340** belongs to the players' west-gate crossing. Fire **342, Thanksgiving off**, at the chosen end of the event. Closing the season ends active encounters, removes the field armor from inventories and banks, and blocks late pickups from existing corpses. Characters retain their Stuffing and their earned clubs. Only the tree and its Santa are borrowed from Christmas when that season is closed.
 
+### Quartermaster Giblet's Heirloom Marks stock
+
+With the Thanksgiving content already staged and the server built with marks shop support, preview and install the two items with `install_mark_rewards.py`. This works with the season open or closed. It adds two item patterns, two uses and two stock entries in one audited transaction. `--undo` is available before the items enter circulation. Closing Thanksgiving stops sales. Purchased charges remain usable.
+
+```sh
+python3 tools/thanksgiving/install_mark_rewards.py --db /path/to/heirloom-copy.db
+python3 tools/thanksgiving/install_mark_rewards.py --db /path/to/heirloom.db --apply
+```
+
 The handoff includes the event-specific server tests, selected content definitions and test results. From the patched checkout with the ZIP extracted in the parent directory, reproduce the checks with the following commands.
 
 ```sh

@@ -104,6 +104,9 @@ import (
 // player is one cast on a friend or a self spell: Reckless Force's line reads
 // as harmful, "Decrease AGI by 10", and is a buff.)
 func BuffLine(s *CastSpell) string {
+	if isDrunkUncleProtection(s.SpellID, s.Name) {
+		return "" // recasting the same effect refreshes it by spell ID
+	}
 	d := &s.Def
 	if s.RecastGroup != "" && !d.Summons() && !d.Charms() {
 		bearer := "player"

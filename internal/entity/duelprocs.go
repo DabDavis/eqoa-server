@@ -77,6 +77,9 @@ func (w *World) duelAnswerLocked(d *Duel, t *Player, m duelMark, now time.Time) 
 	if len(t.Effects) > 0 {
 		hits, _ := shieldAnswers(t.Effects, t.Level, m.level(), 0, func() bool { return false }, now, procIntn)
 		for _, h := range hits {
+			if h.heal > 0 {
+				w.procHealLocked(t, sess, t, h.heal)
+			}
 			w.broadcastCastLocked(t, m.id(), 0, fxShieldHit)
 			log.Printf("%s: %s's %q answers %s for %d (proc %v)", d.tag(), t.Name, h.name, m.name(), h.n, h.proc)
 			damage := m.pet.duelElementalHit(h.n, h.resist, now)

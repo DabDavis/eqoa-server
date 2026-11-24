@@ -1,0 +1,30 @@
+{
+  "shop": "Quartermaster Giblet",
+  "spawn": 197603,
+  "season": "Thanksgiving",
+  "source": "thanksgiving-2026-marks",
+  "token": "currency:heirloom-marks",
+  "price": 30,
+  "rewards": [
+    {
+      "patternid": 1000813,
+      "donor": 50023,
+      "donor_name": "Watery Draught",
+      "name": "Drunk uncle protection",
+      "description": "We really should stop bringing whiskey to this thing..",
+      "says": "A stackable heal DS buff with a cha mod, 3 charges",
+      "line": "Self, Damage Shield 25 ; Increase 10% based on CHA, No Recharge, 15min",
+      "charges": 3
+    },
+    {
+      "patternid": 1000814,
+      "donor": 716914,
+      "donor_name": "Toymaker's Puppet Strings",
+      "name": "Yelling at cousins",
+      "description": "Why argue with them this season when you could just charm them?",
+      "says": "1 charm charm, up to level 55 all/all",
+      "line": "Target, Charm up to level 55, No Recharge, 2hr",
+      "charges": 1
+    }
+  ]
+}

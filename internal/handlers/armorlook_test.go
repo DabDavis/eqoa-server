@@ -145,8 +145,11 @@ func TestTheDyerDyesTheTrim(t *testing.T) {
 	for _, capes := range []bool{false, true} {
 		entity.SetCapes(capes)
 		menu := dyerMenu()
-		if len(menu) != maxDialogOptions || len(menu) != 6 || menu[2].label != "Armor trim" {
-			t.Fatalf("capes %v: %d answers, third %q", capes, len(menu), menu[2].label)
+		if len(menu) != 6 || len(menu) > maxDialogOptions {
+			t.Fatalf("capes %v: %d answers, want six within the dialog limit", capes, len(menu))
+		}
+		if menu[2].label != "Armor trim" {
+			t.Fatalf("capes %v: third answer %q", capes, menu[2].label)
 		}
 		if off := menu[len(menu)-1]; off.label != "Remove all dyes" || off.sub != nil || off.slots != nil {
 			t.Fatalf("capes %v: the last answer %+v, want Remove all dyes", capes, off)

@@ -88,15 +88,26 @@ func (c *tokenCache) touch(id int64, ip string) {
 
 // issueToken makes a token and keeps its hash. ttl 0: it never expires.
 func (s *Server) issueToken(accountID int, name, kind, scope, client string, ttl time.Duration, parent int64) (string, int64, error) {
+	return s.insertToken(s.d.DB, accountID, name, kind, scope, client, ttl, parent)
+}
+
+// Both the database and a transaction can persist a token. OAuth uses one
+// transaction for the access token, its refresh token and the old pair.
+type tokenWriter interface {
+	QueryRow(string, ...any) *sql.Row
+	Exec(string, ...any) (sql.Result, error)
+}
+
+func (s *Server) insertToken(db tokenWriter, accountID int, name, kind, scope, client string, ttl time.Duration, parent int64) (string, int64, error) {
 	if scope == scopeAdmin {
 		// every way to a token comes here: whatever a route checked, the admin
 		// scope is never written for an account below an admin (a tester, a
 		// storyteller)
-		acc, err := s.accountByID(accountID)
-		if err != nil {
+		var level int
+		if err := db.QueryRow(`SELECT COALESCE(acctlevel, 0) FROM accountinfo WHERE accountid = ?`, accountID).Scan(&level); err != nil {
 			return "", 0, err
 		}
-		if acc.Level < s.cfg.AdminLevel {
+		if level < s.cfg.AdminLevel {
 			return "", 0, errors.New("the admin scope is an admin's")
 		}
 	}
@@ -109,14 +120,14 @@ func (s *Server) issueToken(accountID int, name, kind, scope, client string, ttl
 	if parent != 0 {
 		par = parent
 	}
-	res, err := s.d.DB.Exec(`INSERT INTO gm_tokens (accountid, name, kind, hash, prefix, scope, client, parent, created, expires)
+	res, err := db.Exec(`INSERT INTO gm_tokens (accountid, name, kind, hash, prefix, scope, client, parent, created, expires)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		accountID, name, kind, hashToken(value), value[:len(tokenPrefixes[kind])+6], scope, client, par, now(), expires)
 	if err != nil {
 		return "", 0, err
 	}
-	id, _ := res.LastInsertId()
-	return value, id, nil
+	id, err := res.LastInsertId()
+	return value, id, err
 }
 
 // lookupToken finds a live token of one of the kinds by its value.

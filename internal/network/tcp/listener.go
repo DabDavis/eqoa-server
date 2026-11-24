@@ -167,6 +167,8 @@ func (l *Listener) acceptLoop() {
 		go func(c net.Conn) {
 			defer l.wg.Done()
 			defer c.Close()
+			stop := context.AfterFunc(l.ctx, func() { c.Close() })
+			defer stop()
 
 			if l.handler != nil {
 				l.handler.HandleConnection(c)
@@ -219,7 +221,7 @@ type AuthServer struct {
 	exempt    []netip.Prefix
 	// clientIP, when set, gives the client address behind a source: a
 	// relayed browser player's page address (SetRelay); nil when unknown.
-	clientIP func(ip net.IP, port int) net.IP
+	clientIP func(network string, ip net.IP, port int) net.IP
 	// relays are the web relay's source addresses (SetRelay), and browserMost
 	// the most of an account's characters in the game through it, browserLive
 	// counting them (SetBrowserLimit).
@@ -340,12 +342,12 @@ func (s *AuthServer) AllowAutoRegister() bool {
 // sees a browser player's own address rather than the relay's, which every
 // browser player shares. A relayed source the relay cannot name is unknown,
 // and the address rule passes it.
-func (s *AuthServer) SetRelay(addrs []net.IP, lookup func(port int) (net.IP, bool)) {
+func (s *AuthServer) SetRelay(addrs []net.IP, lookup func(network string, port int) (net.IP, bool)) {
 	s.relays = addrs
-	s.clientIP = func(ip net.IP, port int) net.IP {
+	s.clientIP = func(network string, ip net.IP, port int) net.IP {
 		for _, a := range addrs {
 			if a.Equal(ip) {
-				if c, ok := lookup(port); ok {
+				if c, ok := lookup(network, port); ok {
 					return c
 				}
 				return nil
@@ -357,11 +359,11 @@ func (s *AuthServer) SetRelay(addrs []net.IP, lookup func(port int) (net.IP, boo
 
 // RelayLookup asks wsrelay's lookup listener (base: "http://127.0.0.1:8792")
 // for the client behind one of its local ports.
-func RelayLookup(base string) func(port int) (net.IP, bool) {
+func RelayLookup(base string) func(network string, port int) (net.IP, bool) {
 	client := &http.Client{Timeout: time.Second}
 	base = strings.TrimRight(base, "/")
-	return func(port int) (net.IP, bool) {
-		resp, err := client.Get(fmt.Sprintf("%s/client?port=%d", base, port))
+	return func(network string, port int) (net.IP, bool) {
+		resp, err := client.Get(fmt.Sprintf("%s/client?port=%d&network=%s", base, port, network))
 		if err != nil {
 			return nil, false
 		}
@@ -458,28 +460,21 @@ func (s *AuthServer) HandleConnection(conn net.Conn) {
 	loggedIn := 0
 	for {
 		conn.SetReadDeadline(time.Now().Add(authIdle))
-		n, err := conn.Read(buf)
-		if err != nil {
-			log.Printf("Auth: client %s disconnected", conn.RemoteAddr())
+		// TCP is a byte stream. Read exactly one self-inclusive frame,
+		// leaving the next header on the connection.
+		if _, err := io.ReadFull(conn, buf[:4]); err != nil {
 			return
 		}
-
-		if n < 8 {
-			log.Printf("Auth: packet too short from %s (%d bytes)", conn.RemoteAddr(), n)
+		length := binary.BigEndian.Uint32(buf[:4])
+		if length < 8 || length > uint32(len(buf)) {
+			log.Printf("Auth: invalid frame length %d from %s", length, conn.RemoteAddr())
 			return
 		}
-
-		data := buf[:n]
-
-		// Packet format: [4 length BE self-inclusive] [4 opcode BE] [payload]
-		pktLen := int(binary.BigEndian.Uint32(data[0:4]))
-		if pktLen != n {
-			log.Printf("Auth: length mismatch from %s (header=%d, received=%d)", conn.RemoteAddr(), pktLen, n)
+		if _, err := io.ReadFull(conn, buf[4:length]); err != nil {
 			return
 		}
-
-		opcode := binary.BigEndian.Uint32(data[4:8])
-		payload := data[8:] // everything after length + opcode
+		opcode := binary.BigEndian.Uint32(buf[4:8])
+		payload := buf[8:length]
 
 		// the client's address, a relayed player's page's (asked of the relay)
 		who := func() (ip net.IP, relayed bool) {
@@ -487,7 +482,7 @@ func (s *AuthServer) HandleConnection(conn net.Conn) {
 				ip = a.IP
 				relayed = s.Relayed(a.IP)
 				if s.clientIP != nil {
-					ip = s.clientIP(a.IP, a.Port)
+					ip = s.clientIP(a.Network(), a.IP, a.Port)
 				}
 			}
 			return ip, relayed
@@ -591,7 +586,8 @@ func (s *AuthServer) handleLoginVia(payload []byte, ip net.IP, relayed bool) []b
 			return s.buildLoginRefusedResponse(0, serverBusy)
 		}
 	}
-	accountID, ok, registered := s.authenticate(username, payload[40:72])
+	credential, ok, registered := s.authenticate(username, payload[40:72])
+	accountID := credential.AccountID
 	if release != nil {
 		release()
 	}
@@ -625,7 +621,7 @@ func (s *AuthServer) handleLoginVia(payload []byte, ip net.IP, relayed bool) []b
 		}
 		var ipOf func(*net.UDPAddr) net.IP
 		if s.clientIP != nil {
-			ipOf = func(a *net.UDPAddr) net.IP { return s.clientIP(a.IP, a.Port) }
+			ipOf = func(a *net.UDPAddr) net.IP { return s.clientIP(a.Network(), a.IP, a.Port) }
 		}
 		switch s.liveLogin(accountID, checkIP, ipOf) {
 		case "account":
@@ -652,7 +648,7 @@ func (s *AuthServer) handleLoginVia(payload []byte, ip net.IP, relayed bool) []b
 	if s.tickets != nil {
 		// authenticate decrypted this same field to get here
 		if password, err := decryptPassword(payload[40:72]); err == nil {
-			s.tickets.Grant(username, accountID, password)
+			s.tickets.Grant(username, password, credential)
 		}
 	}
 
@@ -682,16 +678,16 @@ func (s *AuthServer) handleLoginVia(payload []byte, ip net.IP, relayed bool) []b
 // Every failure returns the same refusal to the client and logs the reason
 // server-side: an unknown username and a wrong password are indistinguishable
 // on the wire, so the auth port cannot be used to enumerate account names.
-func (s *AuthServer) authenticate(username string, passwordField []byte) (int, bool, bool) {
+func (s *AuthServer) authenticate(username string, passwordField []byte) (auth.LoginCredential, bool, bool) {
 	if s.store == nil {
 		log.Printf("Auth: REFUSING login for '%s' — no account store configured", username)
-		return 0, false, false
+		return auth.LoginCredential{}, false, false
 	}
 
 	password, err := decryptPassword(passwordField)
 	if err != nil {
 		log.Printf("Auth: login for '%s' rejected — %v", username, err)
-		return 0, false, false
+		return auth.LoginCredential{}, false, false
 	}
 	return s.checkPassword(username, password, s.autoRegister.Load())
 }
@@ -699,7 +695,7 @@ func (s *AuthServer) authenticate(username string, passwordField []byte) (int, b
 // checkPassword checks password against the account's stored credential:
 // authenticate's after the decryption, and CheckUDPPassword's with register
 // false (an unknown account, or one with no password, is then refused).
-func (s *AuthServer) checkPassword(username, password string, register bool) (int, bool, bool) {
+func (s *AuthServer) checkPassword(username, password string, register bool) (auth.LoginCredential, bool, bool) {
 	cost := s.cfg.Auth.BCryptCost
 	autoRegister := register
 
@@ -707,72 +703,77 @@ func (s *AuthServer) checkPassword(username, password string, register bool) (in
 	if err != nil {
 		if !errors.Is(err, database.ErrAccountNotFound) {
 			log.Printf("Auth: account lookup failed for '%s': %v", username, err)
-			return 0, false, false
+			return auth.LoginCredential{}, false, false
 		}
 		if !autoRegister {
 			log.Printf("Auth: login for '%s' rejected — no such account (auto-register disabled)", username)
-			return 0, false, false
+			return auth.LoginCredential{}, false, false
 		}
 		hash, err := auth.HashPassword(password, cost)
 		if err != nil {
 			log.Printf("Auth: could not hash password for new account '%s': %v", username, err)
-			return 0, false, false
+			return auth.LoginCredential{}, false, false
 		}
 		created, err := s.store.Create(username, hash)
 		if err != nil {
 			log.Printf("Auth: could not create account '%s': %v", username, err)
-			return 0, false, false
+			return auth.LoginCredential{}, false, false
 		}
 		log.Printf("Auth: registered new account '%s' (ID: %d) on first login", username, created.ID)
-		return created.ID, true, true
+		return auth.LoginCredential{AccountID: created.ID, PasswordHash: hash}, true, true
 	}
 
 	if account.Banned {
 		log.Printf("Auth: login for '%s' (ID: %d) rejected — account is banned", username, account.ID)
-		return account.ID, false, false
+		return auth.LoginCredential{AccountID: account.ID}, false, false
 	}
 
 	switch auth.VerifyPassword(account.PasswordHash, password) {
 	case auth.Accepted:
 		s.store.UpdateLastLogin(account.ID)
-		return account.ID, true, false
+		return auth.LoginCredential{AccountID: account.ID, PasswordHash: account.PasswordHash}, true, false
 
-	case auth.AcceptedNeedsRehash:
-		// The stored value was a legacy plaintext password. It matched, so
-		// upgrade it in place -- this is the only moment the plaintext is known.
-		if hash, err := auth.HashPassword(password, cost); err == nil {
-			if err := s.store.UpdatePasswordHash(account.ID, hash); err != nil {
-				log.Printf("Auth: could not upgrade stored password for '%s': %v", username, err)
-			} else {
-				log.Printf("Auth: upgraded '%s' from a plaintext password to bcrypt", username)
-			}
+	case auth.AcceptedNeedsRehash, auth.NoCredential:
+		if account.PasswordHash == "" && !autoRegister {
+			log.Printf("Auth: account %q has no password and registration is disabled", username)
+			return auth.LoginCredential{AccountID: account.ID}, false, false
+		}
+		if !upgradePassword(s.store, account, password, cost) {
+			return auth.LoginCredential{AccountID: account.ID}, false, false
 		}
 		s.store.UpdateLastLogin(account.ID)
-		return account.ID, true, false
-
-	case auth.NoCredential:
-		// Created by the UDP path before password checking existed, so it has
-		// no password at all. Adopt the one presented now, or refuse.
-		if !autoRegister {
-			log.Printf("Auth: login for '%s' rejected — account has no password set "+
-				"and auto-register is disabled; set one in auth.accounts", username)
-			return account.ID, false, false
-		}
-		if hash, err := auth.HashPassword(password, cost); err == nil {
-			if err := s.store.UpdatePasswordHash(account.ID, hash); err != nil {
-				log.Printf("Auth: could not set initial password for '%s': %v", username, err)
-				return account.ID, false, false
-			}
-			log.Printf("Auth: adopted a password for '%s' (ID: %d), which had none set",
-				username, account.ID)
-		}
-		s.store.UpdateLastLogin(account.ID)
-		return account.ID, true, false
+		return auth.LoginCredential{AccountID: account.ID, PasswordHash: account.PasswordHash}, true, false
 
 	default:
 		log.Printf("Auth: login for '%s' (ID: %d) rejected — wrong password", username, account.ID)
-		return account.ID, false, false
+		return auth.LoginCredential{AccountID: account.ID}, false, false
 	}
+}
+
+// upgradePassword migrates a legacy credential only while it still matches
+// the one the caller checked. Two simultaneous sign-ins with the same
+// password may both succeed; a reset or a different first password wins.
+func upgradePassword(store *database.SQLiteAccountStore, account *database.AccountRecord, password string, cost int) bool {
+	hash, err := auth.HashPassword(password, cost)
+	if err != nil {
+		log.Printf("Auth: could not hash password for account %d: %v", account.ID, err)
+		return false
+	}
+	changed, err := store.CompareAndSwapPasswordHash(account.ID, account.PasswordHash, hash)
+	if err != nil {
+		log.Printf("Auth: could not upgrade password for account %d: %v", account.ID, err)
+		return false
+	}
+	if changed {
+		account.PasswordHash = hash
+		return true
+	}
+	current, err := store.GetByUsername(account.Username)
+	if err != nil || current.ID != account.ID || current.Banned || auth.VerifyPassword(current.PasswordHash, password) != auth.Accepted {
+		return false
+	}
+	account.PasswordHash = current.PasswordHash
+	return true
 }
 
 // UDPRefusedAddress is CheckUDPPassword's refusal for another account playing
@@ -799,7 +800,7 @@ func (s *AuthServer) CheckUDPPassword(username, password string, from *net.UDPAd
 	if from != nil {
 		ip = from.IP
 		if s.clientIP != nil {
-			ip = s.clientIP(from.IP, from.Port)
+			ip = s.clientIP(from.Network(), from.IP, from.Port)
 		}
 	}
 	addr := ""
@@ -817,20 +818,20 @@ func (s *AuthServer) CheckUDPPassword(username, password string, from *net.UDPAd
 			return 0, "password"
 		}
 		s.accountUpToDate(username)
-		accountID, ok, _ := s.checkPassword(username, password, false)
+		credential, ok, _ := s.checkPassword(username, password, false)
 		release()
 		if !ok {
-			return accountID, "password"
+			return credential.AccountID, "password"
 		}
 		s.limiter.Succeed(addr, username)
-		return s.udpLoginStands(username, password, accountID, ip)
+		return s.udpLoginStands(username, password, credential, ip)
 	}
 	s.accountUpToDate(username)
-	accountID, ok, _ := s.checkPassword(username, password, false)
+	credential, ok, _ := s.checkPassword(username, password, false)
 	if !ok {
-		return accountID, "password"
+		return credential.AccountID, "password"
 	}
-	return s.udpLoginStands(username, password, accountID, ip)
+	return s.udpLoginStands(username, password, credential, ip)
 }
 
 // accountUpToDate is SetAccountRefresh's refresh, for a sign-in the guessing limit
@@ -846,7 +847,8 @@ func (s *AuthServer) accountUpToDate(username string) {
 
 // udpLoginStands is CheckUDPPassword after the password: the address rule,
 // then the ticket.
-func (s *AuthServer) udpLoginStands(username, password string, accountID int, ip net.IP) (int, string) {
+func (s *AuthServer) udpLoginStands(username, password string, credential auth.LoginCredential, ip net.IP) (int, string) {
+	accountID := credential.AccountID
 	if s.liveLogin != nil {
 		checkIP := ip
 		if ip != nil && s.exemptIP(ip) {
@@ -854,7 +856,7 @@ func (s *AuthServer) udpLoginStands(username, password string, accountID int, ip
 		}
 		var ipOf func(*net.UDPAddr) net.IP
 		if s.clientIP != nil {
-			ipOf = func(a *net.UDPAddr) net.IP { return s.clientIP(a.IP, a.Port) }
+			ipOf = func(a *net.UDPAddr) net.IP { return s.clientIP(a.Network(), a.IP, a.Port) }
 		}
 		if s.liveLogin(accountID, checkIP, ipOf) == UDPRefusedAddress {
 			log.Printf("Auth: UDP login for '%s' (ID: %d) from %v refused: that address already has a session in the game", username, accountID, ip)
@@ -862,7 +864,7 @@ func (s *AuthServer) udpLoginStands(username, password string, accountID int, ip
 		}
 	}
 	if s.tickets != nil {
-		s.tickets.Grant(username, accountID, password)
+		s.tickets.Grant(username, password, credential)
 	}
 	log.Printf("Auth: UDP login for '%s' (ID: %d) from %v by its token's password", username, accountID, ip)
 	return accountID, ""

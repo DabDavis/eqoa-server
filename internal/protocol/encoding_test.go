@@ -3,6 +3,8 @@ package protocol
 import (
 	"bytes"
 	"testing"
+
+	"github.com/eqoa/pkg/pkg/buffer"
 )
 
 func TestCalculateCRC(t *testing.T) {
@@ -27,6 +29,13 @@ func TestCalculateCRC(t *testing.T) {
 	emptyCRC := CalculateCRC([]byte{})
 	if emptyCRC == 0 {
 		t.Errorf("Empty data CRC should not be 0")
+	}
+}
+
+func TestWireCRC(t *testing.T) {
+	// The IEEE check value of "123456789" is 0xcbf43926.
+	if got := CalculateCRC([]byte("123456789")); got != 0x25fa580a {
+		t.Fatalf("wire CRC = %#08x", got)
 	}
 }
 
@@ -222,8 +231,7 @@ func BenchmarkCalculateCRC(b *testing.B) {
 		data[i] = byte(i)
 	}
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		CalculateCRC(data)
 	}
 }
@@ -243,5 +251,16 @@ func BenchmarkDecode7BitUInt64(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		Decode7BitUInt64(data)
+	}
+}
+
+func TestWideStringCountsSurrogatePairs(t *testing.T) {
+	w := buffer.NewWriterSize(16)
+	if err := WriteWideString(w, "A🌙"); err != nil {
+		t.Fatal(err)
+	}
+	want := []byte{3, 0, 0, 0, 0x41, 0, 0x3c, 0xd8, 0x19, 0xdf}
+	if !bytes.Equal(w.Bytes(), want) {
+		t.Fatalf("got %x, want %x", w.Bytes(), want)
 	}
 }

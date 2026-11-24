@@ -24,19 +24,26 @@ import (
 // password. A ticket that answered to the username alone let anyone who knew it
 // sign in within ttl of the account's real login.
 type TicketStore struct {
-	mu      sync.Mutex
-	granted map[string]ticket
-	ttl     time.Duration
-	salt    [32]byte // this run's: a ticket's proof means nothing outside it
+	mu        sync.Mutex
+	granted   map[string]ticket
+	ttl       time.Duration
+	nextSweep time.Time
+	salt      [32]byte // this run's: a ticket's proof means nothing outside it
 
 	// now is swappable for tests. Nil means time.Now.
 	now func() time.Time
 }
 
+// LoginCredential identifies the database credential that earned a ticket.
+type LoginCredential struct {
+	AccountID    int
+	PasswordHash string
+}
+
 type ticket struct {
-	accountID int
-	expires   time.Time
-	proof     [sha256.Size]byte
+	credential LoginCredential
+	expires    time.Time
+	proof      [sha256.Size]byte
 }
 
 // NewTicketStore creates a store whose tickets live for ttl. A non-positive ttl
@@ -67,7 +74,7 @@ func (s *TicketStore) clock() time.Time {
 }
 
 // Grant records a successful login for username with password.
-func (s *TicketStore) Grant(username string, accountID int, password string) {
+func (s *TicketStore) Grant(username, password string, credential LoginCredential) {
 	key := normalize(username)
 	if key == "" {
 		return
@@ -77,11 +84,14 @@ func (s *TicketStore) Grant(username string, accountID int, password string) {
 	defer s.mu.Unlock()
 
 	now := s.clock()
-	s.granted[key] = ticket{accountID: accountID, expires: now.Add(s.ttl), proof: s.proofOf(password)}
+	s.granted[key] = ticket{credential: credential, expires: now.Add(s.ttl), proof: s.proofOf(password)}
 
-	// Opportunistic sweep. The map is bounded by the number of distinct
-	// usernames seen within one TTL, but a long-lived server with churn should
-	// not accumulate dead entries forever.
+	// Lookup checks expiration independently. Sweep at most once per TTL so
+	// a burst of successful sign-ins does not scan the whole map for each.
+	if now.Before(s.nextSweep) {
+		return
+	}
+	s.nextSweep = now.Add(s.ttl)
 	for k, t := range s.granted {
 		if now.After(t.expires) {
 			delete(s.granted, k)
@@ -110,16 +120,16 @@ func (s *TicketStore) Valid(username string) (int, bool) {
 		delete(s.granted, key)
 		return 0, false
 	}
-	return t.accountID, true
+	return t.credential.AccountID, true
 }
 
 // ValidFor reports whether username holds an unexpired ticket earned with this
-// password, and the account ID it was granted for.
-func (s *TicketStore) ValidFor(username, password string) (int, bool) {
+// password, and the credential to match against the current account row.
+func (s *TicketStore) ValidFor(username, password string) (LoginCredential, bool) {
 	proof := s.proofOf(password)
 	key := normalize(username)
 	if key == "" {
-		return 0, false
+		return LoginCredential{}, false
 	}
 
 	s.mu.Lock()
@@ -127,16 +137,16 @@ func (s *TicketStore) ValidFor(username, password string) (int, bool) {
 
 	t, ok := s.granted[key]
 	if !ok {
-		return 0, false
+		return LoginCredential{}, false
 	}
 	if s.clock().After(t.expires) {
 		delete(s.granted, key)
-		return 0, false
+		return LoginCredential{}, false
 	}
 	if subtle.ConstantTimeCompare(t.proof[:], proof[:]) != 1 {
-		return 0, false
+		return LoginCredential{}, false
 	}
-	return t.accountID, true
+	return t.credential, true
 }
 
 // Revoke drops any ticket for username.

@@ -657,3 +657,40 @@ func TestPingTimeoutOutlastsTheInterval(t *testing.T) {
 		t.Fatalf("no reason in the close line: %q", logs.lines)
 	}
 }
+
+func header(ap netip.AddrPort) []byte {
+	h := make([]byte, 6)
+	putHeader(h, ap)
+	return h
+}
+
+func TestLookupDisambiguatesSharedPorts(t *testing.T) {
+	r := New(Config{})
+	const port = 4567
+	first := r.own("tcp", port, "192.0.2.1")
+	second := r.own("udp", port, "192.0.2.2")
+	check := func(network, want string) {
+		t.Helper()
+		request := httptest.NewRequest("GET", "/client?port=4567&network="+network, nil)
+		recorder := httptest.NewRecorder()
+		r.Lookup().ServeHTTP(recorder, request)
+		if want == "" {
+			if recorder.Code != http.StatusNotFound {
+				t.Errorf("%q lookup got %d; want 404", network, recorder.Code)
+			}
+		} else if recorder.Code != http.StatusOK || recorder.Body.String() != want {
+			t.Errorf("%q lookup got %d %q; want %q", network, recorder.Code, recorder.Body.String(), want)
+		}
+	}
+	check("tcp", "192.0.2.1")
+	check("udp", "192.0.2.2")
+	check("", "")
+	third := r.own("tcp", port, "192.0.2.3")
+	check("tcp", "")
+	first()
+	check("tcp", "192.0.2.3")
+	second()
+	check("", "192.0.2.3")
+	third()
+	check("", "")
+}

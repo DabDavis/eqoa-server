@@ -147,7 +147,7 @@ func writeBuddy(b *buffer.Writer, id EntityID, i buddyInfo, online bool) {
 	} else {
 		b.WriteByte(0)
 	}
-	b.WriteStringUnicode("") // the guild column
+	protocol.WriteWideString(b, "") // the guild column
 }
 
 // SendBuddyList sends a player's list at the world entry, one 0x03D5 a

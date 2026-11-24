@@ -164,9 +164,8 @@ func TestALongMessageReachesItsHandlerWhole(t *testing.T) {
 func TestAPacketWaitsForThoseReadBeforeIt(t *testing.T) {
 	l := &Listener{}
 	a := netip.MustParseAddrPort("127.0.0.1:4000")
-	now := time.Now()
-	first, second, third := l.nextTurn(a, now), l.nextTurn(a, now), l.nextTurn(a, now)
-	other := l.nextTurn(netip.MustParseAddrPort("127.0.0.1:4001"), now)
+	first, second, third := l.nextTurn(a), l.nextTurn(a), l.nextTurn(a)
+	other := l.nextTurn(netip.MustParseAddrPort("127.0.0.1:4001"))
 	other.waitEarlier() // another address's first packet waits for nothing
 	go second.finish()  // done itself, but not before first is
 	waited := make(chan struct{})
@@ -187,11 +186,25 @@ func TestAPacketWaitsForThoseReadBeforeIt(t *testing.T) {
 	}
 
 	// stuck: the next waits turnWait, then goes on
-	stuck, next := l.nextTurn(a, now), l.nextTurn(a, now)
+	stuck, next := l.nextTurn(a), l.nextTurn(a)
 	_ = stuck
 	start := time.Now()
 	next.waitEarlier()
 	if d := time.Since(start); d < turnWait-50*time.Millisecond || d > turnWait+500*time.Millisecond {
 		t.Fatalf("waited %v for a stuck packet", d)
+	}
+}
+
+func TestCompletedPacketTurnsReleaseTheAddress(t *testing.T) {
+	l := &Listener{}
+	addr := netip.MustParseAddrPort("127.0.0.1:4000")
+	first, last := l.nextTurn(addr), l.nextTurn(addr)
+	l.finishTurn(addr, first)
+	if l.turns[addr] != last.done {
+		t.Fatal("an earlier turn removed the newest turn")
+	}
+	l.finishTurn(addr, last)
+	if len(l.turns) != 0 {
+		t.Fatal("completed address still tracked")
 	}
 }

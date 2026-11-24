@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"sync"
@@ -94,11 +95,8 @@ func (h *AuthHandler) resolveAccount(username string, ticketID int) (*database.A
 	if err != nil {
 		return nil, err
 	}
-	if ticketID != 0 && account.ID != ticketID {
-		// The ticket was granted for a different row than the one this lookup
-		// found -- a username-normalisation mismatch, not something to paper over.
-		log.Printf("Authenticate: username %q resolved to account %d but its login "+
-			"ticket was for %d; using the ticket", username, account.ID, ticketID)
+	if account.ID != ticketID || account.Banned {
+		return nil, fmt.Errorf("account %d no longer eligible for ticket %d", account.ID, ticketID)
 	}
 	return account, nil
 }
@@ -131,8 +129,11 @@ func (h *AuthHandler) authorizeLogin(sess *session.Session, stage, username stri
 	}
 	pw, hasPassword := auth.PasswordFromUDPToken(token)
 	if hasPassword {
-		if accountID, ok := h.loginTickets.ValidFor(username, pw); ok {
-			return accountID, true
+		if credential, ok := h.loginTickets.ValidFor(username, pw); ok && h.accountStore != nil {
+			account, err := h.resolveAccount(username, credential.AccountID)
+			if err == nil && account.PasswordHash == credential.PasswordHash {
+				return account.ID, true
+			}
 		}
 	}
 	why, op := "no password in its token", protocol.OpcodeBadLoginPassword
@@ -303,30 +304,7 @@ func (h *AuthHandler) HandleAuthenticate(sess *session.Session, msg *protocol.Me
 	// Offset 16+: username + encrypted password
 
 	log.Printf("Authenticate: received %d bytes from %s", len(data), sess.RemoteAddr())
-	log.Printf("Authenticate: raw hex: %x", data)
-
-	// Try to find username in the data
-	// Look for "EQOA" marker followed by username
-	username := ""
-	for i := 0; i < len(data)-4; i++ {
-		if data[i] == 'E' && data[i+1] == 'Q' && data[i+2] == 'O' && data[i+3] == 'A' {
-			// Found EQOA marker, username follows
-			if i+8 < len(data) {
-				// Skip EQOA (4) + length prefix (4)
-				nameStart := i + 8
-				nameEnd := nameStart
-				for nameEnd < len(data) && data[nameEnd] != 0 && data[nameEnd] >= 32 && data[nameEnd] < 127 {
-					nameEnd++
-				}
-				if nameEnd > nameStart {
-					username = string(data[nameStart:nameEnd])
-				}
-			}
-			break
-		}
-	}
-
-	_, token := loginTail(data)
+	username, token := loginTail(data)
 
 	// Also try to read game version
 	gameVersion, _ := reader.ReadByte()
@@ -361,6 +339,10 @@ func (h *AuthHandler) HandleAuthenticate(sess *session.Session, msg *protocol.Me
 	// logged in on the auth port. GetOrCreate used to run unconditionally with
 	// an empty password, which both bypassed authentication and created
 	// credential-less accounts.
+	if username == "" && h.loginTickets != nil && sess.AccountID() == 0 {
+		SendDisconnect(sess, protocol.OpcodeBadLoginPassword)
+		return nil
+	}
 	if username != "" && h.accountStore != nil && sess.AccountID() == 0 {
 		ticketID, ok := h.authorizeUsername(sess, "Authenticate", username, token)
 		if !ok {
@@ -369,10 +351,12 @@ func (h *AuthHandler) HandleAuthenticate(sess *session.Session, msg *protocol.Me
 		account, err := h.resolveAccount(username, ticketID)
 		if err != nil {
 			log.Printf("Authenticate: failed to resolve account for '%s': %v", username, err)
-		} else {
-			sess.SetAccountID(account.ID)
-			log.Printf("Authenticate: account '%s' (ID=%d) logged in", username, account.ID)
+			SendDisconnect(sess, protocol.OpcodeBadLoginPassword)
+			return nil
 		}
+
+		sess.SetAccountID(account.ID)
+		log.Printf("Authenticate: account '%s' (ID=%d) logged in", username, account.ID)
 	}
 
 	// Queue acknowledgment
@@ -453,42 +437,16 @@ func (h *AuthHandler) HandleAuthenticate(sess *session.Session, msg *protocol.Me
 func (h *AuthHandler) HandleAuthenticate2(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	log.Printf("Authenticate2: received %d bytes from %s (game server auth)", len(data), sess.RemoteAddr())
-	if len(data) > 0 {
-		log.Printf("Authenticate2: raw hex: %x", data)
-	}
-
-	// Parse username from auth data (same format as Authenticate)
-	username := ""
-	for i := 0; i < len(data)-4; i++ {
-		if data[i] == 'E' && data[i+1] == 'Q' && data[i+2] == 'O' && data[i+3] == 'A' {
-			log.Printf("Authenticate2: found EQOA marker at offset %d", i)
-			if i+8 < len(data) {
-				nameStart := i + 8
-				nameEnd := nameStart
-				for nameEnd < len(data) && data[nameEnd] != 0 && data[nameEnd] >= 32 && data[nameEnd] < 127 {
-					nameEnd++
-				}
-				if nameEnd > nameStart {
-					username = string(data[nameStart:nameEnd])
-					log.Printf("Authenticate2: parsed username='%s' (bytes %d-%d)", username, nameStart, nameEnd)
-				} else {
-					log.Printf("Authenticate2: no username found after EQOA marker (nameStart=%d, nameEnd=%d)", nameStart, nameEnd)
-				}
-			} else {
-				log.Printf("Authenticate2: insufficient data after EQOA marker (i=%d, len=%d)", i, len(data))
-			}
-			break
-		}
-	}
-	if username == "" {
-		log.Printf("Authenticate2: WARNING - no EQOA marker found or username empty!")
-	}
+	username, token := loginTail(data)
 
 	// Get or create account for this user (important for new sessions)
 	log.Printf("Authenticate2: checking account lookup - username='%s', accountStore=%v, currentAccountID=%d",
 		username, h.accountStore != nil, sess.AccountID())
+	if username == "" && h.loginTickets != nil && sess.AccountID() == 0 {
+		SendDisconnect(sess, protocol.OpcodeBadLoginPassword)
+		return nil
+	}
 	if username != "" && h.accountStore != nil && sess.AccountID() == 0 {
-		_, token := loginTail(data)
 		ticketID, ok := h.authorizeUsername(sess, "Authenticate2", username, token)
 		if !ok {
 			return nil
@@ -496,10 +454,12 @@ func (h *AuthHandler) HandleAuthenticate2(sess *session.Session, msg *protocol.M
 		account, err := h.resolveAccount(username, ticketID)
 		if err != nil {
 			log.Printf("Authenticate2: failed to resolve account for '%s': %v", username, err)
-		} else {
-			sess.SetAccountID(account.ID)
-			log.Printf("Authenticate2: *** account '%s' (ID=%d) set on session ***", username, account.ID)
+			SendDisconnect(sess, protocol.OpcodeBadLoginPassword)
+			return nil
 		}
+
+		sess.SetAccountID(account.ID)
+		log.Printf("Authenticate2: *** account '%s' (ID=%d) set on session ***", username, account.ID)
 	} else if sess.AccountID() > 0 {
 		log.Printf("Authenticate2: session already has accountID=%d, not overwriting", sess.AccountID())
 	}

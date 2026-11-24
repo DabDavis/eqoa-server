@@ -3,6 +3,8 @@ package tcp
 import (
 	"bytes"
 	"net"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
@@ -88,7 +90,7 @@ func TestABrowsersCharacterLimit(t *testing.T) {
 		t.Fatal("setup: the account did not register")
 	}
 	relay := net.ParseIP("192.0.2.9")
-	s.SetRelay([]net.IP{relay}, func(int) (net.IP, bool) { return net.ParseIP("203.0.113.50"), true })
+	s.SetRelay([]net.IP{relay}, func(string, int) (net.IP, bool) { return net.ParseIP("203.0.113.50"), true })
 	live := 0
 	var sawRelay, sawOther bool
 	s.SetBrowserLimit(4, func(_ int, from func(*net.UDPAddr) bool) int {
@@ -118,5 +120,30 @@ func TestABrowsersCharacterLimit(t *testing.T) {
 	}
 	if r := login(false); !succeeded(t, r) {
 		t.Errorf("a native client past the limit: refused %q", reason(r))
+	}
+}
+
+func TestRelayLookupSendsTransportAndPort(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/client" || r.URL.Query().Get("port") != "4567" {
+			http.NotFound(w, r)
+			return
+		}
+		switch r.URL.Query().Get("network") {
+		case "tcp":
+			w.Write([]byte("192.0.2.1"))
+		case "udp":
+			w.Write([]byte("192.0.2.2"))
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+	lookup := RelayLookup(server.URL)
+	for network, want := range map[string]string{"tcp": "192.0.2.1", "udp": "192.0.2.2"} {
+		got, ok := lookup(network, 4567)
+		if !ok || !got.Equal(net.ParseIP(want)) {
+			t.Errorf("%s lookup = %v, %v; want %s", network, got, ok, want)
+		}
 	}
 }

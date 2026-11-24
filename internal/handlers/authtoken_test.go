@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/eqoa/server/internal/auth"
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
@@ -54,6 +55,16 @@ func queuedOps(s *session.Session) []protocol.GameOpcode {
 	return out
 }
 
+func ticketAuthHandler(t *testing.T) *AuthHandler {
+	t.Helper()
+	db, _ := newSafeDB(t)
+	if _, err := db.Exec(`INSERT INTO accountinfo(accountid,username,pwhash,acctstatus,acctlevel)
+		VALUES (9,'erin','testhash',1,0)`); err != nil {
+		t.Fatal(err)
+	}
+	return &AuthHandler{accountStore: database.NewSQLiteAccountStore(db), loginTickets: auth.NewTicketStore(0)}
+}
+
 // A username with no ticket signs in by the password its token carries (a
 // client back at the server list after a restart, its Station login gone);
 // a refusal is told to the client as CLIENT shows one, where it was told
@@ -69,7 +80,7 @@ func TestAUsernameWithNoTicketSignsInByItsToken(t *testing.T) {
 		t.Errorf("a tail ending short of the token gave %x", tok)
 	}
 
-	h := &AuthHandler{loginTickets: auth.NewTicketStore(0)}
+	h := ticketAuthHandler(t)
 	s := testSession()
 	if _, ok := h.authorizeUsername(s, "Authenticate", "dave", madeUpToken); ok {
 		t.Error("the control: a token signed in with no checker")
@@ -80,7 +91,7 @@ func TestAUsernameWithNoTicketSignsInByItsToken(t *testing.T) {
 
 	chk := &fakePasswords{id: 7}
 	h.SetPasswordChecker(chk)
-	h.loginTickets.Grant("erin", 9, "made-up pass")
+	h.loginTickets.Grant("erin", "made-up pass", auth.LoginCredential{AccountID: 9, PasswordHash: "testhash"})
 	s = testSession()
 	if id, ok := h.authorizeUsername(s, "Authenticate", "erin", madeUpToken); !ok || id != 9 || len(chk.asked) != 0 {
 		t.Errorf("the control: a ticket and its password signed in as %d (%v), asked %v", id, ok, chk.asked)
@@ -95,7 +106,7 @@ func TestAUsernameWithNoTicketSignsInByItsToken(t *testing.T) {
 	if got := queuedOps(s); !slices.Equal(got, []protocol.GameOpcode{protocol.OpcodeBadLoginPassword}) {
 		t.Errorf("a ticket and no token told the client %v", got)
 	}
-	h.loginTickets.Grant("erin", 9, "the real one")
+	h.loginTickets.Grant("erin", "the real one", auth.LoginCredential{AccountID: 9, PasswordHash: "testhash"})
 	chk.refusal = "password"
 	s = testSession()
 	if _, ok := h.authorizeUsername(s, "Authenticate", "erin", madeUpToken); ok || !slices.Equal(chk.asked, []string{"erin/made-up pass"}) {
@@ -145,10 +156,10 @@ func TestAUsernameWithNoTicketSignsInByItsToken(t *testing.T) {
 // cutoff) and by its token's password (a shard's sign-in) alike; CLIENT's
 // server list then offers STATION's login, which shows why.
 func TestTheHandshakeRefusesAnAccountWithoutAVerifiedEmail(t *testing.T) {
-	h := &AuthHandler{loginTickets: auth.NewTicketStore(0)}
+	h := ticketAuthHandler(t)
 	h.SetPasswordChecker(&fakePasswords{id: 7})
 	h.SetEmailRefusal(func(id int) bool { return id == 7 || id == 9 })
-	h.loginTickets.Grant("erin", 9, "made-up pass")
+	h.loginTickets.Grant("erin", "made-up pass", auth.LoginCredential{AccountID: 9, PasswordHash: "testhash"})
 	for _, user := range []string{"erin", "dave"} {
 		s := testSession()
 		if _, ok := h.authorizeUsername(s, "Authenticate", user, madeUpToken); ok {
@@ -161,5 +172,38 @@ func TestTheHandshakeRefusesAnAccountWithoutAVerifiedEmail(t *testing.T) {
 	h.SetEmailRefusal(func(id int) bool { return false })
 	if id, ok := h.authorizeUsername(testSession(), "Authenticate", "erin", madeUpToken); !ok || id != 9 {
 		t.Errorf("the control: erin signed in as %d (%v)", id, ok)
+	}
+}
+
+func TestAccountResolutionRequiresCurrentTicketIdentity(t *testing.T) {
+	db, _ := newSafeDB(t)
+	store := database.NewSQLiteAccountStore(db)
+	account, err := store.Create("ticketaccount", "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := &AuthHandler{accountStore: store, loginTickets: auth.NewTicketStore(0)}
+	if _, err := h.resolveAccount(account.Username, account.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := h.resolveAccount(account.Username, account.ID+1); err == nil {
+		t.Fatal("accepted a ticket issued for another account")
+	}
+	if err := store.SetBanned(account.ID, true); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := h.resolveAccount(account.Username, account.ID); err == nil {
+		t.Fatal("accepted a ticket for a suspended account")
+	}
+}
+
+func TestPasswordChangeInvalidatesUDPTicket(t *testing.T) {
+	h := ticketAuthHandler(t)
+	h.loginTickets.Grant("erin", "made-up pass", auth.LoginCredential{AccountID: 9, PasswordHash: "testhash"})
+	if err := h.accountStore.UpdatePasswordHash(9, "replacement"); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := h.authorizeUsername(testSession(), "Authenticate", "erin", madeUpToken); ok {
+		t.Fatal("old password accepted after the credential changed")
 	}
 }

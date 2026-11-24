@@ -26,7 +26,8 @@ func TestTheAccountPageTakesExtraRacesByItsRule(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	token := s.createSession(httptest.NewRecorder(), acct.ID, "maker")
+	acct.PasswordHash = "x" // the test credential stored above
+	token := s.createSession(httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/api/login", nil), acct)
 	create := func(name string, race, class int) map[string]interface{} {
 		t.Helper()
 		body := fmt.Sprintf(`{"name":%q,"race":%d,"class":%d,"gender":1}`, name, race, class)

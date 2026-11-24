@@ -163,11 +163,10 @@ func (db *SQLiteDB) PwResetLimitsOf(addrHash string, accountID int, since time.T
 	s := since.UTC().Format(time.RFC3339)
 	var wait int
 	err := db.QueryRow(`SELECT
-			COALESCE(SUM(addr_hash = ? AND addr_hash != '' AND created >= ?), 0),
-			COALESCE(SUM(accountid = ? AND created >= ?), 0),
-			COALESCE(SUM(accountid = ? AND status = 'waiting'), 0),
-			COALESCE(SUM(status = 'waiting'), 0)
-		FROM pwresets`, addrHash, s, accountID, s, accountID).Scan(&l.FromAddr, &l.ForAccount, &wait, &l.WaitingAll)
+			(SELECT COUNT(*) FROM pwresets WHERE addr_hash = ? AND addr_hash != '' AND created >= ?),
+			(SELECT COUNT(*) FROM pwresets WHERE accountid = ? AND created >= ?),
+			EXISTS (SELECT 1 FROM pwresets WHERE accountid = ? AND status = 'waiting'),
+			(SELECT COUNT(*) FROM pwresets WHERE status = 'waiting')`, addrHash, s, accountID, s, accountID).Scan(&l.FromAddr, &l.ForAccount, &wait, &l.WaitingAll)
 	if err != nil {
 		return l, fmt.Errorf("pwresets: %w", err)
 	}
@@ -373,6 +372,16 @@ func (db *SQLiteDB) PasswordTemporary(accountID int) (bool, error) {
 		return false, ErrAccountNotFound
 	}
 	return t != 0, err
+}
+
+// WebSessionAllowed checks that a session's verified password still belongs
+// to an eligible account. A missing account also invalidates the session.
+func (db *SQLiteDB) WebSessionAllowed(accountID int, passwordHash string) (bool, error) {
+	var allowed bool
+	err := db.QueryRow(`SELECT EXISTS(SELECT 1 FROM accountinfo WHERE accountid = ?
+		AND COALESCE(acctstatus, 0) >= 0 AND COALESCE(pwtemp, 0) = 0
+		AND COALESCE(CAST(pwhash AS TEXT), '') = ?)`, accountID, passwordHash).Scan(&allowed)
+	return allowed, err
 }
 
 // SetOwnPassword is a password its owner chose: the hash kept, the account's

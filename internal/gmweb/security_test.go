@@ -354,10 +354,38 @@ func TestARefreshTokenIsGoodOnce(t *testing.T) {
 		json.NewDecoder(resp.Body).Decode(&out)
 		return resp.StatusCode, out
 	}
-	st, tok2 := refresh(tok["refresh_token"].(string))
-	if st != 200 {
-		t.Fatalf("refresh: %d %v", st, tok2)
+	// A failed insert must leave the original pair usable and create no
+	// orphan access token. Retry the same refresh after the write recovers.
+	mustExec(t, f.db, `CREATE TRIGGER fail_refresh BEFORE INSERT ON gm_tokens
+		WHEN NEW.kind = 'refresh' BEGIN SELECT RAISE(ABORT, 'test write failure'); END`)
+	if st, _ := refresh(tok["refresh_token"].(string)); st != http.StatusInternalServerError {
+		t.Fatalf("failed refresh write returned %d", st)
 	}
+	var total, live int
+	if err := f.db.QueryRow(`SELECT COUNT(*), SUM(1 - revoked) FROM gm_tokens WHERE client = ?`, clientID).Scan(&total, &live); err != nil || total != 2 || live != 2 {
+		t.Fatalf("after failed rotation: total %d, live %d, err %v", total, live, err)
+	}
+	mustExec(t, f.db, `DROP TRIGGER fail_refresh`)
+	// Concurrent requests must agree which pair won the rotation.
+	type result struct {
+		status int
+		body   map[string]any
+	}
+	results := make(chan result, 2)
+	for i := 0; i < 2; i++ {
+		go func() {
+			status, body := refresh(tok["refresh_token"].(string))
+			results <- result{status, body}
+		}()
+	}
+	first, second := <-results, <-results
+	if first.status != http.StatusOK {
+		first, second = second, first
+	}
+	if first.status != http.StatusOK || second.status != http.StatusBadRequest {
+		t.Fatalf("concurrent refresh responses: %v and %v", first, second)
+	}
+	tok2 := first.body
 	// at once again: the client racing itself; refused, and nothing else
 	if st, out := refresh(tok["refresh_token"].(string)); st == 200 {
 		t.Fatalf("a refresh token worked twice: %v", out)
@@ -519,6 +547,8 @@ func TestSQLQueryRunsOnlyThePragmasThatRead(t *testing.T) {
 	for q, want := range map[string]int{
 		"PRAGMA table_info(npcs)":     200,
 		"PRAGMA integrity_check":      200,
+		"PRAGMA foreign_keys":         200,
+		"PRAGMA foreign_keys(ON)":     400,
 		"PRAGMA foreign_keys = ON":    400,
 		"PRAGMA synchronous = OFF":    400,
 		"PRAGMA query_only = 0":       400,
@@ -558,6 +588,15 @@ func TestSignInTakesJSONFromThisSiteOnly(t *testing.T) {
 	}
 	if code := post("/api/auth/token", "application/json", "https://evil.example", login); code != 403 {
 		t.Fatalf("a token sign-in from another site's page: %d", code)
+	}
+	for _, tt := range []struct{ mediaType, body string }{
+		{"text/plain; charset=json", login},
+		{"application/json", login + "{}"},
+		{"application/json", login + " trailing"},
+	} {
+		if code := post("/api/auth/login", tt.mediaType, "", tt.body); code != http.StatusBadRequest {
+			t.Errorf("ambiguous sign-in body or media type %q: got %d", tt.mediaType, code)
+		}
 	}
 	// signing out needs the page's CSRF token
 	gm := f.browser()

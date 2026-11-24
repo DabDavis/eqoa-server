@@ -2,8 +2,11 @@ package tcp
 
 import (
 	"encoding/binary"
+	"io"
+	"net"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/eqoa/server/internal/auth"
 	"github.com/eqoa/server/internal/config"
@@ -279,5 +282,42 @@ func TestBannedAccountCannotLogIn(t *testing.T) {
 	}
 	if !login(t, s, "villain", "pw") {
 		t.Fatal("account still refused after being unbanned")
+	}
+}
+
+func TestStationReadsRequestsAcrossTCPBoundaries(t *testing.T) {
+	server, client := net.Pipe()
+	defer client.Close()
+	go func() {
+		defer server.Close()
+		NewAuthServer(config.DefaultConfig(), nil, nil).HandleConnection(server)
+	}()
+	client.SetDeadline(time.Now().Add(3 * time.Second))
+	if _, err := io.ReadFull(client, make([]byte, 40)); err != nil {
+		t.Fatal(err)
+	}
+	frame := make([]byte, 44)
+	binary.BigEndian.PutUint32(frame, uint32(len(frame)))
+	binary.BigEndian.PutUint32(frame[4:], MsgSubmitAcctCreate)
+	done := make(chan error, 1)
+	go func() {
+		if _, err := client.Write(frame[:2]); err != nil {
+			done <- err
+			return
+		}
+		_, err := client.Write(append(frame[2:len(frame):len(frame)], frame...))
+		done <- err
+	}()
+	for i := 0; i < 2; i++ {
+		reply := make([]byte, 276)
+		if _, err := io.ReadFull(client, reply); err != nil {
+			t.Fatal(err)
+		}
+		if got := binary.BigEndian.Uint32(reply[4:]); got != MsgAcctCreateResponse {
+			t.Fatalf("response %d opcode = %d", i, got)
+		}
+	}
+	if err := <-done; err != nil {
+		t.Fatal(err)
 	}
 }

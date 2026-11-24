@@ -1781,6 +1781,10 @@ func (h *CharacterHandler) isValidName(name string) bool {
 // The client sends the character's ServerID as a zigzag varint.
 // On success we send back a fresh 0x2C character list (same as the reference server).
 func (h *CharacterHandler) HandleDelCharacter(sess *session.Session, msg *protocol.Message) error {
+	if sess.AccountID() == 0 {
+		SendDisconnect(sess, protocol.OpcodeBadLoginPassword)
+		return nil
+	}
 	reader := buffer.NewReader(msg.Data())
 	serverIDRaw, err := reader.Read7BitEncodedInt64()
 	if err != nil {
@@ -2665,10 +2669,10 @@ func writeItemPattern(w *buffer.Writer, e *database.CharInventoryEntry, capes bo
 	w.Write7BitEncodedInt64(int64(p.Craft))
 
 	// Item name + description (WriteStringUnicode = int32 charCount + UTF-16LE)
-	w.WriteStringUnicode(itemNameShown(p))
+	protocol.WriteWideString(w, itemNameShown(p))
 	// a copy's own tag ("Aura: Virtuous", database/instanceaura.go) heads
 	// its description, a line of its own: every client's item info shows it
-	w.WriteStringUnicode(database.InstanceTagged(p.ItemDesc, e.AuraTag, itemDescMax))
+	protocol.WriteWideString(w, database.InstanceTagged(p.ItemDesc, e.AuraTag, itemDescMax))
 
 	// Stats: collect non-zero stats as index/value pairs
 	// Index mapping: 0=str 1=sta 2=agi 3=dex 4=wis 5=int 6=cha

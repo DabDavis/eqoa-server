@@ -771,8 +771,10 @@ func TestSQLIsAnAdminsAndQueriesReadOnly(t *testing.T) {
 	if code != 200 || out["backup"] == "" {
 		t.Fatalf("execute: %d %v", code, out)
 	}
-	if _, err := os.Stat(out["backup"].(string)); err != nil {
+	if fi, err := os.Stat(out["backup"].(string)); err != nil {
 		t.Fatalf("no backup: %v", err)
+	} else if fi.Mode().Perm()&0077 != 0 {
+		t.Fatalf("backup permissions %v expose account data", fi.Mode())
 	}
 }
 

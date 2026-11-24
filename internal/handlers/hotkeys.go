@@ -149,8 +149,8 @@ func writeHotkeys(writer *buffer.Writer, sets []database.HotkeySet) {
 		writer.Write7BitEncodedInt64(int64(s.ID))
 		for slot, p := range s.Pairs {
 			writer.Write7BitEncodedInt64(int64(slot))
-			writer.WriteStringUnicode(p.Text)
-			writer.WriteStringUnicode(p.Title)
+			protocol.WriteWideString(writer, p.Text)
+			protocol.WriteWideString(writer, p.Title)
 		}
 	}
 }

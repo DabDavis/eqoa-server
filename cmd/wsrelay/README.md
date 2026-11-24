@@ -49,7 +49,7 @@ entry is the client's to choose). From any other peer the headers are ignored.
 | `-udp-idle` | `120s` | A UDP socket with no datagram either way this long is closed. |
 | `-tcp-idle` | `10m` | A TCP connection idle this long is closed. |
 | `-ping` | `30s` | WebSocket pings that notice a client gone silent (a browser answers them itself; the page never sees them). `0` turns them off. |
-| `-lookup` | off | Also serve `GET /client?port=N` on this address: the client address behind one of the relay's local ports (a UDP socket's or a TCP connection's), 404 for one it does not hold. For the game server's one-login rule (`auth.relay_lookup`). It names players' addresses: **loopback only**, never behind the public proxy. |
+| `-lookup` | off | Also serve `GET /client?port=N&network=tcp` or `network=udp` on this address: the client address behind one of the relay's local ports (a UDP socket's or a TCP connection's), 404 for one it does not hold. For the game server's one-login rule (`auth.relay_lookup`). It names players' addresses: **loopback only**, never behind the public proxy. |
 | `-v` | off | Also log dropped datagrams and failed handshakes. |
 
 It logs one line per socket opened, refused and closed: the client, the target

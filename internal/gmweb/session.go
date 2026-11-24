@@ -215,8 +215,8 @@ func (st *sessionStore) get(token string) *gmSession {
 
 func (st *sessionStore) end(token string) {
 	st.mu.Lock()
+	defer st.mu.Unlock()
 	delete(st.m, token)
-	st.mu.Unlock()
 	st.dbExec(`DELETE FROM gm_sessions WHERE hash = ?`, hashToken(token))
 }
 
@@ -224,9 +224,9 @@ func (st *sessionStore) end(token string) {
 // memory and in gm_sessions.
 func (st *sessionStore) setMFA(s *gmSession) {
 	st.mu.Lock()
+	defer st.mu.Unlock()
 	s.totpSecret = ""
 	s.MFA = true
-	st.mu.Unlock()
 	st.dbExec(`UPDATE gm_sessions SET mfa = 1 WHERE hash = ?`, hashToken(s.Token))
 }
 

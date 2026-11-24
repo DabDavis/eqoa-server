@@ -111,6 +111,7 @@ Wants=network-online.target
 Type=simple
 User=eqoa
 Group=eqoa
+UMask=0077
 WorkingDirectory=/srv/eqoa-server
 ExecStart=/srv/eqoa-server/gameserver -config /srv/eqoa-server/config.yaml
 Restart=on-failure
@@ -318,6 +319,7 @@ gm:
   port: 8081
   public_url: "https://gm.example.com"
 auth:
+  bind_address: "127.0.0.1"
   password_url: "account.example.com/password"
   relay_lookup: "http://127.0.0.1:8792"
 # and, only if you turn the account e-mail on:

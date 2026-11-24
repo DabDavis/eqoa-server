@@ -418,10 +418,12 @@ func (db *SQLiteDB) AccountEmails(filter string, limit, offset int) ([]EmailStat
 // HasAuthenticator is whether the account has an authenticator on the GM
 // panel (gm_totp, which the panel makes; none while it is not there).
 func (db *SQLiteDB) HasAuthenticator(accountID int) (bool, error) {
-	if !tableExists(db.DB, "gm_totp") {
-		return false, nil
+	var exists bool
+	err := db.QueryRow(`SELECT EXISTS(SELECT 1 FROM sqlite_schema WHERE type = 'table' AND name = 'gm_totp')`).Scan(&exists)
+	if err != nil || !exists {
+		return false, err
 	}
 	var n int
-	err := db.QueryRow(`SELECT COUNT(*) FROM gm_totp WHERE accountid = ?`, accountID).Scan(&n)
+	err = db.QueryRow(`SELECT COUNT(*) FROM gm_totp WHERE accountid = ?`, accountID).Scan(&n)
 	return n > 0, err
 }

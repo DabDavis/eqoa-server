@@ -1077,7 +1077,7 @@ func (h *InteractHandler) sendDialogueBox(sess *session.Session, text string) {
 
 	writer.WriteUint16(uint16(protocol.OpcodeDialogueBox))
 	writer.WriteUint32(0) // counter = 0 for simple dialogue
-	writer.WriteStringUnicode(text)
+	protocol.WriteWideString(writer, text)
 
 	msg.SetSize(writer.Position())
 	sess.Queue().AddWithSequence(msg)
@@ -1092,13 +1092,13 @@ func (h *InteractHandler) sendOptionBox(sess *session.Session, text string, opti
 
 	writer.WriteUint16(uint16(protocol.OpcodeQuestPopupMulti))
 	writer.WriteUint32(0) // dialogue counter (not option count)
-	writer.WriteStringUnicode(text)
+	protocol.WriteWideString(writer, text)
 	if room := dialogRoom(sess); len(options) > room {
 		options = options[:room] // CLIENT's box holds six (maxDialogOptions)
 	}
 	writer.WriteByte(byte(len(options))) // text options count
 	for _, opt := range options {
-		writer.WriteStringUnicode(opt)
+		protocol.WriteWideString(writer, opt)
 	}
 
 	msg.SetSize(writer.Position())

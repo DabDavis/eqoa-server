@@ -675,10 +675,10 @@ auth:
   ticket_ttl: 15m
 
   # The address the account server (server.account_port: the account pages,
-  # register, password, e-mail) listens on. Empty or unset: every address, as
-  # before. "127.0.0.1" when only a reverse proxy on this machine should reach
-  # it. server.bind_address does not apply to it.
-  # bind_address: "127.0.0.1"
+  # register, password, e-mail) listens on. This example serves the pages
+  # through a TLS proxy on the same machine. Set a different interface for
+  # a remote proxy. Empty or unset listens on every address.
+  bind_address: "127.0.0.1"
 
   # One login at a time: a login is refused while the same account, or a
   # session from the same address, is already in the game (the first window
@@ -716,9 +716,9 @@ auth:
   # Accounts created at startup if they do not already exist, with the password
   # hashed. An account that already exists is left untouched, so changing a
   # password here does NOT reset one already in the database.
-  accounts:
-    - username: "test"
-      password: "changeme"
+  # accounts:
+  #   - username: "your-account"
+  #     password: ""  # set a unique password before enabling this entry
 
 # combat: off by default; every key below is shown at its default.
 #
@@ -856,7 +856,7 @@ gm:
 #   accounts: false
 #   enabled: false
 #   log_bodies: false
-#   smtp: "127.0.0.1:25"            # a local MTA relaying for you; no credentials here
+#   smtp: "127.0.0.1:25"            # local relay. A remote relay needs STARTTLS (TLS 1.2+) and a trusted certificate for its host.
 #   from: "no-reply@example.com"
 #   base_url: "https://account.example.com"
 #   page_path: "/password"

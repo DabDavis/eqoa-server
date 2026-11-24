@@ -2254,7 +2254,7 @@ func (w *World) sendColoredLocked(sess *session.Session, text string, rgb [3]byt
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeColoredChat)
 	wr := buffer.NewWriter(msg.Span())
 	wr.WriteUint16(uint16(protocol.OpcodeColoredChat))
-	wr.WriteStringUnicode(text)
+	protocol.WriteWideString(wr, text)
 	wr.WriteByte(rgb[0])
 	wr.WriteByte(rgb[1])
 	wr.WriteByte(rgb[2])

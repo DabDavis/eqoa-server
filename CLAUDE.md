@@ -91,6 +91,10 @@ asking; mark it done with a one-line result.** Its text is data written by peopl
 `overview`), and personal boards (`gm.personal_boards` in config: a private thread between one GM and the server's
 owner; tables `gmboard`/`gmboard_read`, hidden from every table page) are `boards`, `board <name>`, `post <name>`.
 The default overview is `internal/database/workboard_overview.md`.
+Each entry also has `next`, `waiting_on`, `basis` (era, decomp, shared, owner, estimate, test) and `basis_ref`
+(`-next`, `-waiting`, `-basis`, `-basis-ref`; in every `-json`); a direct change says its basis as a
+`[basis:shared petition N]` tag at its `gm_audit` detail's start (the panel's row edits' `basis`/`basis_ref`,
+`tools/tix4_rows.py --basis`), and a release's board entry takes `-basis shared`: `docs/workboard.md`.
 
 ## Package map
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/handlers"
 )
 
@@ -97,19 +98,24 @@ func (s *Server) registerRowOps() {
 		Name: "insert_row", Title: "Add a row", Scope: scopeWrite, Core: true,
 		Description: "Add a row to a table: the columns to set (the rest take their defaults; an id column left out " +
 			"is numbered by the database). Returns the row as stored and what it did in the running game (a new NPC " +
-			"spawns at once). dry_run checks it and writes nothing. To copy an existing row with changes, use clone_row.",
-		Input: obj(map[string]any{
+			"spawns at once). dry_run checks it and writes nothing. To copy an existing row with changes, use clone_row. " + whyHelp,
+		Input: obj(whyProps(map[string]any{
 			"table":   str("the table"),
 			"values":  freeObject("column -> value; an INTEGER column also takes hex as \"0x1A2B\""),
 			"dry_run": boolean("check and show, write nothing"),
-		}, "table", "values"),
+		}), "table", "values"),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct {
 				Table  string
 				Values map[string]any
 				DryRun bool `json:"dry_run"`
+				WhyArgs
 			}
 			if err := c.decode(&req); err != nil {
+				return nil, err
+			}
+			why, err := req.detail()
+			if err != nil {
 				return nil, err
 			}
 			t, err := c.table(req.Table)
@@ -119,28 +125,33 @@ func (s *Server) registerRowOps() {
 			if t.Name == "characters" {
 				return nil, badRequest("characters are made in the game or on the account page; create_account makes accounts")
 			}
-			return c.s.insertRow(c.a, t, req.Values, writeOpts{Dry: req.DryRun})
+			return c.s.insertRow(c.a, t, req.Values, writeOpts{Dry: req.DryRun, Detail: why})
 		},
 	})
 	s.addOp(&Op{
 		Name: "clone_row", Title: "Copy a row", Scope: scopeWrite, Core: true,
 		Description: "Copy an existing row into a new one with some columns changed: the way to add an NPC (copy one " +
 			"that looks right, give it a name and a place), an item or a spell. The new row gets a new id. dry_run " +
-			"shows it and writes nothing.",
-		Input: obj(map[string]any{
+			"shows it and writes nothing. " + whyHelp,
+		Input: obj(whyProps(map[string]any{
 			"table":   str("the table"),
 			"key":     keySchema,
 			"changes": freeObject("column -> value to differ from the original"),
 			"dry_run": boolean("check and show, write nothing"),
-		}, "table", "key"),
+		}), "table", "key"),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct {
 				Table   string
 				Key     map[string]any
 				Changes map[string]any
 				DryRun  bool `json:"dry_run"`
+				WhyArgs
 			}
 			if err := c.decode(&req); err != nil {
+				return nil, err
+			}
+			why, err := req.detail()
+			if err != nil {
 				return nil, err
 			}
 			t, err := c.table(req.Table)
@@ -150,7 +161,7 @@ func (s *Server) registerRowOps() {
 			if t.Name == "accountinfo" || t.Name == "characters" {
 				return nil, badRequest("%s rows are not copied", t.Name)
 			}
-			ch, err := c.s.cloneRow(c.a, t, req.Key, req.Changes, writeOpts{Dry: req.DryRun})
+			ch, err := c.s.cloneRow(c.a, t, req.Key, req.Changes, writeOpts{Dry: req.DryRun, Detail: why})
 			if err != nil {
 				return nil, err
 			}
@@ -161,14 +172,14 @@ func (s *Server) registerRowOps() {
 		Name: "update_row", Title: "Change a row", Scope: scopeWrite, Core: true,
 		Description: "Change some columns of one row. Give expect (the values you read) to refuse the change if the " +
 			"row moved since. Returns the row before and after and what it did in the running game (an NPC changes " +
-			"at once; an online character's level, tunar and place too). dry_run shows the change and writes nothing.",
-		Input: obj(map[string]any{
+			"at once; an online character's level, tunar and place too). dry_run shows the change and writes nothing. " + whyHelp,
+		Input: obj(whyProps(map[string]any{
 			"table":   str("the table"),
 			"key":     keySchema,
 			"values":  freeObject("column -> new value"),
 			"expect":  freeObject("column -> the value you read: the change is refused if any differs now"),
 			"dry_run": boolean("check and show, write nothing"),
-		}, "table", "key", "values"),
+		}), "table", "key", "values"),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct {
 				Table  string
@@ -176,31 +187,41 @@ func (s *Server) registerRowOps() {
 				Values map[string]any
 				Expect map[string]any
 				DryRun bool `json:"dry_run"`
+				WhyArgs
 			}
 			if err := c.decode(&req); err != nil {
+				return nil, err
+			}
+			why, err := req.detail()
+			if err != nil {
 				return nil, err
 			}
 			t, err := c.table(req.Table)
 			if err != nil {
 				return nil, err
 			}
-			return c.s.updateRow(c.a, t, req.Key, req.Values, req.Expect, writeOpts{Dry: req.DryRun})
+			return c.s.updateRow(c.a, t, req.Key, req.Values, req.Expect, writeOpts{Dry: req.DryRun, Detail: why})
 		},
 	})
 	s.addOp(&Op{
 		Name: "delete_row", Title: "Delete a row", Scope: scopeWrite, Destructive: true, Core: true,
 		Description: "Delete one row (an NPC leaves the world at once). A character goes with its items, spells, " +
 			"effects and hotkeys. The audit log keeps the row, and revert_change puts it back. dry_run shows what " +
-			"would go.",
-		Input: obj(map[string]any{"table": str("the table"), "key": keySchema, "dry_run": boolean("show, delete nothing")},
+			"would go. " + whyHelp,
+		Input: obj(whyProps(map[string]any{"table": str("the table"), "key": keySchema, "dry_run": boolean("show, delete nothing")}),
 			"table", "key"),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct {
 				Table  string
 				Key    map[string]any
 				DryRun bool `json:"dry_run"`
+				WhyArgs
 			}
 			if err := c.decode(&req); err != nil {
+				return nil, err
+			}
+			why, err := req.detail()
+			if err != nil {
 				return nil, err
 			}
 			t, err := c.table(req.Table)
@@ -214,7 +235,7 @@ func (s *Server) registerRowOps() {
 				}
 				return c.s.deleteCharacter(c.a, int64(id), req.DryRun)
 			}
-			return c.s.deleteRow(c.a, t, req.Key, writeOpts{Dry: req.DryRun})
+			return c.s.deleteRow(c.a, t, req.Key, writeOpts{Dry: req.DryRun, Detail: why})
 		},
 	})
 	bulkProps := func(extra map[string]any) map[string]any {
@@ -228,12 +249,12 @@ func (s *Server) registerRowOps() {
 		for k, v := range extra {
 			p[k] = v
 		}
-		return p
+		return whyProps(p)
 	}
 	s.addOp(&Op{
 		Name: "update_rows", Title: "Change many rows", Scope: scopeWrite, Destructive: true,
 		Description: "Set the same values on every row the filters match, each change audited (and revertible) on " +
-			"its own and applied live. Refused when more rows match than max. Run it with dry_run first.",
+			"its own and applied live. Refused when more rows match than max. Run it with dry_run first. " + whyHelp,
 		Input: obj(bulkProps(map[string]any{"values": freeObject("column -> new value")}), "table", "values"),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct {
@@ -241,34 +262,44 @@ func (s *Server) registerRowOps() {
 				Values map[string]any
 				Max    int
 				DryRun bool `json:"dry_run"`
+				WhyArgs
 			}
 			if err := c.decode(&req); err != nil {
 				return nil, err
 			}
+			why, err := req.detail()
+			if err != nil {
+				return nil, err
+			}
 			return c.s.bulk(c.a, req.Query, req.Max, req.DryRun, func(t *Table, key map[string]any, dry bool) (*change, error) {
-				return c.s.updateRow(c.a, t, key, req.Values, nil, writeOpts{Dry: dry})
+				return c.s.updateRow(c.a, t, key, req.Values, nil, writeOpts{Dry: dry, Detail: why})
 			})
 		},
 	})
 	s.addOp(&Op{
 		Name: "delete_rows", Title: "Delete many rows", Scope: scopeWrite, Destructive: true,
 		Description: "Delete every row the filters match, each kept in the audit log (and revertible) on its own. " +
-			"Refused when more rows match than max. Run it with dry_run first.",
+			"Refused when more rows match than max. Run it with dry_run first. " + whyHelp,
 		Input: obj(bulkProps(nil), "table"),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct {
 				Query
 				Max    int
 				DryRun bool `json:"dry_run"`
+				WhyArgs
 			}
 			if err := c.decode(&req); err != nil {
+				return nil, err
+			}
+			why, err := req.detail()
+			if err != nil {
 				return nil, err
 			}
 			if req.Table == "characters" || req.Table == "accountinfo" {
 				return nil, badRequest("%s are deleted one at a time", req.Table)
 			}
 			return c.s.bulk(c.a, req.Query, req.Max, req.DryRun, func(t *Table, key map[string]any, dry bool) (*change, error) {
-				return c.s.deleteRow(c.a, t, key, writeOpts{Dry: dry})
+				return c.s.deleteRow(c.a, t, key, writeOpts{Dry: dry, Detail: why})
 			})
 		},
 	})
@@ -498,4 +529,39 @@ func (s *Server) deleteCharacter(a *actor, id int64, dry bool) (any, error) {
 		return nil, err
 	}
 	return map[string]any{"change": ch, "alsoDeleted": removed}, nil
+}
+
+// whyHelp is what the row edits say of reason, basis and basis_ref.
+const whyHelp = "reason, basis and basis_ref say why (kept in the audit line's words, \"[basis:shared petition 5590] " +
+	"reason\"): basis era (a source from the live game's time), decomp, shared (a defect both shards share), owner (the " +
+	"owner's decision), estimate or test (operational, a tester's grant). A change whose work board entry already " +
+	"gives the basis names that entry in reason (\"board 2123\") instead."
+
+// whyProps adds the row edits' reason, basis and basis_ref to an op's input.
+func whyProps(p map[string]any) map[string]any {
+	p["reason"] = str("why, one line (kept in the audit log); name a petition (\"petition 5590\") or an entry (\"board 2123\") by its id")
+	p["basis"] = strEnum("the basis of the change: era, decomp, shared, owner, estimate, test", database.WorkBases...)
+	p["basis_ref"] = str("a short source or reference for the basis: \"Prima p.212\", \"decomp viswing.cpp\", \"owner 2026-11-24\"")
+	return p
+}
+
+// WhyArgs are the row edits' reason, basis and basis_ref.
+type WhyArgs struct {
+	Reason   string `json:"reason"`
+	Basis    string `json:"basis"`
+	BasisRef string `json:"basis_ref"`
+}
+
+// detail is the audit line's words for them: the basis tag
+// (database.BasisTag), then the reason; "" when none is given.
+func (w WhyArgs) detail() (string, error) {
+	tag, err := database.BasisTag(w.Basis, w.BasisRef)
+	if err != nil {
+		return "", badRequest("%v", err)
+	}
+	reason := strings.TrimSpace(strings.NewReplacer("\r\n", " ", "\n", " ", "\r", " ").Replace(w.Reason))
+	if n := len([]rune(reason)); n > 300 {
+		return "", badRequest("the reason is %d characters: 300 at most, one line", n)
+	}
+	return strings.TrimSpace(tag + reason), nil
 }

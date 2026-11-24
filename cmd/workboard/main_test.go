@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -143,5 +144,74 @@ func TestTheDatabaseIsTheConfigsOrRefused(t *testing.T) {
 	}
 	if code, _, errs := wb(t, "", "-db", db, "show", "x"); code != exitUsage || !strings.Contains(errs, "not an entry") {
 		t.Fatalf("a bad id: %d %q", code, errs)
+	}
+}
+
+func TestTheResumeFlagsAndTheirJSON(t *testing.T) {
+	db := board(t)
+	if code, out, errs := wb(t, "", "-db", db, "add", "-title", "Qeynos guards", "-status", "in_progress",
+		"-next", "rename npcs 121689", "-waiting", "jibrish", "-basis", "era", "-basis-ref", "Prima p.212"); code != 0 {
+		t.Fatalf("add: %d %q %q", code, out, errs)
+	}
+	if code, out, errs := wb(t, "", "-db", db, "note", "1", "-next", "Final check: read the ids back after the next login",
+		"Verified:", "renamed", "(audit", "163600)"); code != 0 || !strings.Contains(out, "v2") {
+		t.Fatalf("note with -next: %d %q %q", code, out, errs)
+	}
+	if code, out, errs := wb(t, "", "-db", db, "set", "1", "-waiting-on", "dab", "-basis", "shared fix", "-basis-ref", "petition 5590"); code != 0 || !strings.Contains(out, "v3") {
+		t.Fatalf("set: %d %q %q", code, out, errs)
+	}
+	if code, _, errs := wb(t, "", "-db", db, "set", "1", "-basis", "vibes"); code != exitUsage || !strings.Contains(errs, "basis") {
+		t.Fatalf("a bad basis: %d %q", code, errs)
+	}
+	code, out, _ := wb(t, "", "-db", db, "show", "1")
+	for _, want := range []string{"next Final check: read the ids back", "waiting on dab", "basis shared · petition 5590",
+		"last verified 20", "Verified: renamed (audit 163600)"} {
+		if code != 0 || !strings.Contains(out, want) {
+			t.Errorf("show has no %q: %q", want, out)
+		}
+	}
+	if code, out, _ := wb(t, "", "-db", db, "list"); code != 0 || !strings.Contains(out, "next: Final check") ||
+		!strings.Contains(out, "waiting on dab · basis shared (petition 5590)") {
+		t.Errorf("list: %q", out)
+	}
+	for _, args := range [][]string{{"list", "-json"}, {"show", "1", "-json"}} {
+		_, out, _ := wb(t, "", append([]string{"-db", db}, args...)...)
+		var v struct {
+			Entries []map[string]any `json:"entries"`
+			Entry   map[string]any   `json:"entry"`
+		}
+		if err := json.Unmarshal([]byte(out), &v); err != nil {
+			t.Fatalf("%v: %v", args, err)
+		}
+		e := v.Entry
+		if e == nil && len(v.Entries) == 1 {
+			e = v.Entries[0]
+		}
+		if e["next"] != "Final check: read the ids back after the next login" || e["waiting_on"] != "dab" ||
+			e["basis"] != "shared" || e["basis_ref"] != "petition 5590" || e["owner"] != "dab's sessions" ||
+			e["status"] != "in_progress" || e["version"] != float64(3) ||
+			!strings.Contains(fmt.Sprint(e["last_verified"]), "(audit 163600)") {
+			t.Errorf("%v: %v", args, e)
+		}
+	}
+	if _, out, _ := wb(t, "", "-db", db, "list", "-basis", "era", "-json"); !strings.Contains(out, `"matching": 0`) {
+		t.Errorf("list -basis era: %q", out)
+	}
+	// done clears next and waiting on
+	if code, out, _ := wb(t, "", "-db", db, "done", "1", "-result", "renamed", "-json"); code != 0 || strings.Contains(out, "next:") {
+		t.Fatalf("done: %d %q", code, out)
+	}
+	_, out, _ = wb(t, "", "-db", db, "show", "1", "-json")
+	if !strings.Contains(out, `"next": ""`) || !strings.Contains(out, `"waiting_on": ""`) || !strings.Contains(out, `"basis": "shared"`) {
+		t.Errorf("after done: %q", out)
+	}
+}
+
+func TestTheHelpSaysTheConvention(t *testing.T) {
+	_, _, errs := wb(t, "", "help")
+	for _, want := range []string{"-next", "-waiting", "-basis", "-basis-ref", "Last verified", "Final check", "last_verified"} {
+		if !strings.Contains(errs, want) {
+			t.Errorf("help has no %q", want)
+		}
 	}
 }

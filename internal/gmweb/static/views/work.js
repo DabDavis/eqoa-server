@@ -197,6 +197,10 @@ export async function render(box, parts) {
         ? h('div', { class: 'work-touches' }, h('span', { class: 'faint small' }, 'touches'), ...e.touches.map((t) => h('code', null, t)))
         : h('div', { class: 'faint small' }, 'touches nothing it names'),
       e.status === 'done' && e.result ? h('div', { class: 'work-result' }, h('strong', null, 'Result: '), e.result) : null,
+      e.next || e.waiting_on ? h('div', { class: 'work-result' },
+        e.next ? [h('strong', null, 'Next: '), e.next] : null,
+        e.waiting_on ? h('span', { class: 'faint' }, (e.next ? ' · ' : '') + 'waiting on ' + e.waiting_on) : null) : null,
+      e.basis ? h('div', { class: 'faint small' }, 'basis ', h('strong', null, e.basis), e.basis_ref ? ' · ' + e.basis_ref : '') : null,
       e.details ? markdown(e.details, 'md work-details') : null,
       e.notes ? h('details', { class: 'work-notes', open: e.status !== 'done' && n <= 4 },
         h('summary', null, `Notes (${n})`), markdown(e.notes)) : null,
@@ -290,10 +294,15 @@ export async function render(box, parts) {
         { name: 'owner', label: 'Owner', value: cur.owner ?? (state.session?.user?.username || ''), hint: 'a GM\'s account name, or dab\'s sessions' },
         { name: 'details', label: 'Details (markdown)', type: 'textarea', value: cur.details || '' },
         { name: 'result', label: 'Result (one line, once done)', value: cur.result || '' },
+        { name: 'next', label: 'Next (the one next action, or its final check)', value: cur.next || '' },
+        { name: 'waiting_on', label: 'Waiting on', value: cur.waiting_on || '', placeholder: 'a person, a restart, a login' },
+        { name: 'basis', label: 'Basis (why)', type: 'select', value: cur.basis || '', options: [['', 'none'], ['era', 'era: a source from the live game\'s time'], ['decomp', 'decomp'], ['shared', 'shared: a defect both shards share'], ['owner', 'owner\'s decision'], ['estimate', 'estimate'], ['test', 'test: operational, a tester\'s grant']].map(([value, label]) => ({ value, label })) },
+        { name: 'basis_ref', label: 'Basis reference (short)', value: cur.basis_ref || '', placeholder: 'Prima p.212, petition 5590, owner 2026-11-24' },
       ],
     });
     if (!v) return;
-    const args = { title: v.title, status: v.status, area: v.area, touches: v.touches, owner: v.owner, details: v.details };
+    const args = { title: v.title, status: v.status, area: v.area, touches: v.touches, owner: v.owner, details: v.details,
+      next: v.next, waiting_on: v.waiting_on, basis: v.basis, basis_ref: v.basis ? v.basis_ref : '' };
     if (v.result.trim() || (e && e.result)) args.result = v.result;
     if (e) {
       args.id = e.id;

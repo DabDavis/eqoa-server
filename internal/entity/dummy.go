@@ -252,7 +252,7 @@ func (w *World) dummyHitLocked(sess *session.Session, npc *NPC, p *Player, now t
 		w.defenceProcsLocked(sess, p, npc, now)
 		return false
 	}
-	p.HP = max(p.HP-damage, 0)
+	w.damagePlayerFromNPCLocked(npc, p, damage)
 	p.LastCombatTime = now
 	w.breakInvisLocked(p, "a hit") // invis.go: every invisibility, whatever gave it
 	npcObjectID := w.objectIDForEntityLocked(sess, npc.ServerID)

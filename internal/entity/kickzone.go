@@ -123,8 +123,7 @@ func (w *World) kickZoneLocked(npc *NPC, z *database.TemplateAbility, now time.T
 	}
 	for _, p := range in {
 		w.broadcastNPCSwingLocked(npc, p.ServerID, 0, fx)
-		n := min(z.Damage, p.HP)
-		p.HP -= n
+		w.damagePlayerFromNPCLocked(npc, p, z.Damage)
 		p.StatsDirty = true
 		p.LastCombatTime = now
 		sess := w.findSessionByEntityIDLocked(p.ServerID)

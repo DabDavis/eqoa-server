@@ -867,6 +867,13 @@ func distXZ(ax, az, bx, bz float32) float32 {
 // gone or dead, or which died. Every tick; must be called with the lock
 // held.
 func (w *World) petSystem(now time.Time) {
+	// A hit can land on either side of the pets' turn in the world tick.
+	// Keep it through the next turn, including the side pets that run after this one.
+	for pair, tick := range w.petDamage {
+		if w.TickCount-tick > 1 {
+			delete(w.petDamage, pair)
+		}
+	}
 	w.petCastSystemLocked(now) // the templated pets' casts landing (pettemplate.go)
 	for id, ps := range w.pets {
 		owner, pet := ps.owner, ps.npc
@@ -1130,11 +1137,11 @@ func (w *World) petChooseTargetLocked(ps *petState, now time.Time) {
 		mine := npc.CurrentEnemy == pet.ServerID
 		if ps.stance != petNeutral { // defensive or aggressive: the group's fights
 			mine = mine || npc.CurrentEnemy == owner.ServerID || fightsGroupMate(w, owner, npc) ||
-				groupMateAttacks(w, owner, npc) || groupPetsFight(w, ps, npc)
+				w.petAssistsGroupMateLocked(ps, npc) || groupPetsFight(w, ps, npc)
 		}
 		if ps.stance == petAggressive {
 			_, hurt := npc.Threats[owner.ServerID]
-			mine = mine || hurt
+			mine = mine || hurt || w.petAssistsDamageLocked(ps, owner, npc)
 		}
 		if !mine {
 			continue
@@ -1210,11 +1217,11 @@ func groupPetsFight(w *World, ps *petState, npc *NPC) bool {
 	return false
 }
 
-// groupMateAttacks reports a creature another living player of the owner's group
-// attacks: its auto-attack's target, or one it has hurt (on the creature's threat
-// list: a hit, a harmful spell, a heal's hate in that fight). A defensive or
-// aggressive pet joins it (the user, 2026-11-07). Must be called with the lock held.
-func groupMateAttacks(w *World, owner *Player, npc *NPC) bool {
+// Defensive and aggressive pets assist a groupmate's auto-attack or threat.
+// An aggressive pet also answers an actual hit in either direction, even
+// when the mob stays on someone else and the groupmate has no threat.
+func (w *World) petAssistsGroupMateLocked(ps *petState, npc *NPC) bool {
+	owner := ps.owner
 	if owner.GroupID == 0 {
 		return false
 	}
@@ -1224,7 +1231,13 @@ func groupMateAttacks(w *World, owner *Player, npc *NPC) bool {
 	}
 	for _, id := range g.Members {
 		m := w.Players[id]
-		if m == nil || m == owner || m.IsDead() {
+		if m == nil || m == owner {
+			continue
+		}
+		if w.petAssistsDamageLocked(ps, m, npc) {
+			return true // the hit may have killed the groupmate
+		}
+		if m.IsDead() {
 			continue
 		}
 		if m.Attacking() && m.AttackTarget == npc.ServerID {

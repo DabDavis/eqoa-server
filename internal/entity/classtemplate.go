@@ -1535,7 +1535,7 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 			taken := res.Taken
 			taken = w.formulaDamage(taken, dmgIn{src: srcNPC, kind: dkSpell, an: npc, dp: p, raw: hit, spell: c.spell, resist: resist}) // dmgformula.go
 			drained = int(math.Round(float64(drained) * (1 - share)))
-			p.HP = max(p.HP-taken, 0)
+			w.damagePlayerFromNPCLocked(npc, p, taken)
 			if sess != nil {
 				if nid := w.objectIDForEntityLocked(sess, npc.ServerID); nid != 0 {
 					w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID(), 0) // the creature's on the player: untagged
@@ -1723,7 +1723,7 @@ func (w *World) npcTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	taken := res.Taken
 	taken = w.formulaDamage(taken, dmgIn{src: srcNPC, kind: dkDoT, an: npc, dp: t, raw: -ae.HPTick, spellID: ae.SpellID,
 		spellLevel: ae.spellLevel, resist: ae.npcResist}) // dmgformula.go
-	t.HP = max(t.HP-taken, 0)
+	w.damagePlayerFromNPCLocked(npc, t, taken)
 	t.StatsDirty = true
 	t.LastCombatTime = now
 	w.breakInvisLocked(t, "a hit") // invis.go: every invisibility, whatever gave it
@@ -1942,7 +1942,7 @@ func (w *World) templateStrikeFXLocked(npc *NPC, target EntityID, now time.Time,
 		}
 		w.broadcastNPCSwingLocked(npc, target, 0, fx)
 		damage = w.formulaDamage(damage, dmgIn{src: srcNPC, kind: dkSpecial, an: npc, dp: p, raw: damage}) // dmgformula.go
-		p.HP = max(p.HP-damage, 0)
+		w.damagePlayerFromNPCLocked(npc, p, damage)
 		p.StatsDirty = true
 		p.LastCombatTime = now
 		w.breakInvisLocked(p, "a hit") // invis.go: every invisibility, whatever gave it

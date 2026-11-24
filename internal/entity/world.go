@@ -193,6 +193,8 @@ type World struct {
 
 	// Summoned pets by their owners' ids (pet.go)
 	pets map[EntityID]*petState
+	// Recent exchanges of damage between a player and a mob, for Aggressive pets.
+	petDamage map[petDamagePair]uint64
 	// sidePets are the animals a stacking charm (Cat Magnetism) keeps beside
 	// those pets, by their owners' ids (stackcharm.go)
 	sidePets map[EntityID]*petState

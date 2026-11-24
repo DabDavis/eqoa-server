@@ -200,7 +200,7 @@ func (w *World) setHPMomentLocked(npc *NPC, m *database.TemplateAbility, now tim
 			continue
 		}
 		taken := p.HP - to
-		p.HP = to
+		w.damagePlayerFromNPCLocked(npc, p, taken)
 		p.StatsDirty = true
 		if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
 			from := w.objectIDForEntityLocked(sess, npc.ServerID)

@@ -320,6 +320,14 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	w.npcMeleeOnPlayerLocked(npc, player, 100, false, now)
 }
 
+// damagePlayerFromNPCLocked applies the final damage after mitigation and
+// records the HP actually lost, including a hit on a secondary target.
+func (w *World) damagePlayerFromNPCLocked(npc *NPC, player *Player, damage int) {
+	before := player.HP
+	player.HP = max(before-damage, 0)
+	w.notePetDamageLocked(player, npc, before-player.HP)
+}
+
 // npcMeleeOnPlayerLocked is one melee hit of the NPC's on the player (npcAttackPlayer's), at pct
 // percent of its figure (100: as it is); ramp marks an area rampage's hit (arearampage.go), which
 // rampages no further (an enrage's share on the second of its list is its round's alone). Must be
@@ -356,12 +364,9 @@ func (w *World) npcMeleeOnPlayerLocked(npc *NPC, player *Player, pct int, ramp b
 		damage = fixed // its template's fixed melee (melee_fixed): that figure, through any armour, not rolled
 	}
 	damage = rampagePct(damage, pct) // an area rampage's share (arearampage.go)
-	player.HP -= damage
+	w.damagePlayerFromNPCLocked(npc, player, damage)
 	w.contactPlayerLocked(player)       // what ends at a hit (workbook.go)
 	w.breakInvisLocked(player, "a hit") // invis.go: every invisibility, whatever gave it
-	if player.HP < 0 {
-		player.HP = 0
-	}
 	player.LastCombatTime = now
 	npc.meleeLanded(damage, now) // unreached.go
 	if !ramp {

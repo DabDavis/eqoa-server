@@ -56,7 +56,7 @@ func (w *World) deathTouchLocked(npc *NPC, m *database.TemplateAbility, now time
 	}
 	took := p.HP
 	w.broadcastNPCSwingLocked(npc, p.ServerID, 0, fx)
-	p.HP = 0
+	w.damagePlayerFromNPCLocked(npc, p, took)
 	p.StatsDirty = true
 	p.LastCombatTime = now
 	sess := w.findSessionByEntityIDLocked(p.ServerID)

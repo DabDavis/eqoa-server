@@ -97,7 +97,7 @@ func (w *World) wardAnswerLocked(npc *NPC, id EntityID, now time.Time) bool {
 			return false
 		}
 		w.broadcastNPCSwingLocked(npc, p.ServerID, 0, fxShieldHit)
-		p.HP = max(p.HP-n, 0)
+		w.damagePlayerFromNPCLocked(npc, p, n)
 		p.StatsDirty = true
 		p.LastCombatTime = now
 		sess := w.findSessionByEntityIDLocked(id)

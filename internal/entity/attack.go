@@ -859,6 +859,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 		w.sendDamageIndication(sess, sess.PlayerObjectID(), -damage, objectID, numberMelee)
 		w.markHealPlayerLocked(sess, attacker, npc, now) // markheal.go
 		w.dummyEngagedLocked(npc, attacker.ServerID, damage, now)
+		w.notePetDamageLocked(attacker, npc, damage)
 		w.playerProcsLocked(sess, attacker, npc, now)
 		w.markHitLocked(sess, attacker, npc, now) // markhit.go: told, as a dummy's hits are
 		return false
@@ -870,6 +871,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 		npc.HP = 0
 	}
 	killed := npc.HP <= 0
+	w.notePetDamageLocked(attacker, npc, damage)
 	attacker.LastCombatTime = time.Now()
 
 	w.sendDamageIndication(sess, sess.PlayerObjectID(), -damage, objectID, numberMelee)

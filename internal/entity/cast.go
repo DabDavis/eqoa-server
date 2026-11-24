@@ -2053,6 +2053,7 @@ func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, 
 		// told, taken off nothing (dummy.go)
 		w.tellAmountLocked(caster, casterSess, npc.ServerID, -n, kind)
 		w.dummyEngagedLocked(npc, caster.ServerID, n, time.Now())
+		w.notePetDamageLocked(caster, npc, n)
 		return false
 	}
 	if npc.duelHeld() {
@@ -2061,6 +2062,7 @@ func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, 
 	n = w.npcTakesLocked(npc, n, time.Now())         // nothing while held at 1 (deathhold.go)
 	w.tallyDamageLocked(npc, caster, min(n, npc.HP)) // killcredit.go
 	npc.HP = max(npc.HP-n, 0)
+	w.notePetDamageLocked(caster, npc, n)
 	w.tellAmountLocked(caster, casterSess, npc.ServerID, -n, kind)
 	w.updateAggro(npc, caster.ServerID, n-n*hateOff/100)
 	w.rootBreakLocked(npc, caster.Level) // root.go

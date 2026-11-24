@@ -88,7 +88,7 @@ func (w *World) unreachedMomentLocked(npc *NPC, m *database.TemplateAbility, now
 		now.Sub(f.landedAt).Round(time.Second), len(ps), wait)
 	for _, p := range ps {
 		w.broadcastNPCSwingLocked(npc, p.ServerID, 0, fx)
-		p.HP = max(p.HP-m.Damage, 0)
+		w.damagePlayerFromNPCLocked(npc, p, m.Damage)
 		p.StatsDirty = true
 		p.LastCombatTime = now
 		sess := w.findSessionByEntityIDLocked(p.ServerID)

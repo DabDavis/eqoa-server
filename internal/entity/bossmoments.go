@@ -235,6 +235,12 @@ func (w *World) setHPMomentLocked(npc *NPC, m *database.TemplateAbility, now tim
 // all above -1,000,000), so a second landing replaces the first.
 const setHPDoTSpellID = -1_990_001
 
+// setHPDoTIcon is the effect icon a sethp's damage over time shows in its
+// bearer's effects (it has no record to take one from; none drew a blank,
+// Heirloom petition 2927: the dreadnaught's Dread Curse): the curse icon of
+// Umbral Curse, Cursed Hand and Strangling Hold (a damage over time).
+const setHPDoTIcon = 667007739
+
 // bossDoTFor is a sethp's damage over time's time: its own, else a tick line's
 // with no time.
 func bossDoTFor(m *database.TemplateAbility) time.Duration {
@@ -249,7 +255,7 @@ func bossDoTFor(m *database.TemplateAbility) time.Duration {
 // (npcTickLocked, on npc's template's dice), but at the cap its own share
 // (1 - TickAtCap/Tick), its first tick now. Must be called with the lock held.
 func (w *World) bossDoTOnPlayerLocked(npc *NPC, m *database.TemplateAbility, p *Player, now time.Time) {
-	ae := &ActiveEffect{SpellID: setHPDoTSpellID, Name: momentName(m), Caster: npc.ServerID, Until: now.Add(bossDoTFor(m)),
+	ae := &ActiveEffect{SpellID: setHPDoTSpellID, Name: momentName(m), Icon: setHPDoTIcon, Caster: npc.ServerID, Until: now.Add(bossDoTFor(m)),
 		NextTick: now, HPTick: -m.Tick, npcFoe: npc.ServerID, npcResist: shieldResistStat(m.Resist), npcAtCap: bossDoTAtCap(m)}
 	ae.Rules.Harm = true
 	w.breakInvisLocked(p, "a hit") // invis.go
@@ -271,7 +277,7 @@ func bossDoTAtCap(m *database.TemplateAbility) float64 {
 // held.
 func (w *World) bossDoTOnCreatureStartLocked(npc *NPC, m *database.TemplateAbility, n *NPC, now time.Time) {
 	n.Effects = slices.DeleteFunc(n.Effects, func(e *ActiveEffect) bool { return e.SpellID == setHPDoTSpellID })
-	ae := &ActiveEffect{SpellID: setHPDoTSpellID, Name: momentName(m), Caster: npc.ServerID, Until: now.Add(bossDoTFor(m)),
+	ae := &ActiveEffect{SpellID: setHPDoTSpellID, Name: momentName(m), Icon: setHPDoTIcon, Caster: npc.ServerID, Until: now.Add(bossDoTFor(m)),
 		NextTick: now, HPTick: -m.Tick, npcCaster: npc.ServerID, bossDoT: true,
 		Rules: EffectRules{Resist: shieldResistStat(m.Resist), Harm: true}}
 	n.Effects = append(n.Effects, ae)

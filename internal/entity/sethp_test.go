@@ -230,6 +230,11 @@ func TestASetHPDamageOverTimeScalesWithColdResist(t *testing.T) {
 	if n := countDoT(r.p.Effects); n != 1 {
 		t.Fatalf("%d of its damage over time on the player", n)
 	}
+	for _, e := range r.p.Effects { // Heirloom petition 2927: no record, so its own icon, never a blank
+		if e.SpellID == setHPDoTSpellID && e.Icon != setHPDoTIcon {
+			t.Fatalf("its damage over time shows icon %d, want %d", e.Icon, setHPDoTIcon)
+		}
+	}
 	r.p.HP, ally.HP = 5000, 20000
 	r.at(30 * time.Second)
 	if n := countDoT(r.p.Effects); n != 1 || r.p.HP != 50 {

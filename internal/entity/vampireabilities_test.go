@@ -488,3 +488,27 @@ func TestAFemaleVampireWearsTserrinasBody(t *testing.T) {
 		t.Errorf("Bat Form on a woman shows %#x at %.2f, want the bat's %#x at 0.80", m, size, bat)
 	}
 }
+
+// Heirloom petition 2843 ("Vampire Form cast is not permanent. it should be."):
+// tools/petpass_both_1124l.py gives 760002's record duration_s 315360000, the were
+// forms' until dropped (illusion.go wereFormLasts, the owner 2026-11-20). It reads as
+// that time exactly, and the buff window shows it with no end.
+func TestVampireFormLastsUntilDropped(t *testing.T) {
+	const row = `{"v":1,"scope":"self","target_type":"Self","harmful":false,"stack":0,"level":40,"min_level":1,"req_equipment":"Any","sheet_type":"Alter Appearance","effects":[{"id":"0955","type":"Alter Appearance","kind":"illusion","sprite":"0x83801BCE","consume":{"count":2,"name":"Unit of Blood","patternid":709302},"duration_s":315360000}],"duration_s":315360000}`
+	d, err := ParseSpellJSON("Vampire Form", "Assume the form of a vampire.", row)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if d.Duration != wereFormLasts {
+		t.Errorf("Vampire Form lasts %v, want until dropped (%v)", d.Duration, wereFormLasts)
+	}
+	if d.FormModel == 0 {
+		t.Errorf("Vampire Form shows no body")
+	}
+	now := time.Now()
+	w := NewWorld()
+	p := &Player{Effects: []*ActiveEffect{{Name: "Vampire Form", SpellID: 760002, Until: now.Add(d.Duration)}}}
+	if lines := w.buffWindowSetLocked(p, now); len(lines) != 1 || lines[0].LeftMS != buffNoEnd {
+		t.Errorf("the buff window's line %+v: want no end", lines)
+	}
+}

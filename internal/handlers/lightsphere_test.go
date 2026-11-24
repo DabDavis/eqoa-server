@@ -45,3 +45,30 @@ func TestALightSphereSendsToItsPair(t *testing.T) {
 		t.Errorf("facing %.3f, want 3/2 pi", f)
 	}
 }
+
+// An NPC beside a sphere's place is not the sphere (Heirloom petition 2849):
+// Saerk stands on the floor over his tower's upper orb of light, 2.1 from its
+// place across, and a talk to him opened the orb's box instead of his quest.
+// The orb itself still answers. (The rig's places, near Anna: Saerk 2.1 from
+// the orb's place across, as on the tower.)
+func TestANPCBesideASphereIsNotIt(t *testing.T) {
+	r := newPortalRig(t)
+	rows := []database.LightSphere{{ID: 8, World: 0, X: 5001, Z: 5000,
+		Line: "This orb of light carries you down to the ground floor of the tower.", Answer: "Touch the light.",
+		ToWorld: 0, ToX: 21248.572, ToY: 245, ToZ: 13515.552, ToFacing: 208}}
+	r.ih.SetLightSpheres(func() ([]database.LightSphere, error) { return rows, nil })
+	orb := &entity.NPC{ServerID: 9201, Name: "orb of light", NPCType: 384, X: 5001, Y: 50, Z: 5000,
+		SpawnX: 5001, SpawnZ: 5000, Level: 1, HP: 100, MaxHP: 100}
+	saerk := &entity.NPC{ServerID: 9202, Name: "Saerk", NPCType: 384, X: 5001.1, Y: 54, Z: 5002.1,
+		SpawnX: 5001.1, SpawnZ: 5002.1, Level: 50, HP: 100, MaxHP: 100}
+	r.gw.NPCs[orb.ServerID], r.gw.NPCs[saerk.ServerID] = orb, saerk
+
+	r.talk(r.anna, saerk)
+	for _, m := range r.msgs(r.anna) {
+		if m == "ask#0:"+rows[0].Line+"|Touch the light." {
+			t.Fatalf("Anna, at Saerk: got the orb's box")
+		}
+	}
+	r.talk(r.anna, orb)
+	r.want("Anna, at the orb", r.msgs(r.anna), "ask#0:"+rows[0].Line+"|Touch the light.")
+}

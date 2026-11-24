@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
-"""Heirloom petition 2824 (Darkhavictwo, 2026-11-24, Item): "rogue metal gem icon is wrong, its supposed to be the
-orange metal icon". Both shards.
+"""Heirloom petitions 2824 and 2825 (Darkhavictwo, 2026-11-24, Item), both shards:
+  2824 "rogue metal gem icon is wrong, its supposed to be the orange metal icon"
+  2825 "titan allow studs icon is wrong, its supposed to be the studs icon. it is currently alloy icon"
 
-  The record is Rogue Metal (Heirloom itempattern 996092, Live 980209), the weaponsmith's rare modifier that lends a
-  lingering poison to a blade (tools/seed_tradeskills.py). The seed gave every weapon modifier one stand-in icon,
-  1246639590, the grey alloy rod. It now wears 1320989093, the orange metal bar that Gold Bar, Copper Bar, Bronze Bar
-  and gold ingot already wear (the decimal copied from those records, rendered from ITEMICON.ESF with
-  ~/.cache/iconsheet beside the other metal icons: the silver bar of the ores and bars, the grey rod, the dark lump;
-  it is the only orange metal of the 381 icons). Live's record is the same with the same icon: mirrored.
+  Rogue Metal (Heirloom itempattern 996092, Live 980209) is the weaponsmith's rare modifier that lends a lingering
+  poison to a blade; Titan Alloy Studs (Heirloom 998462, Live 982580) the tailor's modifier that lends vitality. Both
+  are tools/seed_tradeskills.py records, which gave the modifiers one stand-in icon, 1246639590, the grey alloy rod.
 
-  The other eight weapon modifiers still on the alloy rod are not changed (Ethereal Mists wears the blue bottle
-  since tools/petpass_both_1124a.py).
+  - Rogue Metal now wears 1320989093, the orange metal bar that Gold Bar, Copper Bar, Bronze Bar and gold ingot
+    already wear (rendered from ITEMICON.ESF with ~/.cache/iconsheet beside the other metal icons: the silver bar of
+    the ores and bars, the grey rod, the dark lump; it is the only orange metal of the 381 icons).
+  - Titan Alloy Studs now wears -1836445075, the heap of studs that Heartsblood Alloy Studs, Marr's Blessed Studs and
+    nine master craftsman's studs already wear (rendered beside the earring studs, which are jewellery).
+
+  Each decimal is copied from those records and the tool refuses unless a wearer still has it. Live's records are the
+  same with the same icon: mirrored. The other seed modifiers still on the alloy rod are not changed (Ethereal Mists
+  wears the blue bottle since tools/petpass_both_1124a.py).
 
 Refused, nothing written, when a row is not as expected (a GM's edit since). Report only by default; --apply in one
 transaction, a gm_audit line a row, log petpass_both_1124d_log; --undo exact. An item's icon shows at the player's
@@ -25,38 +30,43 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import tix4_rows as tr  # noqa: E402
 
 LOG = "petpass_both_1124d_log"
-DETAIL = "Heirloom petition 2824: Rogue Metal wears the orange metal bar icon (tools/petpass_both_1124d.py)"
-ITEM_NAME = "Rogue Metal"
-DESC_MARK = "a weaponsmith works into a blade"
-ALLOY_ICON, ORANGE_BAR_ICON = 1246639590, 1320989093
-BAR_WEARER = "Copper Bar"
+DETAIL = ("Heirloom petitions 2824/2825: Rogue Metal wears the orange metal bar icon, Titan Alloy Studs the studs "
+          "icon (tools/petpass_both_1124d.py)")
+ALLOY_ICON = 1246639590
+# (petition, item name, description mark, new icon, what it is, a record that already wears it)
+FIXES = [
+    (2824, "Rogue Metal", "a weaponsmith works into a blade", 1320989093, "the orange metal bar", "Copper Bar"),
+    (2825, "Titan Alloy Studs", "a tailor works into cloth or leather", -1836445075, "the studs",
+     "Heartsblood Alloy Studs"),
+]
 
 
 def changes(db):
     out, lines, refusals = [], [], []
 
-    wearers = tr.rows(db, "SELECT count(*) AS c FROM itempattern WHERE itemname = ? AND itemicon = ?",
-                      (BAR_WEARER, ORANGE_BAR_ICON))[0]["c"]
-    if not wearers:
-        refusals.append(f"no {BAR_WEARER} wears {ORANGE_BAR_ICON}: the orange bar's decimal is not confirmed here")
-
-    recs = tr.rows(db, "SELECT patternid FROM itempattern WHERE itemname = ? AND itemdesc LIKE ?",
-                   (ITEM_NAME, f"%{DESC_MARK}%"))
-    if len(recs) != 1:
-        refusals.append(f"{len(recs)} {ITEM_NAME} weapon-modifier records, expected 1")
-    else:
+    for pet, name, mark, icon, what, wearer in FIXES:
+        wearers = tr.rows(db, "SELECT count(*) AS c FROM itempattern WHERE itemname = ? AND itemicon = ?",
+                          (wearer, icon))[0]["c"]
+        if not wearers:
+            refusals.append(f"{pet}: no {wearer} wears {icon}: {what} decimal is not confirmed here")
+        recs = tr.rows(db, "SELECT patternid FROM itempattern WHERE itemname = ? AND itemdesc LIKE ?",
+                       (name, f"%{mark}%"))
+        if len(recs) != 1:
+            refusals.append(f"{pet}: {len(recs)} {name} modifier records, expected 1")
+            continue
         key = {"patternid": recs[0]["patternid"]}
         it = tr.get(db, "itempattern", key)
-        if it["itemicon"] not in (ALLOY_ICON, ORANGE_BAR_ICON):
-            refusals.append(f"itempattern {key['patternid']}'s icon is {it['itemicon']}, not the alloy's (a GM's edit since?)")
-        else:
-            out.append(("itempattern", key, dict(it, itemicon=ORANGE_BAR_ICON)))
-            lines.append(f"2824: itempattern {key['patternid']} {ITEM_NAME} itemicon {it['itemicon']} -> "
-                         f"{ORANGE_BAR_ICON} (the orange metal bar; {wearers} {BAR_WEARER} records wear it)")
+        if it["itemicon"] not in (ALLOY_ICON, icon):
+            refusals.append(f"{pet}: itempattern {key['patternid']}'s icon is {it['itemicon']}, not the alloy's "
+                            "(a GM's edit since?)")
+            continue
+        out.append(("itempattern", key, dict(it, itemicon=icon)))
+        lines.append(f"{pet}: itempattern {key['patternid']} {name} itemicon {it['itemicon']} -> {icon} "
+                     f"({what}; {wearers} {wearer} records wear it)")
 
-    others = tr.rows(db, "SELECT count(*) AS c FROM itempattern WHERE itemdesc LIKE ? AND itemname != ? AND itemicon = ?",
-                     (f"%{DESC_MARK}%", ITEM_NAME, ALLOY_ICON))[0]["c"]
-    lines.append(f"note: {others} other weapon modifiers keep the alloy icon, not changed")
+    others = tr.rows(db, "SELECT count(*) AS c FROM itempattern WHERE itemicon = ? AND itemname NOT IN (?, ?)",
+                     (ALLOY_ICON, FIXES[0][1], FIXES[1][1]))[0]["c"]
+    lines.append(f"note: {others} other records keep the alloy icon, not changed")
 
     if refusals:
         out = []

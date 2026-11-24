@@ -531,6 +531,11 @@ func (l *Listener) ResumeKept(snap *Snapshot, now time.Time) (resumed, told int)
 	snap.beat.Stop() // the copies' numbers into the snapshot, before it is read
 	snap.beat = nil
 	for _, ks := range snap.Sessions {
+		allowed := l.PlayerTermsAllowed == nil || l.PlayerTermsAllowed(ks.Session.AccountID)
+		if !allowed {
+			ks.Session.Unacked = nil
+			ks.Session.Pending = nil
+		}
 		sess, err := l.sessionManager.Resume(ks.Session)
 		if err != nil {
 			log.Printf("Keep: %v", err)
@@ -538,6 +543,17 @@ func (l *Listener) ResumeKept(snap *Snapshot, now time.Time) (resumed, told int)
 		}
 		addr := sess.RemoteAddr()
 		sess.SetSendFunc(func(data []byte) error { return l.SendTo(data, addr) })
+		if !allowed {
+			handlers.SendDisconnect(sess, protocol.OpcodeBadLoginPassword)
+			if l.conn != nil {
+				l.flushSession(sess)
+			}
+			// ResumeKept runs before the listener starts. Leave no authenticated
+			// session for the incoming game traffic waiting on the socket.
+			l.sessionManager.RemoveSession(sess)
+			told++
+			continue
+		}
 		conns = append(conns, back{sess, ks})
 		beaten = append(beaten, sess)
 	}

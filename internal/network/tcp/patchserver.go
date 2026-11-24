@@ -1180,6 +1180,22 @@ func (s *PatchServer) repointStationPak(data []byte) []byte {
 	if s.cfg.Mail.Accounts && accountmail.Check(s.cfg.Mail, false) == nil {
 		pages = stationEmailPages(accountmail.Short(s.cfg.Mail), s.cfg.Mail.RequireVerified)
 	}
+	if s.cfg.Auth.RequirePlayerTerms {
+		if pages == nil {
+			pages = make(map[string][]byte)
+		}
+		note := stationAccountNotice("EQOA Classic Player Terms", playerTermsAddress,
+			"Open this page on a phone or computer. Create an account or accept for your existing account. Then sign in here.",
+			"Account Help", "One agreement covers Live and Heirloom.")
+		pages["data/ui/IDCreate.xml"] = note
+		pages["data/ui/IDCreat2.xml"] = note
+		pages[EmailRefusalPage] = note
+		if s.cfg.Mail.RequireVerified {
+			pages[EmailRefusalPage] = stationAccountNotice("Complete your EQOA Classic account at", playerTermsAddress,
+				"Accept the Player Terms. If you already accepted, use the account help link on that page to verify your e-mail. Then sign in here.",
+				"Account Help", "One agreement covers Live and Heirloom.")
+		}
+	}
 
 	var out bytes.Buffer
 	var changed []string

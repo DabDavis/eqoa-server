@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{if eq .Stage "privacy"}}Privacy Notice{{else}}Player Terms{{end}} | EQOA Classic</title>
+<style>
+* {box-sizing:border-box} body {margin:0 auto;max-width:50rem;padding:1.2rem;color:#282721;background:#fcfbf7;font:1.05rem/1.55 system-ui,sans-serif}
+nav {display:flex;gap:1.25rem;flex-wrap:wrap;border-bottom:1px solid #a8a597;padding:.5rem 0 1rem} a {color:#174d63}
+h1,h2,h3 {line-height:1.2} h1,h2 {font-family:Georgia,serif} form {max-width:34rem}
+label {display:block;margin:1rem 0 .25rem} input:not([type=checkbox]) {display:block;width:100%;padding:.55rem;font:inherit}
+button {font:inherit;padding:.5rem 1rem;cursor:pointer;margin:.75rem .5rem .5rem 0} button[type=submit] {font-weight:600}
+article {margin-top:2rem;border-top:1px solid #a8a597} li {margin:.65rem 0} .notice {border-left:3px solid #946719;padding-left:.8rem}
+</style></head><body>
+<nav aria-label="Project"><a href="https://eqoaclassic.com/">EQOA Classic</a><a href="/terms">Player Terms</a><a href="/privacy">Privacy Notice</a><a href="https://eqoaclassic.com/eqoa/password">Account help</a></nav>
+<main>
+{{if eq .Stage "privacy"}}<article>{{template "privacy-1.0.html"}}</article>
+{{else}}
+<h1>EQOA Classic Player Terms</h1>
+{{if .Message}}<p role="status" class="notice">{{.Message}}</p>{{end}}
+{{if eq .Stage "age"}}
+<p>To create an account or accept the agreement for an existing account, start here. Both documents are available to read below.</p>
+<form method="post" action="/terms"><input type="hidden" name="step" value="age">
+{{if .Signup}}<input type="hidden" name="mode" value="create">{{end}}
+<label for="age">How old are you?</label><input id="age" name="age" type="number" min="0" max="130" step="1" inputmode="numeric" autocomplete="off" required>
+<button type="submit">Continue</button></form>
+{{else if eq .Stage "ineligible"}}<p>EQOA Classic is available to players age 13 or older.</p>
+{{else if eq .Stage "account"}}
+{{if .Signup}}<h2>Create your account</h2><a href="/terms">I already have an account</a>
+{{else}}<h2>Accept for your existing account</h2><a href="/terms?mode=create">Create a new account</a>{{end}}
+<form method="post" action="/terms"><input type="hidden" name="proof" value="{{.Proof}}">
+<label for="username">Game account name</label><input id="username" name="username" autocomplete="username" value="{{.Username}}" maxlength="{{if .Signup}}16{{else}}32{{end}}" required>
+<label for="password">Game account password</label><input id="password" type="password" name="password" autocomplete="{{if .Signup}}new-password{{else}}current-password{{end}}" required {{if .Signup}}minlength="4" maxlength="31"{{end}}>
+{{if and .Signup .Mail}}<label for="email">Recovery email</label><input id="email" type="email" name="email" autocomplete="email" value="{{.Email}}" required>{{end}}
+<p>You must be 13 or older to play. A GM may suspend your account on both servers if the GM judges it to be in the community’s best interests. A GM monitoring your character can see outgoing tells.</p>
+<p><a href="/terms#agreement" target="_blank" rel="noopener">Read Player Terms v{{.Version}}</a> · <a href="/privacy" target="_blank" rel="noopener">Read the Privacy Notice</a></p>
+<label><input type="checkbox" name="agree" value="{{.Version}}" required> I agree to the EQOA Classic Player Terms v{{.Version}}.</label>
+<button type="submit" name="step" value="{{if .Signup}}create{{else}}accept{{end}}">{{if .Signup}}Create account and agree{{else}}I agree{{end}}</button></form>
+<form method="post" action="/terms"><input type="hidden" name="proof" value="{{.Proof}}"><button name="step" value="decline">Decline and return to sign-in</button></form>
+{{else if eq .Stage "declined"}}<p>You declined. Your account and characters are preserved. Both game servers require agreement before play.</p><a href="https://eqoaclassic.com/eqoa/play/">Return to game sign-in</a>
+{{else if eq .Stage "accepted"}}<h2>Agreement recorded</h2><p>You accepted version {{.Version}} for <strong>{{.Username}}</strong>. You can now return to game sign-in on either shard. If you need to verify your email or recover access, use <a href="https://eqoaclassic.com/eqoa/password">account help</a>.</p>
+{{end}}
+<article id="agreement">{{template "terms-1.1.html"}}</article>
+{{end}}</main></body></html>

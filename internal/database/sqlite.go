@@ -128,6 +128,17 @@ func (db *SQLiteDB) initSchema() error {
 		race INTEGER NOT NULL
 	);
 
+	CREATE TABLE IF NOT EXISTS account_terms_acceptances (
+		accountid INTEGER NOT NULL REFERENCES accountinfo(accountid) ON DELETE CASCADE,
+		version TEXT NOT NULL,
+		accepted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		PRIMARY KEY (accountid, version)
+	);
+	CREATE TRIGGER IF NOT EXISTS remove_account_terms AFTER DELETE ON accountinfo
+	BEGIN
+		DELETE FROM account_terms_acceptances WHERE accountid = OLD.accountid;
+	END;
+
 	-- characters (matches C# exactly: serverid is PK, charName is UNIQUE)
 	CREATE TABLE IF NOT EXISTS characters (
 		charName TEXT UNIQUE NOT NULL,
@@ -1577,13 +1588,21 @@ func (s *SQLiteAccountStore) Username(accountID int) (string, error) {
 // Create creates a new account. Password should already be hashed if needed.
 // The name is kept trimmed of the whitespace around it (GetByUsername).
 func (s *SQLiteAccountStore) Create(username, passwordHash string) (*AccountRecord, error) {
+	return insertAccount(s.db, username, passwordHash)
+}
+
+func insertAccount(db interface {
+	Exec(string, ...any) (sql.Result, error)
+}, username, passwordHash string) (*AccountRecord, error) {
 	username = strings.TrimSpace(username)
 	if username == "" {
 		return nil, errors.New("empty username")
 	}
-	result, err := s.db.Exec(`
-		INSERT INTO accountinfo (username, pwhash, acctstatus, acctlevel, acctcreation) VALUES (?, ?, 1, 0, CURRENT_TIMESTAMP)
-	`, username, passwordHash)
+	result, err := db.Exec(`
+		INSERT INTO accountinfo (username, pwhash, acctstatus, acctlevel, acctcreation)
+		SELECT ?, ?, 1, 0, CURRENT_TIMESTAMP
+		WHERE NOT EXISTS (SELECT 1 FROM accountinfo WHERE LOWER(username) = LOWER(?))
+	`, username, passwordHash, username)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
 			return nil, errors.New("username already exists")
@@ -1591,6 +1610,13 @@ func (s *SQLiteAccountStore) Create(username, passwordHash string) (*AccountReco
 		return nil, err
 	}
 
+	n, err := result.RowsAffected()
+	if err != nil {
+		return nil, err
+	}
+	if n == 0 {
+		return nil, errors.New("username already exists")
+	}
 	id, err := result.LastInsertId()
 	if err != nil {
 		return nil, err

@@ -1115,6 +1115,8 @@ type AuthConfig struct {
 	// decorative: the UDP path takes the username from the packet, so a client
 	// can skip the auth server entirely and name any account.
 	RequireTCPLogin bool `yaml:"require_tcp_login"`
+	// RequirePlayerTerms applies the EQOA Classic account agreement to every game login.
+	RequirePlayerTerms bool `yaml:"require_player_terms"`
 
 	// TicketTTL is how long a completed TCP login stays valid for the UDP
 	// handshake. It needs to cover a human sitting on the server-select and

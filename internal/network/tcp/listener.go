@@ -210,9 +210,10 @@ func SeedAccounts(store *database.SQLiteAccountStore, seeds []config.AccountSeed
 
 // AuthServer handles auth server TCP connections.
 type AuthServer struct {
-	cfg     *config.Config
-	store   *database.SQLiteAccountStore
-	tickets *auth.TicketStore
+	PlayerTermsAllowed func(int) bool
+	cfg                *config.Config
+	store              *database.SQLiteAccountStore
+	tickets            *auth.TicketStore
 
 	// liveLogin, when set, names what a login collides with: "account" (that
 	// account is already in the game) or "address" (a session from that IP
@@ -334,7 +335,7 @@ func (s *AuthServer) SetAllowAutoRegister(on bool) {
 
 // AllowAutoRegister is whether an unknown username registers itself now.
 func (s *AuthServer) AllowAutoRegister() bool {
-	return s.autoRegister.Load()
+	return s.autoRegister.Load() && !s.cfg.Auth.RequirePlayerTerms
 }
 
 // SetRelay names the web relay's source addresses and how to ask it which
@@ -493,6 +494,8 @@ func (s *AuthServer) HandleConnection(conn net.Conn) {
 			ip, relayed := who()
 			response = s.handleLoginVia(payload, ip, relayed)
 			loggedIn = loginAccepted(response)
+		case opcode == MsgSubmitAcctCreate && s.cfg.Auth.RequirePlayerTerms:
+			response = buildCreateReply(false, playerTermsInstruction)
 		case opcode == MsgSubmitAcctCreate && s.mail != nil:
 			ip, _ := who()
 			response = s.handleCreateAccountMail(payload, ip)
@@ -606,6 +609,9 @@ func (s *AuthServer) handleLoginVia(payload []byte, ip net.IP, relayed bool) []b
 
 	// A verified e-mail required (SetEmailRefusal): after the password, so
 	// it says nothing of an account to someone who does not hold it.
+	if s.cfg.Auth.RequirePlayerTerms && (s.PlayerTermsAllowed == nil || !s.PlayerTermsAllowed(accountID)) {
+		return s.buildEmailRefusedResponse(uint32(accountID)) // STATION opens the server's account instructions.
+	}
 	if s.emailRefused != nil && s.emailRefused(accountID) {
 		log.Printf("Auth: refused '%s' (ID: %d) from %v: no verified e-mail (STATION shows EmailRefusalPage)", username, accountID, ip)
 		return s.buildEmailRefusedResponse(uint32(accountID))
@@ -689,7 +695,7 @@ func (s *AuthServer) authenticate(username string, passwordField []byte) (auth.L
 		log.Printf("Auth: login for '%s' rejected — %v", username, err)
 		return auth.LoginCredential{}, false, false
 	}
-	return s.checkPassword(username, password, s.autoRegister.Load())
+	return s.checkPassword(username, password, s.AllowAutoRegister())
 }
 
 // checkPassword checks password against the account's stored credential:
@@ -849,6 +855,9 @@ func (s *AuthServer) accountUpToDate(username string) {
 // then the ticket.
 func (s *AuthServer) udpLoginStands(username, password string, credential auth.LoginCredential, ip net.IP) (int, string) {
 	accountID := credential.AccountID
+	if s.cfg.Auth.RequirePlayerTerms && (s.PlayerTermsAllowed == nil || !s.PlayerTermsAllowed(accountID)) {
+		return accountID, "terms"
+	}
 	if s.liveLogin != nil {
 		checkIP := ip
 		if ip != nil && s.exemptIP(ip) {

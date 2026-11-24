@@ -1001,8 +1001,9 @@ func main() {
 	// auth.require_tcp_login says, and a sign-in leaves no ticket behind (a
 	// ticket names a username alone).
 	sharedAccounts := cfg.Auth.SharedDB != ""
+	requireGameLogin := cfg.Auth.RequireTCPLogin || sharedAccounts || cfg.Auth.RequirePlayerTerms
 	loginTickets := auth.NewTicketStore(cfg.Auth.TicketTTL)
-	if cfg.Auth.RequireTCPLogin || sharedAccounts {
+	if requireGameLogin {
 		handlerRegistry.SetLoginTickets(loginTickets)
 	} else {
 		log.Printf("WARNING: auth.require_tcp_login is off — the UDP handshake will " +
@@ -1049,7 +1050,7 @@ func main() {
 	}
 	log.Printf("Auth: at most %d failed logins an account and %d an address every %v (addresses %v not counted)",
 		auth.FailsPerName, auth.FailsPerAddr, auth.FailWindow, exempt)
-	if cfg.Auth.RequireTCPLogin || sharedAccounts {
+	if requireGameLogin {
 		// a client back at the server list with no ticket (a restart since its
 		// Station login, or the login older than auth.ticket_ttl) signs in by
 		// the password its handshake token carries, checked as a login is
@@ -1068,6 +1069,25 @@ func main() {
 		authHandler.SetAccountRefresh(mirror.PullOne)
 		stopMirror := mirror.Run(cfg.Auth.SharedRefresh)
 		defer stopMirror()
+	}
+	var playerTermsAllowed func(int) bool
+	if cfg.Auth.RequirePlayerTerms {
+		readReceipt := db.HasPlayerTerms
+		if mirror != nil {
+			readReceipt = mirror.HasPlayerTerms
+		}
+		playerTermsAllowed = func(id int) bool {
+			if id <= 0 {
+				return false
+			}
+			ok, err := readReceipt(id, tcp.PlayerTermsVersion)
+			if err != nil {
+				log.Printf("Player Terms: cannot check acceptance: %v", err)
+			}
+			return err == nil && ok
+		}
+		authHandler.PlayerTermsAllowed = playerTermsAllowed
+		handlerRegistry.SetPlayerTermsAllowed(playerTermsAllowed)
 	}
 	// The tunar ledger (internal/economy): every movement of tunar counted
 	// where it happens, written once a minute, the wealth measured hourly,
@@ -1185,6 +1205,9 @@ func main() {
 	var accountServer *tcp.AccountServer
 	if cfg.Server.AccountPort != 0 {
 		accountServer = tcp.NewAccountServer(db, cfg.Server.AccountPort, cfg.Auth.BCryptCost)
+		if cfg.Auth.RequirePlayerTerms {
+			accountServer.EnablePlayerTerms(!sharedAccounts)
+		}
 		accountServer.BindAddress = cfg.Auth.BindAddress
 		accountServer.Mail = accountMail
 		accountServer.TOTP = func(id int, code string) (bool, bool) {
@@ -1276,6 +1299,7 @@ func main() {
 
 	// Initialize UDP listener with game world
 	udpListener := udp.NewListener(cfg, sessionMgr, udpHandlers, gameWorld)
+	udpListener.PlayerTermsAllowed = playerTermsAllowed
 	udpListener.SetCharStore(charStore)
 
 	// The restart the GM panel's restart_server and a GM's #servdown (the live

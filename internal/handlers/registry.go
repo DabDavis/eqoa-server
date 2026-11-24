@@ -37,6 +37,12 @@ func (r *Registry) SetShardChat(id string) *shardchat.Bridge {
 	return h.shards
 }
 
+// SetPlayerTermsAllowed checks the account at the handshake and at character selection.
+func (r *Registry) SetPlayerTermsAllowed(allowed func(int) bool) {
+	r.authHandler.playerTermsAllowed = allowed
+	r.authHandler.characterHandler.playerTermsAllowed = allowed
+}
+
 // SetPasswordChecker lets the UDP handshake sign a username with no ticket in
 // by the password its token carries. See AuthHandler.SetPasswordChecker.
 func (r *Registry) SetPasswordChecker(c PasswordChecker) {

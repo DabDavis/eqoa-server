@@ -134,6 +134,7 @@ func swapBytes(val uint32) uint32 {
 
 // CharacterHandler handles character-related messages.
 type CharacterHandler struct {
+	playerTermsAllowed func(int) bool
 	// heirlooms is told each character's level as its gear is put on
 	// (heirloom.go); nil: no heirlooms
 	heirlooms      *Heirlooms
@@ -537,6 +538,10 @@ func (h *CharacterHandler) getModelID(race Race, gender Gender) int64 {
 
 // HandleSelectedChar handles character selection (opcode 0x2A).
 func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protocol.Message) error {
+	if h.playerTermsAllowed != nil && !h.playerTermsAllowed(int(sess.AccountID())) {
+		SendDisconnect(sess, protocol.OpcodeBadLoginPassword)
+		return nil
+	}
 	data := msg.Data()
 	log.Printf("SelectedChar: received %d bytes from %s", len(data), sess.RemoteAddr())
 

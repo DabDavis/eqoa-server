@@ -2,6 +2,7 @@
 import argparse
 import calendar
 import contextlib
+import csv
 import datetime
 import hashlib
 import json
@@ -19,6 +20,7 @@ TARGETS = {"live", "heirloom"}
 LANES = {"retail", "heirloom-only", "live-policy", "operations", "unreviewed"}
 DIRECT = {"soe", "original-recording", "original-disc", "official-guide", "era-database", "era-guide"}
 TICKET = re.compile(r"(?:work|(?:heirloom|live):petition):[1-9][0-9]*")
+AUDIT_CASE = re.compile(r"audit:[0-9]{8}:(?:C[0-9]{2}|G[1-9][0-9]*)")
 IDENT = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
 FORMAT = "eqoa-reviewed-ticket/1"
 RELEASES = "vanilla_ticket_release"
@@ -62,7 +64,7 @@ def nonblank(value):
     return isinstance(value, str) and bool(value.strip())
 
 
-def ledger(path):
+def ledger(path, *, allow_audit=False):
     data = load(path)
     require(isinstance(data, dict) and data.get("version") == 1 and isinstance(data.get("claims"), list),
             "expected a version 1 ticket ledger")
@@ -70,7 +72,8 @@ def ledger(path):
     for c in data["claims"]:
         require(isinstance(c, dict) and isinstance(c.get("id"), str), "claim needs an id")
         base, sep, part = c["id"].partition("/")
-        require(TICKET.fullmatch(base) and sep and re.fullmatch(r"[a-z0-9][a-z0-9-]*", part),
+        require((TICKET.fullmatch(base) or (allow_audit and AUDIT_CASE.fullmatch(base))) and sep
+                and re.fullmatch(r"[a-z0-9][a-z0-9-]*", part),
                 f"invalid shard-qualified petition or shared work id: {c['id']}")
         require(c["id"] not in seen and c.get("lane") in LANES and nonblank(c.get("claim")),
                 f"duplicate or invalid claim: {c['id']}")
@@ -392,6 +395,126 @@ def queue_rows(data, args, db=None, tables=None):
     return rows
 
 
+def transfer_value(field, source, desired, npc_ids):
+    """Compare a source field to a proposed Live value, resolving event NPCs on Live."""
+    if field != "events":
+        return canonical(source) == canonical(desired)
+    source_events = json.loads(source or "[]")
+    for event in source_events:
+        for key in ("npc", "target"):
+            ref = event.get(key)
+            if isinstance(ref, str) and re.fullmatch(r"#\d+", ref):
+                if ref not in npc_ids:
+                    return False
+                event[key] = npc_ids[ref]
+    return source_events == json.loads(desired or "[]")
+
+
+def protected_identity(value, excluded):
+    """Recognize exact entity names in rows and encoded events, independent of the claim's label."""
+    if isinstance(value, dict):
+        for key, part in value.items():
+            if key in {"events", "steps", "choices", "byclass"} and isinstance(part, str) and part.strip():
+                part = json.loads(part)
+            if protected_identity(part, excluded):
+                return True
+        return False
+    if isinstance(value, list):
+        return any(protected_identity(v, excluded) for v in value)
+    if isinstance(value, str):
+        return value.strip().replace("’", "'").casefold() in excluded
+    return False
+
+
+def transfer_rows(claim, scope, excluded):
+    """Return the pending row count for a reviewed, two-shard observation."""
+    comparison = claim.get("transfer", {})
+    features = comparison.get("features")
+    require(isinstance(features, list) and features and
+            all(scope.get(f, {}).get("scope") == "shared" for f in features), "unverified or shard-specific feature")
+    require(all(nonblank(comparison.get(k)) for k in ("checked_utc", "case", "subject", "basis", "limits")) and
+            all(nonblank(comparison.get("builds", {}).get(s)) for s in TARGETS), "missing shard readback")
+    require(not protected_identity([comparison["rows"], comparison["live_dependencies"], claim["changes"],
+                                    comparison.get("quest_parents", [])], excluded),
+            "protected content or dependency")
+    observed = {(r["table"], canonical(r["key"])): r for r in comparison["rows"]}
+    changes = claim["changes"]
+    require(len(observed) == len(comparison["rows"]) == len(changes) and
+            set(observed) == {(c["table"], canonical(c["key"])) for c in changes}, "unmatched destination rows")
+    dependencies = {(r["table"], canonical(r["key"])): r["values"] for r in comparison["live_dependencies"]}
+    for check in claim["checks"]:
+        require(check["expect"] and subset(dependencies.get((check["table"], canonical(check["key"]))),
+                                           check["expect"]), "destination dependency differs")
+    parent_quests = set()
+    for pair in comparison.get("quest_parents", []):
+        src, dst = pair["heirloom"], pair["live"]
+        identity = {k: dst[k] for k in ("name", "giver")}
+        require(all(nonblank(v) for v in identity.values()) and subset(src, identity) and
+                subset(dependencies.get(("quests", canonical({"questid": dst["questid"]}))), identity),
+                "different parent quest")
+        parent_quests.add(dst["questid"])
+    npc_ids = {}
+    for pair in comparison.get("npc_pairs", []):
+        src, dst = pair["heirloom"], pair["live"]
+        require(nonblank(src["npc_name"]) and src["npc_name"] == dst["npc_name"] and src["world"] == dst["world"]
+                and subset(dependencies.get(("npcs", canonical({"id": dst["id"]}))), dst),
+                "unverified NPC identity")
+        src_id, dst_id = f"#{src['id']}", f"#{dst['id']}"
+        require(src_id not in npc_ids and dst_id not in npc_ids.values(), "ambiguous NPC mapping")
+        npc_ids[src_id] = dst_id
+    pending = 0
+    for change in changes:
+        reading = observed[change["table"], canonical(change["key"])]
+        before, after = change["before"], change["after"]
+        require(isinstance(after, dict) and after, "cleanup is outside the transfer shortlist")
+        table = change["table"]
+        allowed = {field for feature in features for field in scope[feature].get("fields", {}).get(table, [])}
+        require(after.keys() <= allowed, "field lacks shared scope")
+        require(table != "queststeps" or change["key"]["questid"] in parent_quests, "unverified quest parent")
+        if before is not None and table in IDENTITY_FIELDS:
+            identity = {k: reading["live"][k] for k in IDENTITY_FIELDS[table]}
+            require(subset(reading["heirloom"], identity), "different source and destination identities")
+        match = change.get("match", {})
+        if before is None:
+            require(subset(after, change["key"]) and subset(after, match), "unverified insert identity")
+        else:
+            require(before and before.keys() == after.keys() and not (after.keys() & change["key"].keys()) and
+                    all(canonical(before[k]) != canonical(v) for k, v in after.items()), "invalid field change")
+            require(all(canonical(match[k]) == canonical(before[k]) for k in match.keys() & before.keys()),
+                    "inconsistent destination identity")
+            require(match and (subset(reading["live"], {**match, **before}) or
+                               subset(reading["live"], {**match, **after})), "destination identity or fields changed")
+        require(all(transfer_value(k, reading["heirloom"][k], v, npc_ids) for k, v in after.items()),
+                "Heirloom does not supply the reviewed Live behavior")
+        if subset(reading["live"], after):
+            continue
+        require((before is None and reading["live"] is None) or
+                (before is not None and subset(reading["live"], before)), "destination drift")
+        pending += 1
+    return pending
+
+
+def transfer_shortlist(data):
+    scope = load(Path(__file__).with_name("shard_overlays.json"))["transfer_scope"]
+    excluded = {name.replace("’", "'").casefold() for feature in scope.values() if feature["scope"] != "shared"
+                for name in feature.get("identities", [])}
+    conflicts = competing_claims(data)
+    rows = []
+    for c in data["claims"]:
+        if c["target"] != "live" or c["id"] in conflicts or assess(c)[1] not in {"needs-approval", "approved"}:
+            continue
+        try:
+            n = transfer_rows(c, scope, excluded)
+        except (ValueError, TypeError, KeyError, AttributeError):
+            continue
+        if n:
+            t = c["transfer"]
+            rows.append({"Case": t["case"], "Subject": t["subject"], "Live correction": c["claim"],
+                         "Live rows": n, "Scope and evidence": t["basis"], "Field limits": t["limits"],
+                         "Checked UTC": t["checked_utc"]})
+    return rows
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -402,13 +525,28 @@ def main():
     queue.add_argument("--snapshot", help="check the named target on a read-only destination snapshot")
     queue.add_argument("--ready", action="store_true", help="show approved tickets with verified pending changes")
     queue.add_argument("--json", action="store_true")
+    shortlist = sub.add_parser("shortlist", help="filter recorded Heirloom-to-Live comparisons for review")
+    shortlist.add_argument("ledger")
+    shortlist.add_argument("--csv", action="store_true", help="print the candidate table as CSV")
     add = sub.add_parser("intake", help="merge a compact GM export into the ledger and print the JSON")
     add.add_argument("ledger")
     add.add_argument("export")
     add.add_argument("--source", required=True, choices=["work", "heirloom:petition", "live:petition"])
     add.add_argument("--output", help="write a new ledger file, preserving the input")
     args = parser.parse_args()
-    data = ledger(args.ledger)
+    data = ledger(args.ledger, allow_audit=args.command == "shortlist")
+    if args.command == "shortlist":
+        rows = transfer_shortlist(data)
+        if args.csv:
+            columns = ["Case", "Subject", "Live correction", "Live rows", "Scope and evidence", "Field limits", "Checked UTC"]
+            writer = csv.DictWriter(sys.stdout, fieldnames=columns, lineterminator="\n")
+            writer.writeheader()
+            writer.writerows(rows)
+        else:
+            print(f"{len(rows)} Live transfer candidates")
+            for row in rows:
+                print(f"{row['Case']}  {row['Live correction']}")
+        return
     if args.command == "intake":
         result = json.dumps(intake(data, load(args.export), args.source), indent=2, ensure_ascii=False)
         if args.output:

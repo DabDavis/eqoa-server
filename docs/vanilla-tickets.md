@@ -60,6 +60,24 @@ For data updates, supply a real destination primary key and the exact changed fi
 
 For a retail code fix, use `delivery` of `code` and record `patch.commit` as the full Git commit, `patch.scope` as the behavior and target, and `patch.tests` as the test receipt. This routes the revision to the owner for code review and the ordinary build pipeline. Keep shared-binary Heirloom features behind the shard's configuration and test both configurations. Operational fixes use their own lane.
 
+## Filter Heirloom findings for Live review
+
+The read-only `shortlist` command works from a recorded comparison of both shards. Run this command from the server repository to filter the November 23 audit.
+
+~~~sh
+python tools/vanilla_tickets.py shortlist ../../content-research/reports/junior-dev-audit-20261123/live-transfer-review.json
+~~~
+
+Add `--csv` to print the candidate table. Each row gives the proposed Live correction, its evidence, the exact field boundaries and the UTC time of the comparison. The audit ledger also contains a disposition for each excluded finding. A source case can have several dispositions when it mixes an original feature with custom tuning.
+
+For another audit, give each finding a stable source ID. An audit-only ID uses `audit:YYYYMMDD:C01/subject`, or `G1` for a path group. These IDs are accepted by the shortlist command. The release workflow still requires a work or shard-qualified petition ID.
+
+For a proposed transfer, use the ordinary retail claim, evidence, `checks`, `changes` and review digest. Put the paired field readings in `transfer.rows`, the checked values for the Live dependencies in `transfer.live_dependencies`, and record both builds and the read time. Quest steps also carry both parents' names and givers. Encoded numeric event actors need an explicit `npc_pairs` mapping with the two local IDs, names and worlds. The Sarek case in the audit ledger shows an example. Renew the source review after changing a claim or its readings.
+
+The `transfer_scope` section of `tools/shard_overlays.json` identifies which features and fields have shared scope. Any unknown or shard-specific feature, protected named dependency, unresolved conflict, hold, unmatched parent, ambiguous actor ID, destination drift or already-satisfied claim drops out. Add new shared fields only with a recorded scope decision. Moogie's actors, quest and trigger targets are protected by identity even if someone labels their claim as shared. Live's separate Sarek respawn and Erudite item race mask have their own scope.
+
+The shortlist uses the recorded read time. A future release requires fresh destination verification and its own approval.
+
 ## Release and verification
 
 The November 15 and 22 comparisons remain available for discovery. Their bulk plans have no release authority. The reviewed path can express an authoritative target value even when both shards currently agree on the wrong value. Destination policy in [shard_overlays.json](../tools/shard_overlays.json) applies to every ledger. The initial rules cover the vendor incident and the named quest reward race masks. Add confirmed exceptions there as the project identifies them.

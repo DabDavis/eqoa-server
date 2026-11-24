@@ -79,6 +79,69 @@ class Admission(unittest.TestCase):
             self.assertEqual(vt.assess(c), ("outside-retail", lane))
 
 
+class TransferShortlist(unittest.TestCase):
+    def setUp(self):
+        self.claim = sample()
+        self.parent = {"questid": 11, "name": "Silver and Fur", "giver": "Djivan"}
+        self.old = {"kind": "kill", "target": "Lycanthrope Stevenson"}
+        self.new = {"kind": "kill", "target": "Lycanthrope Svenson"}
+        key = {"questid": 11, "step": 2}
+        self.claim["changes"] = [{"table": "queststeps", "key": key, "match": {"kind": "kill"},
+                                  "before": {"target": self.old["target"]}, "after": {"target": self.new["target"]}}]
+        self.t = self.claim["transfer"] = {
+            "case": "C06", "subject": "Silver and Fur", "basis": "named period source", "limits": "kill target",
+            "checked_utc": "2026-11-24T01:49:33Z", "builds": {"heirloom": "h", "live": "l"},
+            "features": ["silver-and-fur-slick"],
+            "quest_parents": [{"live": dict(self.parent), "heirloom": dict(self.parent)}],
+            "live_dependencies": [{"table": "quests", "key": {"questid": 11}, "values": dict(self.parent)}],
+            "rows": [{"table": "queststeps", "key": key, "live": self.old, "heirloom": self.new}]}
+
+    def candidates(self):
+        self.claim["review"] = record(self.claim)
+        return vt.transfer_shortlist({"claims": [self.claim]})
+
+    def test_no_release_approval_needed_to_filter_and_noop_and_drift_drop_out(self):
+        self.assertEqual(len(self.candidates()), 1)
+        self.assertNotIn("approval", self.claim)
+        self.old["target"] = "Lycanthrope Svenson"
+        self.assertEqual(self.candidates(), [])
+        self.old["target"] = "unexpected actor"
+        self.assertEqual(self.candidates(), [])
+
+    def test_hold_unknown_scope_and_heirloom_dependency_are_excluded(self):
+        self.claim["holds"] = ["active progress"]
+        self.assertEqual(self.candidates(), [])
+        self.claim["holds"] = []
+        for features in ([], ["unknown-feature"], ["silver-and-fur-slick", "mr-moogie"]):
+            self.t["features"] = features
+            self.assertEqual(self.candidates(), [])
+        self.t["features"] = ["silver-and-fur-slick"]
+        self.t["live_dependencies"][0]["values"]["steps"] = '[{"do":"sic","target":"Mr. Moogie"}]'
+        self.assertEqual(self.candidates(), [])
+
+    def test_reused_parent_id_does_not_establish_shared_content(self):
+        self.t["quest_parents"][0]["heirloom"]["name"] = "Poison Stingers"
+        self.assertEqual(self.candidates(), [])
+
+    def test_actor_numbers_must_map_to_the_reviewed_live_actor(self):
+        source = '[{"do":"spawn","npc":"#12","count":3}]'
+        destination = '[{"do":"spawn","npc":"#88","count":3}]'
+        self.assertTrue(vt.transfer_value("events", source, destination, {"#12": "#88"}))
+        self.assertFalse(vt.transfer_value("events", source, source, {}))
+        self.assertFalse(vt.transfer_value("events", source, source, {"#12": "#88"}))
+        self.assertFalse(vt.transfer_value("events", source, destination.replace(":3", ":2"), {"#12": "#88"}))
+
+    def test_shared_reward_cannot_carry_heirloom_race_mask(self):
+        self.claim["changes"] = [{"table": "itempattern", "key": {"patternid": 42},
+                                  "match": {"itemname": "Light Cloth Pants"},
+                                  "before": {"raceuse": 256}, "after": {"raceuse": 1023}}]
+        self.t["features"] = ["highbourne-cleric-pants"]
+        self.t["rows"] = [{"table": "itempattern", "key": {"patternid": 42},
+                           "live": {"itemname": "Light Cloth Pants", "raceuse": 256},
+                           "heirloom": {"itemname": "Light Cloth Pants", "raceuse": 1023}}]
+        self.assertEqual(self.candidates(), [])
+
+
 class Release(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()

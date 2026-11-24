@@ -1,5 +1,21 @@
 {
   "version": 1,
+  "transfer_scope": {
+    "sarek-anvil-and-minions": {"scope": "shared", "fields": {"queststeps": ["events"]}, "basis": "Original-service Anvil footage and guide. Work 709 and Live audits 67607–67608 specify the local encounter. Work 1820 gives each shard a different random respawn."},
+    "silver-and-fur-slick": {"scope": "shared", "fields": {"queststeps": ["events", "target", "journal"]}, "basis": "MasterVG782's 2007 Werehunter account and the transformation on both shards in work 1491. Covers the identity of Slick and his transformed actor."},
+    "highbourne-cleric-pants": {"scope": "shared", "fields": {"itempattern": ["classuse"]}, "basis": "Prima p. 177 and Live work 1953 identify the level 7 Cleric reward. Live has its own Erudite mask. The reconstruction's individual stat values have separate provenance."},
+    "mr-moogie": {"scope": "heirloom-only", "identities": ["Mr. Moogie", "Moogie's Servant", "Before Mr. Moogie"], "basis": "Owner clarification in this review and work 1823. Mr. Moogie, his servant, his quest and his dependent combat triggers belong to the Heirloom encounter."},
+    "blackvein-deep": {"scope": "heirloom-only", "basis": "Work 1932 and Heirloom audits 142100–142102 specify the Dwarf Shadow Knight and Necromancer homeland."},
+    "ascended-epic-rewards": {"scope": "heirloom-only", "basis": "Work 1121 records the owner's scope for the Ascended epic reward and redo."},
+    "heirloom-starter-race-widening": {"scope": "heirloom-only", "basis": "Owner starter-gear rule and Heirloom audit 160661. Vanilla keeps its own equipment restrictions."},
+    "off-race-starter-copies": {"scope": "hold", "basis": "Petition 2540 describes a Heirloom off-race need. The presence of derived copies on Live does not establish a Vanilla starting route."},
+    "freeport-pluto": {"scope": "heirloom-only", "identities": ["Spiritbinder Pluto"], "basis": "Heirloom petition 2389 explicitly limits the additional spiritbinder."},
+    "freeport-wage-cage": {"scope": "heirloom-only", "identities": ["Wage Cage", "Wage Cage bars"], "basis": "Heirloom petition 2415 records the scope of the twelve bars and the sign."},
+    "freeport-sela-hub": {"scope": "heirloom-only", "identities": ["Rehabilitator Sela"], "basis": "Work 1823 removed this Rehabilitator Sela from Live."},
+    "queen-qytha-heirloom-bonus": {"scope": "heirloom-only", "basis": "Petition 2250 limits the added HP and one-hour respawn. The rule concerns the tuning, not the original boss."},
+    "envar-t303-scroll-pools": {"scope": "live-only", "basis": "Work 1797 and 1901 specify Live's pools and rates."},
+    "honjour-four-froglok-waves": {"scope": "heirloom-only", "basis": "Heirloom petitions 2796–2797 and trigger 316 specify four pairs followed by the captain. Prima and Ronson describe a different historical sequence."}
+  },
   "overlays": [
     {
       "target": "both",

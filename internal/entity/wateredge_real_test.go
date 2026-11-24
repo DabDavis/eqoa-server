@@ -78,3 +78,75 @@ func TestRealIsleOfDreadWaterCreaturesStayInTheWater(t *testing.T) {
 	}
 	t.Logf("%d creatures of the water round the island, %d chased to a shore (%d swimming off the bed)", len(list), chased, offBed)
 }
+
+// Live petition 5582 on the real ground and creatures (EQOA_GROUND_DIR, EQOA_REAL_DB): Croc Island by Blackwater
+// (world 0, x 25550-25950, z 10850-11250), whose sea's water leaf runs on under the island's sand. Every creature of
+// the water there swimming off the bed (the mako sharks, at the surface's 50.1) wanders 300 legs, each from the last's end, and
+// chases an enemy on the island's sand (25750, 54.1, 11060): no leg ends in the ground, and the chase never takes it
+// out of the water. Before the fix legs ended under the sand, where the ground lifted the sharks onto it (seven in
+// the petition's view, at 52.8-54.1). Skipped without both.
+func TestRealCrocIslandSharksStayInTheWater(t *testing.T) {
+	w, _, done := landWaterWorld(t)
+	defer done()
+	var list []*NPC
+	w.mu.Lock()
+	for _, n := range w.NPCs {
+		if n.World == 0 && n.Owner == 0 && n.SpawnX > 25550 && n.SpawnX < 25950 && n.SpawnZ > 10850 && n.SpawnZ < 11250 &&
+			w.keepsToLocked(n) == keepsToWater && w.spawnInWaterLocked(n) && !w.spawnOnGroundLocked(n) {
+			list = append(list, n)
+		}
+	}
+	w.mu.Unlock()
+	sort.Slice(list, func(i, j int) bool { return list[i].ServerID < list[j].ServerID })
+	if len(list) < 20 {
+		t.Fatalf("%d swimmers of the water round Croc Island, want the sharks (some thirty)", len(list))
+	}
+	under, total := 0, 0
+	for _, n := range list {
+		n.X, n.Y, n.Z = n.SpawnX, n.SpawnY, n.SpawnZ
+		for i := 0; i < 300; i++ { // each leg from the last one's end, as it wanders
+			ls := legs(w, n, 1)
+			if len(ls) == 0 {
+				continue
+			}
+			total++
+			n.X, n.Z = ls[0][0], ls[0][1]
+			w.mu.Lock()
+			if w.inGroundLocked(0, n.X, n.Y, n.Z) || !w.waterAtLocked(0, n.X, n.Y+bodyAbove, n.Z) {
+				under++
+				n.X, n.Y, n.Z = n.SpawnX, n.SpawnY, n.SpawnZ
+			}
+			w.mu.Unlock()
+		}
+		n.X, n.Y, n.Z = n.SpawnX, n.SpawnY, n.SpawnZ
+	}
+	if under > 0 || total < 100*len(list)/2 {
+		t.Errorf("%d of %d legs of %d swimmers end in the ground or out of the water", under, total, len(list))
+	}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	ex, ey, ez := float32(25750), float32(54.1), float32(11060)
+	for _, n := range list {
+		now := time.Unix(1_800_000_000, 0)
+		n.X, n.Y, n.Z = n.SpawnX, n.SpawnY, n.SpawnZ
+		n.chase = chaseState{}
+		out := 0
+		for i := 0; i < 400; i++ {
+			now = now.Add(100 * time.Millisecond)
+			w.TickCount++
+			if _, give := w.chaseLocked(n, ex, ey, ez, 0, 0, now); give {
+				break
+			}
+			if !w.npcInWaterLocked(n) {
+				out++
+			}
+		}
+		if out > 0 {
+			t.Errorf("%s %d (spawn %.0f, %.1f, %.0f): %d ticks out of the water chasing onto the sand, at (%.1f, %.1f, %.1f)",
+				n.Name, n.ServerID, n.SpawnX, n.SpawnY, n.SpawnZ, out, n.X, n.Y, n.Z)
+		}
+		n.X, n.Y, n.Z = n.SpawnX, n.SpawnY, n.SpawnZ
+		n.chase = chaseState{}
+	}
+	t.Logf("%d swimmers round Croc Island, %d legs", len(list), total)
+}

@@ -392,6 +392,11 @@ func (w *World) roamStepLocked(npc *NPC, now time.Time) {
 		if now.Before(npc.roam.restUntil) {
 			return
 		}
+		if w.swimmerAshoreLocked(npc) {
+			w.backInTheWaterLocked(npc) // a swimmer of the water up on the sand: back on its spawn (water.go)
+			npc.roam.restUntil = now.Add(w.roamDuration(roamRestMin, roamRestMax))
+			return
+		}
 		npc.roam.toX, npc.roam.toZ = w.roamPointLocked(npc)
 		npc.roam.walking = true
 	}

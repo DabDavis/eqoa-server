@@ -673,7 +673,7 @@ func lineVerdict(effects []*ActiveEffect, ae *ActiveEffect) *ActiveEffect {
 		return nil
 	}
 	for _, e := range effects {
-		if e.SpellID == ae.SpellID {
+		if oneSpell(e.SpellID, ae.SpellID) {
 			continue
 		}
 		if procRivals(e, ae) {
@@ -751,7 +751,7 @@ func lineDrops(effects []*ActiveEffect, ae *ActiveEffect) []int {
 	}
 	var drop []int
 	for _, e := range effects {
-		if e.SpellID == ae.SpellID {
+		if oneSpell(e.SpellID, ae.SpellID) {
 			continue
 		}
 		if procRivals(e, ae) {
@@ -780,7 +780,7 @@ func (w *World) shareTakesLocked(caster *Player, ae *ActiveEffect) bool {
 		return true
 	}
 	for _, e := range caster.Effects {
-		if e.SpellID == ae.SpellID {
+		if oneSpell(e.SpellID, ae.SpellID) {
 			continue
 		}
 		refused := false
@@ -807,4 +807,14 @@ func (w *World) dropLineLocked(t *Player, ae *ActiveEffect) {
 	for _, id := range lineDrops(t.Effects, ae) {
 		w.removeEffectLocked(t, id)
 	}
+}
+
+// oneSpell reports whether two effects are one spell's: the same id, or a
+// spell's landing and its share on its own caster (-id, lifetap.go
+// shareOnLocked). A spell's parts never rule each other off by their line
+// (Heirloom petition 2886: Radiance's 100 PoT, landing on its healer in its
+// area, took the healer's own share of it off, so the healer had 100 where the
+// spell gives it 150).
+func oneSpell(a, b int) bool {
+	return a == b || a == -b
 }

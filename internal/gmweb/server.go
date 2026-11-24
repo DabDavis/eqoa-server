@@ -52,6 +52,7 @@ import (
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/formulamode"
 	"github.com/eqoa/server/internal/session"
+	"github.com/eqoa/server/internal/shardchat"
 )
 
 //go:embed static
@@ -62,6 +63,7 @@ var staticFS embed.FS
 type Deps struct {
 	Config     *config.Config
 	ConfigPath string
+	Chat       *shardchat.Bridge
 
 	DB         *database.SQLiteDB
 	World      *entity.World
@@ -112,9 +114,11 @@ type Server struct {
 	// visuals page frames; nil when unset.
 	preview *url.URL
 
-	srv     *http.Server
-	started time.Time
-	build   string
+	srv      *http.Server
+	chatCtx  context.Context
+	stopChat context.CancelFunc
+	started  time.Time
+	build    string
 
 	sessions *sessionStore
 	limiter  *auth.Limiter
@@ -235,6 +239,9 @@ func New(d Deps) (*Server, error) {
 	if err := s.initShards(); err != nil {
 		return nil, err
 	}
+	if d.Chat != nil {
+		s.chatCtx, s.stopChat = context.WithCancel(context.Background())
+	}
 	return s, nil
 }
 
@@ -262,6 +269,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/guide", s.handleGuide)
 	// an operation another shard's panel on this machine hands over (forward.go)
 	mux.HandleFunc("/api/shard/op/", s.handleShardOp)
+	mux.HandleFunc(shardChatPath, s.handleShardChat)
 
 	// a sanitised snapshot's link, which is its own credential: once, for
 	// minutes, for the admin it was made for (ops_snapshot.go)
@@ -307,12 +315,16 @@ func (s *Server) Start() error {
 		totp = "an authenticator required of every GM"
 	}
 	s.indexAuditInBackground()
+	s.startShardChat()
 	log.Printf("GM panel on %s for acctlevel %d+ (admin %d+), %s", where, s.cfg.MinLevel, s.cfg.AdminLevel, totp)
 	return nil
 }
 
 // Stop closes the listener, and deletes the snapshots no one fetched.
 func (s *Server) Stop() {
+	if s.stopChat != nil {
+		s.stopChat()
+	}
 	s.dropSnapshots()
 	if s.srv != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)

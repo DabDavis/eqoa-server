@@ -10,6 +10,7 @@ import (
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
+	"github.com/eqoa/server/internal/shardchat"
 )
 
 // Handler is a function that handles a game message.
@@ -23,6 +24,17 @@ type Registry struct {
 	// authHandler is retained so login tickets can be attached after the
 	// handlers are built.
 	authHandler *AuthHandler
+	chatHandler *ChatHandler
+}
+
+// SetShardChat binds the registered game handlers to their local panel before serving players.
+func (r *Registry) SetShardChat(id string) *shardchat.Bridge {
+	h := r.chatHandler
+	if h == nil {
+		return nil
+	}
+	h.shards = shardchat.New(shardchat.FromConfig(id), h.receiveShardChat)
+	return h.shards
 }
 
 // SetPasswordChecker lets the UDP handshake sign a username with no ticket in
@@ -205,6 +217,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	r.authHandler = authHandler
 	r.mu.Unlock()
 	chatHandler := NewChatHandler(sessionMgr)
+	r.chatHandler = chatHandler
 	keepChat.Store(chatHandler) // what a restart carries of its GM channel (keepgm.go)
 	if gameWorld != nil {
 		chatHandler.SetGameWorld(gameWorld)

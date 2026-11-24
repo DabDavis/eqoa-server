@@ -411,6 +411,8 @@ var playerHelpLines = []string{
 	"  /need [n], /greed [n], /pass [n] - a loot roll (no number: your oldest)",
 	"  /assign <n> <name>, /abandon - the master looter gives item n, or lets all go",
 	"  /invite <name> - invites a player to your group",
+	"  /tell Name - your server. Use v.Name for Vanilla or s.Name for Sandbox.",
+	"  /tell also accepts vanilla.Name and sandbox.Name. /reply answers the last teller.",
 	"  /target <name> (or /tar) - targets the nearest within 100 whose name starts so",
 	"  /tutorial - the welcome guide again",
 	"  /pizza - a Chicago pizza fact",

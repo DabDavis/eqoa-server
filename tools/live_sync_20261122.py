@@ -52,7 +52,7 @@ TWO STEPS, because the comparison of two full databases takes about a minute and
          python3 -E -s tools/live_sync_20261122.py --heirloom H.db --live L.db --plan plan.json [--report r.json]
   2. Review individual claims and prepare destination-specific receipts. The comparison plan is discovery data.
      Each ticket write records gm_audit and live_sync_1122_log. --undo --run selects an individual ticket run.
-     The historical --undo without a run covers the older comparison runs.
+     A rollback always names exactly one run and its bound shard.
 
 TAKES EFFECT: items, loot, factions at once (read as the server goes); NPCs, quests, templates at the server's start (the
 keep restart this runs in).
@@ -109,7 +109,7 @@ for _a, _b in _PATCHES:
 _SRC += """
 
 def _detnorm(d):
-    d = re.sub(r"\\b(heirloom|live)('s)?\\b", "", (d or "").lower())
+    d = re.sub(r"\\b(heirloom|live)('s)?\\b", "", strip_basis(d).lower())
     return re.sub(r"\\s+", " ", re.sub(r"\\d+", "N", re.sub(r"[()]", "", d))).strip()
 """
 exec(compile(_SRC, _spec.origin, "exec"), ss.__dict__)
@@ -829,7 +829,7 @@ def keep_mapped(sh, w, ap, dst):
 def make_plan(hpath, lpath, plan_path, report_path):
     t0 = time.time()
     if ss.role_of(hpath) != "H" or ss.role_of(lpath) != "L":
-        sys.exit("REFUSED: --heirloom must be Heirloom's database and --live Live's (heirlooms rows decide)")
+        sys.exit("REFUSED: the bound shards do not match the named databases")
     sh = ss.Shards(hpath, lpath)
     n = unify_items(sh)
     print(f"{n} records each shard minted apart matched by name and level (a slot changed on one)", flush=True)
@@ -1033,22 +1033,21 @@ def state(db, op):
     return "changed", cur
 
 
-def target_in_transaction(db):
-    tickets.require(ss.has(db, "heirlooms") and ss.has(db, "gm_audit"), "cannot identify this shard database")
-    return "heirloom" if db.execute("SELECT 1 FROM heirlooms LIMIT 1").fetchone() else "live"
+def target_in_transaction(db, config=None):
+    return tickets.bound_shard(db, config)
 
 
-def preview_ticket(dbpath, data, claim_id, target, output=None):
+def preview_ticket(dbpath, data, claim_id, target, output=None, config=None):
     c = tickets.get_claim(data, claim_id, target)
     competing = tickets.competing_claims(data).get(claim_id)
     tickets.require(not competing, f"conflicting ticket(s): {competing}")
     history, route = tickets.assess(c)
-    tickets.require(history == "certified" and c.get("delivery") == "data", f"{claim_id}: {history} / {route}")
+    tickets.require(history in tickets.REVIEWED and c.get("delivery") == "data", f"{claim_id}: {history} / {route}")
     tickets.require(not output or route in {"needs-approval", "approved"}, f"receipt withheld: {route}")
     db = ss.readonly(dbpath)
     try:
         db.execute("BEGIN")
-        tickets.require(target_in_transaction(db) == target, "destination database is the other shard")
+        tickets.require(target_in_transaction(db, config) == target, "destination database is the other shard")
         half = tickets.projected(db, c, tickets.overlay_rules(data), ss.SPECS)
     finally:
         db.close()
@@ -1058,12 +1057,12 @@ def preview_ticket(dbpath, data, claim_id, target, output=None):
     if output:
         # A receipt is small and immutable. Never replace a ledger, database or previous receipt.
         with open(output, "x", encoding="utf-8") as f:
-            json.dump(tickets.receipt(c), f, indent=2)
+            f.write(tickets.canonical(tickets.receipt(c)))
             f.write("\n")
     return half
 
 
-def apply_plan(dbpath, plan_path, ledger_path=None, target=None):
+def apply_plan(dbpath, plan_path, ledger_path=None, target=None, config=None):
     tickets.require(ledger_path and target in tickets.TARGETS, "--apply requires --tickets and an explicit destination")
     data, ref = tickets.ledger(ledger_path), tickets.load(plan_path)
     tickets.require(isinstance(ref, dict) and ref.get("format") == tickets.FORMAT,
@@ -1076,15 +1075,16 @@ def apply_plan(dbpath, plan_path, ledger_path=None, target=None):
     tickets.require(route == "approved", f"{c['id']}: {history} / {route}")
 
     def prepare(db, side):
-        tickets.require(target_in_transaction(db) == target, "destination database is the other shard")
+        tickets.require(target_in_transaction(db, config) == target, "destination database is the other shard")
         return tickets.projected(db, c, tickets.overlay_rules(data), ss.SPECS)
 
     return _replay(dbpath, prepare, {**ref, "reviewer": c["review"]["by"], "approver": c["approval"]["by"],
-                                     "approval_ref": c["approval"]["ref"]})
+                                     "approval_ref": c["approval"]["ref"], "basis": tickets.change_basis(c),
+                                     "basis_ref": tickets.basis_reference(c)})
 
 
 def _replay(dbpath, prepare, ticket=None):
-    side = ss.role_of(dbpath)
+    side = {"live": "L", "heirloom": "H"}[ticket["target"]] if ticket else ss.role_of(dbpath)
     name = ss.NAMES[side]
     t0 = time.time()
     db = sqlite3.connect(Path(dbpath).resolve().as_uri() + "?mode=rw", uri=True, timeout=60, isolation_level=None)
@@ -1095,8 +1095,8 @@ def _replay(dbpath, prepare, ticket=None):
     run = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + side
     detail = DETAIL + f" (on {name})"
     if ticket:
-        run = "ticket-" + datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%S%fZ") + "-" + side
-        detail = f"Reviewed {ticket['claim']} on {name} ({ticket['digest']})"
+        run = "ticket-v2-" + datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%S%fZ") + "-" + side
+        detail = f"[basis:{ticket['basis']}] {ticket['claim']} {run}"
     done, there, left = collections.Counter(), 0, []
     seqs = {}
     db.execute("BEGIN IMMEDIATE")
@@ -1174,9 +1174,14 @@ def _replay(dbpath, prepare, ticket=None):
             a = db.execute("INSERT INTO gm_audit (at, accountid, username, via, ip, action, tbl, rowkey, before, after, detail) "
                            "VALUES (?, ?, ?, ?, '', ?, ?, ?, ?, ?, ?)",
                            (now(), acct, WHO, VIA, action, t, jn(pk), jn({c: v for c, v in before.items() if c != "_rowid_"}) if before is not None else "",
-                            jn(after) if after is not None else "", f"{detail}: {op.get('why', '')}; {TOOL}"[:900])).lastrowid
+                            jn(after) if after is not None else "", detail if ticket else f"{detail}: {op.get('why', '')}; {TOOL}"[:900])).lastrowid
+            # gm_audit owns the row images. A deleted row's SQLite rowid is the only extra undo datum.
+            log_before, log_after = before, after
+            if ticket:
+                log_before = {"_rowid_": before["_rowid_"]} if action == "delete" else None
+                log_after = None
             db.execute(f"INSERT INTO {LOG} (run, tbl, pk, before, after, audit) VALUES (?, ?, ?, ?, ?, ?)",
-                       (run, t, jn(pk), jn(before) if before is not None else None, jn(after) if after is not None else None, a))
+                       (run, t, jn(pk), jn(log_before) if log_before is not None else None, jn(log_after) if log_after is not None else None, a))
             if ticket and (db.total_changes - prior_changes != 3 or jn(after) != jn(op["after"])):
                 raise Refused(f"unexpected side effect at {t} {pk}; ticket rolled back")
             done[(t, action)] += 1
@@ -1189,9 +1194,13 @@ def _replay(dbpath, prepare, ticket=None):
                 target TEXT NOT NULL, claim TEXT NOT NULL, digest TEXT NOT NULL, run TEXT UNIQUE NOT NULL,
                 reviewer TEXT NOT NULL, approver TEXT NOT NULL, approval_ref TEXT NOT NULL, undone INTEGER NOT NULL DEFAULT 0,
                 PRIMARY KEY (target, claim, digest))""")
-            db.execute(f"INSERT INTO {tickets.RELEASES} (target,claim,digest,run,reviewer,approver,approval_ref) "
-                       "VALUES (?,?,?,?,?,?,?)", (ticket["target"], ticket["claim"], ticket["digest"], run,
-                                                  ticket["reviewer"], ticket["approver"], ticket["approval_ref"]))
+            columns = {r[1] for r in db.execute(f"PRAGMA table_info({tickets.RELEASES})")}
+            for field in ("basis", "basis_ref"):
+                if field not in columns:
+                    db.execute(f"ALTER TABLE {tickets.RELEASES} ADD COLUMN {field} TEXT")
+            db.execute(f"INSERT INTO {tickets.RELEASES} (target,claim,digest,run,reviewer,approver,approval_ref,basis,basis_ref) "
+                       "VALUES (?,?,?,?,?,?,?,?,?)", (ticket["target"], ticket["claim"], ticket["digest"], run,
+                        ticket["reviewer"], ticket["approver"], ticket["approval_ref"], ticket["basis"], ticket["basis_ref"]))
         db.execute("COMMIT")
     except Exception:
         db.execute("ROLLBACK")
@@ -1210,23 +1219,32 @@ def _replay(dbpath, prepare, ticket=None):
 # =====================================================================================================================
 # --undo
 # =====================================================================================================================
-def undo(lpath, selected_run=None):
-    db = sqlite3.connect(lpath, timeout=60, isolation_level=None)
-    ticket_run = bool(selected_run and selected_run.startswith("ticket-"))
+def undo(lpath, selected_run=None, target=None, config=None):
+    tickets.require(tickets.nonblank(selected_run) and target in tickets.TARGETS, "--undo requires --run and --shard")
+    db = sqlite3.connect(Path(lpath).resolve().as_uri() + "?mode=rw", uri=True, timeout=60, isolation_level=None)
+    ticket_run = selected_run.startswith("ticket-")
     if ticket_run:
         db.execute("PRAGMA foreign_keys=ON")
-    if not ss.has(db, LOG):
-        print("nothing to undo: no", LOG)
-        return 0, []
     acct = db.execute("SELECT accountid FROM accountinfo WHERE username = ?", (WHO,)).fetchone() if ss.has(db, "accountinfo") else None
     acct = acct[0] if acct else 0
     n, left = collections.Counter(), []
     db.execute("BEGIN IMMEDIATE")
     try:
-        if selected_run and not db.execute(f"SELECT 1 FROM {LOG} WHERE run=? LIMIT 1", (selected_run,)).fetchone():
+        tickets.require(target_in_transaction(db, config) == target, "destination database is the other shard")
+        if not ss.has(db, LOG) or not db.execute(f"SELECT 1 FROM {LOG} WHERE run=? LIMIT 1", (selected_run,)).fetchone():
             raise Refused(f"unknown run {selected_run} on this destination")
-        condition, params = ("run = ?", (selected_run,)) if selected_run else ("run NOT LIKE 'ticket-%'", ())
-        rows = db.execute(f"SELECT seq, run, tbl, pk, before, after FROM {LOG} WHERE undone = 0 AND {condition} ORDER BY seq DESC", params).fetchall()
+        if selected_run.startswith("ticket-v2-"):
+            rows = []
+            for seq, t, pk, extra, audit, before, after in db.execute(
+                    f"SELECT l.seq,l.tbl,l.pk,l.before,a.id,a.before,a.after FROM {LOG} l LEFT JOIN gm_audit a "
+                    "ON a.id=l.audit AND a.tbl=l.tbl AND a.rowkey=l.pk WHERE l.undone=0 AND l.run=? ORDER BY l.seq DESC", (selected_run,)):
+                tickets.require(audit is not None and (before or after), f"missing audit image for log {seq}")
+                if extra:
+                    before = jn({**json.loads(before), **json.loads(extra)})
+                rows.append((seq, selected_run, t, pk, before or None, after or None))
+        else:
+            rows = db.execute(f"SELECT seq,run,tbl,pk,before,after FROM {LOG} WHERE undone=0 AND run=? ORDER BY seq DESC",
+                              (selected_run,)).fetchall()
         if ticket_run:
             quest_ids = set()
             for seq, _, t, pk, before, after in rows:
@@ -1269,7 +1287,7 @@ def undo(lpath, selected_run=None):
             db.execute("INSERT INTO gm_audit (at, accountid, username, via, ip, action, tbl, rowkey, before, after, detail) "
                        "VALUES (?, ?, ?, ?, '', ?, ?, ?, ?, ?, ?)",
                        (now(), acct, WHO, VIA, act, t, jn(pk), jn(cur) if cur is not None else "",
-                        jn({c: v for c, v in before.items() if c != "rowid"}) if before is not None else "", f"{DETAIL} undone (log {seq}, run {run}); {TOOL} --undo"))
+                        jn({c: v for c, v in before.items() if c != "rowid"}) if before is not None else "", f"[basis:test] undo {run} log {seq}"))
             db.execute(f"UPDATE {LOG} SET undone = 1 WHERE seq = ?", (seq,))
             if ticket_run and (db.total_changes - prior_changes != 3 or jn(fetch(db, t, pk)) != jn(
                     {k: v for k, v in before.items() if k != "rowid"} if before is not None else None)):
@@ -1277,7 +1295,7 @@ def undo(lpath, selected_run=None):
             n[(t, act)] += 1
             runs.add(run)
         if ss.has(db, SEQ) and not left:
-            for run, t, b, a in db.execute(f"SELECT run, tbl, before, after FROM {SEQ}").fetchall():
+            for run, t, b, a in db.execute(f"SELECT run,tbl,before,after FROM {SEQ} WHERE run=?", (selected_run,)):
                 if run in runs and seq_of(db, t) == a:
                     if b is None:
                         db.execute("DELETE FROM sqlite_sequence WHERE name = ?", (t,))
@@ -1311,6 +1329,8 @@ def main():
     ap.add_argument("--tickets", help="trusted local ledger of reviewed ticket claims")
     ap.add_argument("--ticket", help="preview this claim on one destination copy; --plan saves a receipt")
     ap.add_argument("--run", help="with --undo, revert only this logged run")
+    ap.add_argument("--shard", choices=sorted(tickets.TARGETS), help="explicit destination for apply or undo")
+    ap.add_argument("--config", help="destination server config (defaults to config.yaml alongside the database)")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true", help="apply one approved ticket receipt on its named destination")
     g.add_argument("--undo", action="store_true", help="undo this tool's runs on the ONE database named")
@@ -1321,25 +1341,24 @@ def main():
         if bool(a.heirloom) == bool(a.live):
             ap.error("name exactly one destination: --heirloom or --live")
         db = a.heirloom or a.live
-        want = "H" if a.heirloom else "L"
         target = "heirloom" if a.heirloom else "live"
+        if (a.apply or a.undo or a.shard) and a.shard != target:
+            ap.error("--shard must match the named destination")
         if a.apply and (not a.plan or not a.tickets or a.ticket):
             ap.error("--apply needs --tickets and a single approved --plan receipt")
-        if ss.role_of(db) != want:
-            sys.exit(f"REFUSED: {db} is not {ss.NAMES[want]}'s database (heirlooms rows decide)")
         if a.undo:
-            if a.ticket or a.tickets or a.plan:
-                ap.error("use --undo with the destination and optionally --run")
-            undo(db, a.run)
+            if a.ticket or a.tickets or a.plan or not a.run:
+                ap.error("use --undo with the destination, --shard and --run")
+            undo(db, a.run, target, a.config)
             return
         if a.apply:
-            apply_plan(db, a.plan, a.tickets, target)
+            apply_plan(db, a.plan, a.tickets, target, a.config)
         elif a.ticket and a.tickets:
-            preview_ticket(db, tickets.ledger(a.tickets), a.ticket, target, a.plan)
+            preview_ticket(db, tickets.ledger(a.tickets), a.ticket, target, a.plan, a.config)
         else:
             ap.error("preview needs both --tickets and --ticket")
         return
-    if not (a.heirloom and a.live and a.plan):
+    if a.shard or a.config or not (a.heirloom and a.live and a.plan):
         ap.error("a plan needs --heirloom, --live (copies) and --plan")
     make_plan(a.heirloom, a.live, a.plan, a.report)
 

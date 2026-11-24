@@ -6,7 +6,7 @@ One ticket can contain several changes. Certify each claim against the original 
 
 1. Import a bounded GM export using its actual source. Petitions have independent number spaces on Live and Heirloom. The work board is shared. A repeated import preserves existing claims. Intake copies identifiers only. Open the original ticket to review its contents.
 2. Split distinct requests into named claims. For example, an item correction, a Heirloom reward multiplier and a player's inventory repair each receive a disposition. Include the filing ID and a short stable suffix. Record related petition and board IDs together in the claim.
-3. Give each claim a lane. `retail` requires evidence for the original-service behavior. `heirloom-only` covers custom mechanics and sandbox experiments. `live-policy` covers deliberate local rules on Live. `operations` covers service reliability, moderation and individual player work. `unreviewed` keeps new or ambiguous requests visible.
+3. Give each claim a lane. `retail` requires evidence for the original-service behavior. Use `shared-fix` for a reproduced defect in the destination configuration. `heirloom-only` covers custom mechanics and sandbox experiments. `live-policy` covers deliberate local rules on Live. `operations` covers service reliability, moderation and individual player work. `unreviewed` keeps new or ambiguous requests visible.
 4. For a retail claim, set the intended original-service period and record what each source establishes. Use a film timestamp, patch paragraph, guide page or archived item field. Distinguish observation, publication, capture and gameplay-effective dates. Compare patches for the same era. Resolve disagreements against the project's source ranking and record outstanding ones in `conflicts`.
 5. Group all mutually dependent changes into one release. Use `holds` to preserve a parent ticket's release order, missing dependencies or a pending decision. A reverse transfer gets a separate claim, destination and approval. Link a replaced claim through `superseded_by` to retain its history.
 
@@ -80,19 +80,31 @@ The shortlist uses the recorded read time. A future release requires fresh desti
 
 ## Release and verification
 
-The November 15 and 22 comparisons remain available for discovery. Their bulk plans have no release authority. The reviewed path can express an authoritative target value even when both shards currently agree on the wrong value. Destination policy in [shard_overlays.json](../tools/shard_overlays.json) applies to every ledger. The initial rules cover the vendor incident and the named quest reward race masks. Add confirmed exceptions there as the project identifies them.
+The November 15 and 22 comparisons remain available for discovery. Each release names one destination. The [shard policy](../tools/shard_overlays.json) protects race eligibility across all item and quest edits, seasonal quests, shard-owned actors and vendors' dependent rows. Spell, item and quest IDs inside encoded data require destination identity checks. One ticket may introduce an NPC and its respawn together.
+
+Record the reason once. On work items, use `basis` and a `basis_ref` of at most 120 characters. Use `era` or `decomp` for a sourced claim about the intended period, `shared` for a demonstrated defect, `owner` or `estimate` for a shard-specific ruling, and `test` for service work or tester grants. A mixed petition can supply several claims. A changed reward needs period evidence. A grant returning the wrong ID can use the failing test. Heirloom Marks stay in their own configuration.
+
+The ledger accepts a compact reference such as `board 2123 v4` or `live:audit:1234`. A preview and release resolve that reference on the destination and verify its basis. A dated source already held in a retail claim is referenced through the existing claim and digest. Shared defects and local policies require a reference, review and target-specific approval. The historical queue counts only certified retail claims. Operational grants use the existing GM audit.
 
 On a destination snapshot, preview a certified data claim. Adding `--plan` writes a new receipt for a claim whose holds are clear. The operator's release command uses that receipt and the trusted ledger. The normal project approval, backup, maintenance and readback procedure applies to production.
 
 ~~~sh
 python tools/live_sync_20261122.py --live live-copy.db --tickets review.json --ticket CLAIM
 python tools/live_sync_20261122.py --live live-copy.db --tickets review.json --ticket CLAIM --plan receipt.json
-python tools/live_sync_20261122.py --live DESTINATION.db --tickets review.json --plan receipt.json --apply
+python tools/live_sync_20261122.py --shard live --live DESTINATION.db --tickets review.json --plan receipt.json --apply
 ~~~
 
 The writer checks the claim, competing tickets, approval, shard policy, identities and current values inside the release workflow. It commits the ticket as one transaction, checks each changed row, and preserves unrelated target fields. Unknown keys, drift, side effects or active progress on a structural quest change hold the packet. A successful retry finds the requested state already present.
 
-Look up the release in `vanilla_ticket_release` by target, claim and digest. Its run ID joins to `live_sync_1122_log` for exact before/after images and to `gm_audit` through the log's audit ID. Verify the affected fields on the actual destination and verify any cached gameplay behavior after the appropriate reload. A rollback uses `--undo --run RUN_ID` on the named shard. A ticket whose applied rows have since changed is held intact. To reconsider a reverted revision, record the new decision and its reason in a claim `revision` field, then review and approve the new digest.
+In production the tool resolves `db_path` relative to the server's `config.yaml` and checks `gm.shard_id`. Pass `--config PATH` for a config elsewhere. When the operator creates a temporary rehearsal copy from that verified source with `VACUUM INTO`, label only the copy with `CREATE TABLE shard_label(shard TEXT)` and one row containing its source shard. The copy label occupies one SQLite page plus its schema entry. Use one copy per shard for the rehearsal and release the temporary copies afterward.
+
+Look up the release in `vanilla_ticket_release` by target, claim and digest. Its run joins to `live_sync_1122_log.audit`, then `gm_audit.id`. New ticket runs keep the before/after images in that existing audit only. A deletion also keeps its SQLite rowid for restoration. Existing runs retain their original rollback format. Verify the exact destination IDs and any cached or player-visible behavior after the relevant reload or login. Both rollback tools require `--shard` and `--undo --run RUN_ID`. Repeated releases produce no second audit entry.
+
+## Board handoff
+
+Use `python -B tools/work_handoff.py --db /path/to/shared-board.db` on the box, optionally with repeated `--id N`. A complete `workboard ... list -json` or `show N -json` result can also be piped to the command. From a GM session, project only `id,version,status,owner,title,next,waiting_on` for the relevant work IDs and pass the result on stdin. The view writes zero files and drops completed work.
+
+Set `next` to one action. Use `waiting_on=jibrish` for a decision from Jibrish, `dab` for Dab and `codex` for Codex. Record the completed step with a short `Verified` note and its existing audit or receipt ID. When verification is the remaining action, put the exact final check in `next`. Read the current work version before acting. Keep screenshots, database copies and audit bodies out of handoff notes.
 
 ## Adoption
 

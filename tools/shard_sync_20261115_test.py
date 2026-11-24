@@ -70,8 +70,10 @@ def audit(db, at, user, action, rk, before, after, detail):
 def make(path, side):
     db = sqlite3.connect(path)
     db.executescript(SCHEMA)
+    db.execute("CREATE TABLE shard_label(shard TEXT)")
+    db.execute("INSERT INTO shard_label VALUES (?)", ("heirloom" if side == "H" else "live",))
     if side == "H":
-        db.execute("INSERT INTO heirlooms VALUES (5)")   # role_of: the shard with heirlooms rows is Heirloom
+        db.execute("INSERT INTO heirlooms VALUES (5)")
     for s in SHARED:
         put(db, row(*s))
     db.execute("INSERT INTO npcrespawn VALUES (118891, 3600, 'an hour', 'gm')")

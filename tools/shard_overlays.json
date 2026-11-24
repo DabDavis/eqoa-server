@@ -1,5 +1,10 @@
 {
   "version": 1,
+  "npc_links": {"npcrespawn":["npc_row"],"npctitle":["npcid"],"npcstands":["npc_row"],"npcwander":["npcid"],"npcpaths":["npcid"],"campspawns":["npcid"],"gmportals":["npc_id","exit_npc_id"],"npcitem":["npcid"],"npcspawnonly":["name"]},
+  "live_excluded": {
+    "names": ["Enraged Gertrude","Spiritbinder Pluto","The Grinch","Servant of Grinch","Holiday Elf","Christmas","Thanksgiving","christmas-2026"],
+    "quest_ids": [102901,102902,102903,102904,102905,102906,102907,102908,102909,102910,109910,109911,109912]
+  },
   "transfer_scope": {
     "sarek-anvil-and-minions": {"scope": "shared", "fields": {"queststeps": ["events"]}, "basis": "Original-service Anvil footage and guide. Work 709 and Live audits 67607–67608 specify the local encounter. Work 1820 gives each shard a different random respawn."},
     "silver-and-fur-slick": {"scope": "shared", "fields": {"queststeps": ["events", "target", "journal"]}, "basis": "MasterVG782's 2007 Werehunter account and the transformation on both shards in work 1491. Covers the identity of Slick and his transformed actor."},

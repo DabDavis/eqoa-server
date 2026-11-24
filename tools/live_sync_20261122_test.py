@@ -78,6 +78,8 @@ def make(d):
     for p in (h, l):
         db = sqlite3.connect(p)
         db.executescript(SCHEMA)
+        db.execute("CREATE TABLE shard_label(shard TEXT)")
+        db.execute("INSERT INTO shard_label VALUES (?)", ("heirloom" if p == h else "live",))
         db.commit()
         db.close()
     db = sqlite3.connect(h)
@@ -167,6 +169,15 @@ def replay_fixture(path, plan_path):
     with open(plan_path) as f:
         plan = json.load(f)
     return ls._replay(path, lambda db, side: plan[side])
+
+
+def undo_fixture(path, shard):
+    db = sqlite3.connect(path)
+    try:
+        [(run,)] = db.execute(f"SELECT DISTINCT run FROM {ls.LOG} WHERE undone=0").fetchall()
+    finally:
+        db.close()
+    return ls.undo(path, run, shard)
 
 
 class ShardSync(unittest.TestCase):
@@ -270,7 +281,7 @@ class ShardSync(unittest.TestCase):
             p2 = json.load(f)
         self.assertEqual((p2["H"]["ops"], p2["L"]["ops"]), ([], []))
         for s, p in (("H", self.h), ("L", self.l)):
-            n, left3 = quiet(ls.undo, p)
+            n, left3 = quiet(undo_fixture, p, {"H": "heirloom", "L": "live"}[s])
             self.assertEqual(left3, [])
             self.assertEqual(snapshot(p), before[s])
 
@@ -285,7 +296,7 @@ class ShardSync(unittest.TestCase):
         db = sqlite3.connect(self.l)
         self.assertEqual(db.execute("SELECT COUNT(*) FROM queststeps WHERE questid = 101000").fetchone()[0], 2)
         db.close()
-        quiet(ls.undo, self.l)
+        quiet(undo_fixture, self.l, "live")
         # a record id the plan inserts, given to another record since: the whole run refused
         with open(self.plan) as f:
             plan = json.load(f)
@@ -326,6 +337,15 @@ class RealShards(unittest.TestCase):
             p = {"H": os.path.join(d, "heirloom.db"), "L": os.path.join(d, "live.db")}
             shutil.copy(os.environ["EQOA_REAL_HEIRLOOM"], p["H"])
             shutil.copy(os.environ["EQOA_REAL_LIVE"], p["L"])
+            for side, path in p.items():
+                db = sqlite3.connect(path)
+                try:
+                    if not ls.ss.has(db, "shard_label"):
+                        db.execute("CREATE TABLE shard_label(shard TEXT)")
+                        db.execute("INSERT INTO shard_label VALUES (?)", ({"H": "heirloom", "L": "live"}[side],))
+                        db.commit()
+                finally:
+                    db.close()
             plan = os.path.join(d, "plan.json")
             ls.make_plan(p["H"], p["L"], plan, None)
             tables = {s: [t for t in ls.ss.ORDER if ls.ss.has(sqlite3.connect(p[s]), t)] for s in "HL"}
@@ -338,7 +358,7 @@ class RealShards(unittest.TestCase):
                 done2, _, _ = replay_fixture(p[s], plan)
                 self.assertEqual(sum(done2.values()), 0)
             for s in "HL":
-                n, left3 = ls.undo(p[s])
+                n, left3 = undo_fixture(p[s], {"H": "heirloom", "L": "live"}[s])
                 self.assertEqual(left3, [])
                 self.assertEqual(snapshot(p[s], tables[s]), before[s])
         finally:

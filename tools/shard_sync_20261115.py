@@ -415,7 +415,7 @@ class Shards:
             dele = collections.defaultdict(list)
             for aid, at, action, user, tbl, rk, before, detail, rev in db.execute(
                     "SELECT id, at, action, username, tbl, rowkey, before, detail, reverted_by FROM gm_audit WHERE tbl <> ''"):
-                detail = detail or ""
+                detail = strip_basis(detail)
                 det[(tbl, re.sub(r"\d+", "N", detail[:300]))].append(at)
                 if not rk:
                     continue
@@ -1353,13 +1353,17 @@ LOG_DDL = f"""CREATE TABLE IF NOT EXISTS {LOG} (
 )"""
 
 
+def strip_basis(detail):
+    return re.sub(r"^\[basis:[^\]\r\n]*\]\s*", "", detail or "", count=1, flags=re.I)
+
+
 def role_of(path):
+    import vanilla_tickets as tickets
     db = readonly(path)
     try:
-        n = db.execute("SELECT COUNT(*) FROM heirlooms").fetchone()[0] if has(db, "heirlooms") else 0
+        return {"heirloom": "H", "live": "L"}[tickets.bound_shard(db)]
     finally:
         db.close()
-    return "H" if n > 0 else "L"
 
 
 def summarize(sh, src):
@@ -1372,19 +1376,22 @@ def summarize(sh, src):
     return per
 
 
-def undo(path):
-    db = sqlite3.connect(path, timeout=60, isolation_level=None)
+def undo(path, run, shard, config=None):
+    import vanilla_tickets as tickets
+    tickets.require(tickets.nonblank(run) and shard in tickets.TARGETS, "--undo requires --run and --shard")
+    from pathlib import Path
+    db = sqlite3.connect(Path(path).resolve().as_uri() + "?mode=rw", uri=True, timeout=60, isolation_level=None)
     db.row_factory = sqlite3.Row
-    if not has(db, LOG):
-        print("nothing to undo: no", LOG)
-        return
-    rows = db.execute(f"SELECT * FROM {LOG} WHERE undone = 0 ORDER BY seq DESC").fetchall()
     acct = db.execute("SELECT accountid FROM accountinfo WHERE username = ?", (WHO,)).fetchone()
     acct = acct[0] if acct else 0
     left = []
     n = collections.Counter()
     db.execute("BEGIN IMMEDIATE")
     try:
+        tickets.require(tickets.bound_shard(db, config) == shard, "destination database is the other shard")
+        tickets.require(has(db, LOG) and db.execute(f"SELECT 1 FROM {LOG} WHERE run=? LIMIT 1", (run,)).fetchone(),
+                        "unknown run on this destination")
+        rows = db.execute(f"SELECT * FROM {LOG} WHERE run=? AND undone=0 ORDER BY seq DESC", (run,)).fetchall()
         for r in rows:
             t, pk = r["tbl"], json.loads(r["pk"])
             before = json.loads(r["before"]) if r["before"] else None
@@ -1409,13 +1416,15 @@ def undo(path):
             db.execute("INSERT INTO gm_audit (at, accountid, username, via, ip, action, tbl, rowkey, before, after, detail) "
                        "VALUES (?, ?, ?, ?, '', ?, ?, ?, ?, ?, ?)",
                        (now(), acct, WHO, VIA, act, t, go_json(pk), go_json(cur), go_json(before),
-                        f"shard sync 2026-11-15 undone (log {r['seq']}, run {r['run']}); {TOOL} --undo"))
+                        f"[basis:test] undo {r['run']} log {r['seq']}"))
             db.execute(f"UPDATE {LOG} SET undone = 1 WHERE seq = ?", (r["seq"],))
             n[(t, act)] += 1
         db.execute("COMMIT")
     except Exception:
         db.execute("ROLLBACK")
         raise
+    finally:
+        db.close()
     print(f"undone: {sum(n.values())} rows")
     for (t, a), c in sorted(n.items()):
         print(f"  {t:20} {a:7} {c}")
@@ -1427,10 +1436,13 @@ def undo(path):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--from", dest="src", required=True, help="the database to copy from")
+    ap.add_argument("--from", dest="src", help="source for a read-only comparison")
     ap.add_argument("--to", dest="dst", required=True, help="the database to bring up to date")
     ap.add_argument("--plan", help="write the proposed operations for review")
     ap.add_argument("--review", help="write the rows left for a person (no own edit on either shard) here")
+    ap.add_argument("--shard", choices=["heirloom", "live"], help="explicit destination for rollback")
+    ap.add_argument("--run", help="exact logged November 15 run")
+    ap.add_argument("--config", help="destination server config for rollback")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true", help=argparse.SUPPRESS)
     g.add_argument("--undo", action="store_true")
@@ -1438,11 +1450,15 @@ def main():
     if a.apply:
         ap.error("bulk sync retired; use a reviewed ticket receipt with live_sync_20261122.py")
     if a.undo:
-        undo(a.dst)
+        if not (a.run and a.shard):
+            ap.error("--undo requires --run and --shard")
+        undo(a.dst, a.run, a.shard, a.config)
         return
+    if not a.src or a.run or a.shard or a.config:
+        ap.error("comparison requires --from and --to; --run, --shard and --config belong with --undo")
     rs, rd = role_of(a.src), role_of(a.dst)
     if rs == rd:
-        sys.exit(f"REFUSED: both databases look like {NAMES[rs]} (heirlooms rows decide)")
+        sys.exit(f"REFUSED: both databases are bound to {NAMES[rs]}")
     hpath, lpath = (a.src, a.dst) if rs == "H" else (a.dst, a.src)
     print(f"{NAMES[rs]} {a.src} -> {NAMES[rd]} {a.dst}", flush=True)
     sh = Shards(hpath, lpath)

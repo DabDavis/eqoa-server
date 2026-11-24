@@ -17,7 +17,9 @@ class ReviewError(ValueError):
 
 
 TARGETS = {"live", "heirloom"}
-LANES = {"retail", "heirloom-only", "live-policy", "operations", "unreviewed"}
+BASES = {"era", "decomp", "shared", "owner", "estimate", "test"}
+LANES = {"retail", "shared-fix", "heirloom-only", "live-policy", "operations", "unreviewed"}
+REVIEWED = {"certified", "reviewed-shared", "reviewed-policy"}
 DIRECT = {"soe", "original-recording", "original-disc", "official-guide", "era-database", "era-guide"}
 TICKET = re.compile(r"(?:work|(?:heirloom|live):petition):[1-9][0-9]*")
 AUDIT_CASE = re.compile(r"audit:[0-9]{8}:(?:C[0-9]{2}|G[1-9][0-9]*)")
@@ -64,6 +66,45 @@ def nonblank(value):
     return isinstance(value, str) and bool(value.strip())
 
 
+def config_binding(path):
+    """Read the two plain or quoted scalars in the server's deployed block-style YAML."""
+    values, gm_indent, section = {}, None, None
+    scalar = re.compile(r"""("[^"\\]*"|'(?:[^']|'')*'|[A-Za-z0-9_./:\\-]+)(?:\s+#.*)?$""")
+    for line in path.read_text(encoding="utf-8-sig").splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        indent = len(line) - len(line.lstrip(" "))
+        key, sep, value = line.strip().partition(":")
+        if not indent:
+            section = key if sep else None
+            gm_indent = None
+        elif section == "gm" and gm_indent is None:
+            gm_indent = indent
+        if not ((not indent and key == "db_path") or (section == "gm" and indent == gm_indent and key == "shard_id")):
+            continue
+        match = scalar.fullmatch(value.strip())
+        require(sep and match and key not in values, f"invalid or repeated {key} in shard config")
+        value = match[1]
+        values[key] = value[1:-1].replace("''", "'") if value[:1] in {"'", '"'} else value
+    require(values.get("shard_id") in TARGETS and nonblank(values.get("db_path")), "config needs db_path and gm.shard_id")
+    return values["shard_id"], (path.parent / values["db_path"]).resolve()
+
+
+def bound_shard(db, config=None):
+    path = Path(db.execute("PRAGMA database_list").fetchone()[2]).resolve()
+    cfg = Path(config).resolve() if config else path.parent / "config.yaml"
+    if config or cfg.is_file():
+        shard, expected = config_binding(cfg)
+        if path == expected:
+            return shard
+        require(not config, "destination database differs from the explicit server config")
+    require(db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='shard_label'").fetchone(),
+            "unbound database: use its server config or label the rehearsal copy at creation")
+    labels = db.execute("SELECT shard FROM shard_label LIMIT 2").fetchall()
+    require(len(labels) == 1 and labels[0][0] in TARGETS, "invalid rehearsal copy shard_label")
+    return labels[0][0]
+
+
 def ledger(path, *, allow_audit=False):
     data = load(path)
     require(isinstance(data, dict) and data.get("version") == 1 and isinstance(data.get("claims"), list),
@@ -81,6 +122,10 @@ def ledger(path, *, allow_audit=False):
                 f"{c['id']} needs a destination")
         lane_target = {"heirloom-only": "heirloom", "live-policy": "live"}.get(c["lane"])
         require(not lane_target or c["target"] == lane_target, f"{c['id']} belongs on {lane_target}")
+        if "basis_ref" in c:
+            ref = c["basis_ref"]
+            require(nonblank(ref) and len(ref) <= 120 and len(ref.splitlines()) == 1,
+                    "basis_ref needs one short reference; keep the underlying evidence at its source")
         for field in ("conflicts", "holds"):
             if field in c:
                 require(isinstance(c[field], list) and all(nonblank(v) for v in c[field]),
@@ -94,7 +139,26 @@ def overlay_rules(data):
     require(permanent.get("version") == 1 and isinstance(permanent.get("overlays"), list), "invalid shard policy")
     extra = data.get("overlays", [])
     require(isinstance(extra, list), "invalid ledger overlays")
-    rules = permanent["overlays"] + extra
+    rules = list(permanent["overlays"])
+    vendors = next(r["where"]["npc_name"] for r in rules if r["target"] == "both" and r["table"] == "npcs")
+    excluded = permanent["live_excluded"]
+    names = set(excluded["names"])
+    for group in permanent.get("transfer_scope", {}).values():
+        if group["scope"] == "heirloom-only":
+            names.update(group.get("identities", []))
+    rules.append({"target": "live", "table": "*", "fields": ["*"], "where": {"identity": sorted(names)},
+                  "reason": "Heirloom-only identity or season"})
+    for table in ("quests", "queststeps", "queststeptargets", "questunlocks", "questwalls", "questmarks"):
+        rules.append({"target": "live", "table": table, "fields": ["*"], "where": {"questid": excluded["quest_ids"]},
+                      "reason": "Heirloom holiday quest"})
+    for table, columns in permanent["npc_links"].items():
+        for column in columns:
+            for target, actors in (("both", vendors), ("live", sorted(names))):
+                if any(r.get("npc_from") == column and r["table"] == table and r["target"] == target for r in rules):
+                    continue
+                rules.append({"target": target, "table": table, "fields": ["*"], "where": {"npc_name": actors},
+                              "npc_from": column, "reason": "shard-owned NPC dependency"})
+    rules.extend(extra)
     for rule in rules:
         require(isinstance(rule, dict) and rule.get("target") in TARGETS | {"both"} and nonblank(rule.get("table"))
                 and isinstance(rule.get("where"), dict) and bool(rule["where"])
@@ -129,13 +193,56 @@ def signed(record, fingerprint):
     return nonblank(record.get("by")) and nonblank(record.get("ref"))
 
 
+def change_basis(c):
+    """Old retail ledgers already contain their evidence. Do not duplicate it or change their digests."""
+    if "basis" in c:
+        return c["basis"]
+    if c["lane"] == "retail":
+        return "decomp" if c.get("sources") and all(
+            s.get("kind") == "original-disc" for s in c["sources"]) else "era"
+    return None
+
+
+def basis_reference(c):
+    if c.get("basis_ref"):
+        return c["basis_ref"]
+    # The release already stores the claim ID and digest. This is a pointer within that exact revision.
+    return "sources" if c["lane"] == "retail" and c.get("sources") else None
+
+
+def verify_basis_record(db, c):
+    """A work-board or shard audit reference resolves in place on the destination copy."""
+    ref = c.get("basis_ref", "")
+    board = re.fullmatch(r"board ([1-9][0-9]*)(?: v([1-9][0-9]*))?", ref)
+    if board:
+        row = db.execute("SELECT basis,basis_ref,version FROM workboard WHERE id=?", (int(board[1]),)).fetchone()
+        require(row and row[0] == change_basis(c) and nonblank(row[1]), "board basis differs or lacks a reference")
+        require(not board[2] or row[2] == int(board[2]), "board basis version changed")
+    audit = re.fullmatch(r"(live|heirloom):audit:([1-9][0-9]*)", ref)
+    if audit:
+        require(audit[1] == c["target"], "basis audit belongs to the other shard")
+        row = db.execute("SELECT detail FROM gm_audit WHERE id=?", (int(audit[2]),)).fetchone()
+        tag = re.match(r"\[basis:([a-z]+)(?: [^\]]*)?\]", row[0] or "") if row else None
+        require(tag and tag[1] == change_basis(c), "audit basis differs or is missing")
+
+
 def assess(c):
     """Certification is about a bounded service-era claim. Permission is a separate decision."""
     fp = digest(c)
     if nonblank(c.get("superseded_by")):
         return "superseded", "archived"
-    if c["lane"] != "retail":
-        return "unreviewed" if c["lane"] == "unreviewed" else "outside-retail", c["lane"]
+    lane = c["lane"]
+    basis = change_basis(c)
+    if lane in {"shared-fix", "heirloom-only", "live-policy"} and basis:
+        allowed = {"shared"} if lane == "shared-fix" else {"owner", "estimate"}
+        if basis not in allowed or not nonblank(c.get("basis_ref")):
+            return "needs-basis", "hold"
+        history = "reviewed-shared" if lane == "shared-fix" else "reviewed-policy"
+        return release_route(c, fp, history)
+    if lane != "retail":
+        return "unreviewed" if lane == "unreviewed" else "outside-retail", lane
+    if basis not in {"era", "decomp"}:
+        return "needs-basis", "hold"
     sources = c.get("sources", [])
     require(isinstance(sources, list) and all(isinstance(s, dict) for s in sources), "invalid sources")
     dated = [s for s in sources if era_date(s.get("as_of")) and
@@ -146,23 +253,29 @@ def assess(c):
     independent = any(a != b and x != y for a, x in witnesses for b, y in witnesses)
     if not nonblank(c.get("period")) or not (direct or independent):
         return "needs-evidence", "hold"
+    if basis == "decomp" and not any(s.get("kind") == "original-disc" for s in dated):
+        return "needs-evidence", "hold"
+    return release_route(c, fp, "certified")
+
+
+def release_route(c, fp, history):
     if c.get("conflicts") != []:
         return "needs-resolution", "hold"
     if not signed(c.get("review"), fp):
         return "needs-review", "hold"
     if c.get("holds") != []:
-        return "certified", "held"
+        return history, "held"
     if c.get("delivery") == "code":
         patch = c.get("patch", {})
         if not (isinstance(patch, dict) and re.fullmatch(r"[0-9a-f]{40}", str(patch.get("commit", "")))
                 and nonblank(patch.get("scope")) and nonblank(patch.get("tests"))):
-            return "certified", "needs-code-packet"
-        return "certified", "owner-code-review"
+            return history, "needs-code-packet"
+        return history, "owner-code-review"
     if c.get("delivery") != "data" or not isinstance(c.get("changes"), list) or not isinstance(c.get("checks"), list):
-        return "certified", "needs-change-packet"
+        return history, "needs-change-packet"
     if not c["changes"]:
-        return "certified", "verify-only" if c["checks"] else "needs-change-packet"
-    return "certified", "approved" if signed(c.get("approval"), fp) else "needs-approval"
+        return history, "verify-only" if c["checks"] else "needs-change-packet"
+    return history, "approved" if signed(c.get("approval"), fp) else "needs-approval"
 
 
 def get_claim(data, claim_id, target):
@@ -176,7 +289,7 @@ def competing_claims(data):
     """Find incompatible certified intents at the same destination field, including a row deletion."""
     owners, conflicts = {}, {}
     for c in data["claims"]:
-        if assess(c)[0] != "certified" or c.get("delivery") != "data":
+        if assess(c)[0] not in REVIEWED or c.get("delivery") != "data":
             continue
         changes = c.get("changes")
         if not isinstance(changes, list):
@@ -203,10 +316,10 @@ def receipt(c):
     return {"format": FORMAT, "claim": c["id"], "target": c["target"], "digest": digest(c)}
 
 
-def lookup(db, spec, tables):
+def lookup(db, spec, tables, heirloom_feature=False):
     """Resolve a real primary key on the destination. Never substitute a source row ID."""
     t, key = spec.get("table"), spec.get("key")
-    require(t in tables and t not in CUSTOM_TABLES, f"{t} is outside retail content")
+    require(t in tables and (heirloom_feature or t not in CUSTOM_TABLES), f"{t} is outside retail content")
     schema = db.execute(f'PRAGMA table_info("{t}")').fetchall()
     columns = {r[1] for r in schema}
     pk = {r[1] for r in schema if r[5]}
@@ -228,18 +341,28 @@ def valid_values(values, columns):
         v is None or (type(v) in {int, float, str}) for v in values.values())
 
 
-def matches_overlay(db, row, rule):
+def matches_overlay(db, row, rule, npc_names):
     if row is None:
         return False
+    if rule["table"] == "*":
+        excluded = {s.replace("’", "'").casefold() for s in rule["where"]["identity"]}
+        if protected_identity(row, excluded):
+            return True
+        return any(re.search(r"\b(?:christmas|thanksgiving)\b", str(row.get(k, "")), re.I)
+                   for k in ("season", "source", "npc_name", "name", "itemname", "spellname", "tablename"))
     if "npc_from" in rule:
         col = rule["npc_from"]
         require(col in row, f"unknown NPC reference {col} in shard overlay")
         ref = row[col]
         if isinstance(ref, int) or (isinstance(ref, str) and re.fullmatch(r"#\d+", ref)):
             ident = ref if isinstance(ref, int) else int(ref[1:])
-            result = db.execute("SELECT npc_name FROM npcs WHERE id=?", (ident,)).fetchone()
-            require(result is not None, f"unresolved destination NPC {ident} in shard overlay")
-            ref = result[0]
+            if ident == 0:
+                return False
+            ref = npc_names.get(ident)
+            if ref is None:
+                result = db.execute("SELECT npc_name FROM npcs WHERE id=?", (ident,)).fetchone()
+                require(result is not None, f"unresolved destination NPC {ident} in shard overlay")
+                ref = result[0]
         row = {"npc_name": ref}
     for key, expected in rule["where"].items():
         require(key in row, f"unknown field {key} in shard overlay")
@@ -268,21 +391,99 @@ def check_progress(db, quest_ids):
         require(not busy, f"quest {q} has active progress; hold the whole ticket")
 
 
+def check_races(target, table, before, after, fields):
+    if before is None or after is None:
+        return
+    earlier, later = (before, after) if target == "heirloom" else (after, before)
+    if table == "itempattern" and "raceuse" in fields:
+        def mask(row):
+            value = row["raceuse"]
+            require(type(value) is int, "invalid item race mask")
+            if value == 0:
+                return -1  # equip accepts any race
+            return value | 1024 if value & 1023 == 1023 else value  # raceUseForWire
+        allowed = mask(earlier) & ~mask(later) == 0
+    elif table == "quests" and "races" in fields:
+        def race_set(row):
+            value = row["races"] or ""
+            require(isinstance(value, str) and re.fullmatch(r"[0-9,\s|]*", value), "invalid quest race list")
+            return set(re.findall(r"[0-9]+", value))
+        a, b = race_set(earlier), race_set(later)
+        allowed = not b or bool(a) and a <= b  # empty means any race
+    else:
+        return
+    require(allowed, f"protected race eligibility on {target}: {table}")
+
+
+def embedded_refs(column, kind, value):
+    """Read IDs in the game's item-count, integer-list and structured quest formats."""
+    if value is None or value == "":
+        return
+    if column in {"events", "steps", "choices", "byclass"}:
+        data = json.loads(value, object_pairs_hook=pairs)
+        if column in {"events", "steps"}:
+            entries = data
+        elif column == "choices":
+            require(isinstance(data, dict), "invalid quest choices")
+            entries = data.get("options")
+        else:
+            require(isinstance(data, dict), "invalid byclass rewards")
+            entries = list(data.values())
+        require(isinstance(entries, list), f"invalid encoded {column}")
+        for entry in entries:
+            require(isinstance(entry, dict), f"invalid encoded {column} entry")
+            for field, ref_kind in (("items", "itext"), ("spells", "stext"), ("requires", "qtext")):
+                yield from embedded_refs(field, ref_kind, entry.get(field))
+            for field, ref_kind in (("spell", "spell"), ("quest", "quest"), ("item", "item")):
+                ident = entry.get(field, 0)
+                require(type(ident) is int and ident >= 0, f"invalid {field} in {column}")
+                if ident:
+                    yield ref_kind, ident
+            for field in ("npc", "target"):
+                ident = entry.get(field)
+                if isinstance(ident, str) and re.fullmatch(r"#[0-9]+", ident):
+                    yield "npc", int(ident[1:])
+        return
+    require(isinstance(value, str), f"invalid encoded {column}")
+    if kind == "itext":
+        for part in value.split(","):
+            if part.strip():
+                item = re.fullmatch(r"\s*([0-9]+)(?:\s*[*x×]\s*[1-9][0-9]*)?\s*", part)
+                require(item and int(item[1]) > 0, f"invalid item/count in {column}")
+                yield "item", int(item[1])
+    else:
+        require(bool(re.fullmatch(r"[0-9,\s|;/+-]+", value)), f"invalid ID list in {column}")
+        for ident in re.findall(r"-?[0-9]+", value):
+            if int(ident) > 0:
+                yield ("spell" if kind == "stext" else "quest"), int(ident)
+
+
 def projected(db, c, rules, tables):
     """Read all dependencies and all before-images before handing any operation to the writer."""
-    identified = set()
+    verify_basis_record(db, c)
+    identified, npc_names = set(), {}
+    heirloom_feature = c["target"] == "heirloom" and c["lane"] == "heirloom-only"
     for check in c["checks"]:
         require(isinstance(check, dict), "invalid dependency")
-        cols, row = lookup(db, check, tables)
+        cols, row = lookup(db, check, tables, heirloom_feature)
         expect = check.get("expect")
         require(expect and valid_values(expect, cols) and subset(row, expect),
                 f"destination prerequisite differs: {check['table']} {check['key']}")
+        if c["target"] == "live":
+            for rule in rules:
+                if rule["target"] == "live" and rule["table"] in {"*", check["table"]} and (
+                        rule["table"] == "*" or rule["reason"] == "Heirloom holiday quest"):
+                    require(not matches_overlay(db, row, rule, npc_names), "protected Heirloom-only dependency")
         if check["table"] in IDENTITY_FIELDS and IDENTITY_FIELDS[check["table"]] <= expect.keys():
             identified.add((check["table"], canonical(check["key"])))
     ops, seen, quest_ids = [], set(), set()
-    for change in c["changes"]:
+    changes = c["changes"]
+    require(all(isinstance(ch, dict) and isinstance(ch.get("key"), dict) for ch in changes), "invalid change")
+    deleted = {(ch.get("table"), canonical(ch["key"])) for ch in changes if ch.get("after") is None}
+    # Parents supplied by this ticket are checked and written before their dependent rows.
+    for change in sorted(changes, key=lambda ch: ch.get("table") not in IDENTITY_FIELDS or ch.get("before") is not None):
         require(isinstance(change, dict), "invalid change")
-        cols, row = lookup(db, change, tables)
+        cols, row = lookup(db, change, tables, heirloom_feature)
         t, key = change["table"], change["key"]
         where = f"{t} {key}"
         row_id = (t, canonical(key))
@@ -312,24 +513,40 @@ def projected(db, c, rules, tables):
                     f"destination drift or wrong identity at {where}")
             before, after = {**row, **b}, {**row, **a}
             fields = set(b)
+        check_races(c["target"], t, before, after, fields)
         for rule in rules:
-            if rule["target"] in {c["target"], "both"} and rule["table"] == t and (
+            if rule["target"] in {c["target"], "both"} and rule["table"] in {t, "*"} and (
                     "*" in rule["fields"] or fields.intersection(rule["fields"])):
-                if any(matches_overlay(db, r, rule) for r in (before, after)):
+                if any(matches_overlay(db, r, rule, npc_names) for r in (before, after)):
+                    if (rule["target"] == "both" and "npc_name" in rule["where"] and
+                            c["lane"] in {"heirloom-only", "live-policy"} and change_basis(c) == "owner"):
+                        continue  # reviewed shard-specific vendor policy
                     allowed = rule.get("allow_after")
                     require(allowed and valid_values(allowed, cols) and subset(after, allowed),
                             f"protected {where}: {rule['reason']}")
-        for col, kind in tables[t].get("trans", {}).items():
-            if kind not in REFERENCE or col not in fields.union(key, match):
+        trans = dict(tables[t].get("trans", {}))
+        if t == "quests":
+            trans["excludes"] = "qtext"
+        for col, kind in trans.items():
+            if col not in fields.union(key, match) or after is None:
                 continue
-            table, pk = REFERENCE[kind]
-            value = (after or before).get(col)
-            if table != t and isinstance(value, int) and value > 0:
-                require((table, canonical({pk: value})) in identified,
-                        f"verify the destination identity of {table} {value} before {where}")
+            value = after.get(col)
+            if kind in REFERENCE:
+                refs = [(kind, value)] if type(value) is int and value > 0 else []
+            else:
+                refs = embedded_refs(col, kind, value)
+            for ref_kind, ident in refs:
+                table, pk = REFERENCE[ref_kind]
+                ref = (table, canonical({pk: ident}))
+                if ref == row_id:
+                    continue
+                require(ref in identified and ref not in deleted,
+                        f"verify the destination identity of {table} {ident} before {where}")
         if t in IDENTITY_FIELDS:
             if after is not None:
                 identified.add(row_id)
+                if t == "npcs":
+                    npc_names[key["id"]] = after["npc_name"]
             else:
                 identified.discard(row_id)
         if canonical(row) == canonical(after):
@@ -360,8 +577,11 @@ def intake(data, batch, source):
         base = f"{source}:{number}"
         if base not in known:
             # Free text may contain personal data, replies or instructions. Keep only the reference.
-            data["claims"].append({"id": base + "/intake", "lane": "unreviewed", "target": None,
-                                   "claim": f"Review {base} and split its distinct changes."})
+            claim = {"id": base + "/intake", "lane": "unreviewed", "target": None,
+                     "claim": f"Review {base} and split its distinct changes."}
+            if source == "work" and row.get("basis") in BASES:
+                claim.update(basis=row["basis"], basis_ref=f"board {number}")
+            data["claims"].append(claim)
             known.add(base)
     return data
 
@@ -379,7 +599,7 @@ def queue_rows(data, args, db=None, tables=None):
         if args.ready and release != "approved":
             continue
         state, reason = None, conflicts.get(c["id"])
-        if db is not None and history == "certified" and c.get("delivery") == "data":
+        if db is not None and history in REVIEWED and c.get("delivery") == "data":
             try:
                 require(isinstance(c.get("changes"), list) and isinstance(c.get("checks"), list)
                         and (c["changes"] or c["checks"]), "incomplete change packet")
@@ -389,7 +609,7 @@ def queue_rows(data, args, db=None, tables=None):
                 state, reason = "blocked", str(exc)
         if args.ready and state != "changes pending":
             continue
-        rows.append({"id": c["id"], "target": c["target"], "history": history, "release": release,
+        rows.append({"id": c["id"], "target": c["target"], "basis": change_basis(c), "history": history, "release": release,
                      "claim": c["claim"], "holds": c.get("holds", []), "observation": c.get("observation"),
                      "destination": state, "reason": reason, "digest": digest(c)})
     return rows
@@ -523,6 +743,7 @@ def main():
     queue.add_argument("--target", choices=sorted(TARGETS))
     queue.add_argument("--certified", action="store_true")
     queue.add_argument("--snapshot", help="check the named target on a read-only destination snapshot")
+    queue.add_argument("--config", help="trusted server config when checking its bound database")
     queue.add_argument("--ready", action="store_true", help="show approved tickets with verified pending changes")
     queue.add_argument("--json", action="store_true")
     shortlist = sub.add_parser("shortlist", help="filter recorded Heirloom-to-Live comparisons for review")
@@ -555,13 +776,13 @@ def main():
         else:
             print(result)
         return
-    if (args.snapshot and not args.target) or (args.ready and not args.snapshot):
+    if (args.snapshot and not args.target) or ((args.ready or args.config) and not args.snapshot):
         parser.error("--ready requires --snapshot and --target; a snapshot requires --target")
     if args.snapshot:
         import live_sync_20261122 as sync
         with contextlib.closing(sync.ss.readonly(args.snapshot)) as db:
             db.execute("BEGIN")
-            require(sync.target_in_transaction(db) == args.target, "snapshot belongs to the other shard")
+            require(sync.target_in_transaction(db, args.config) == args.target, "snapshot belongs to the other shard")
             rows = queue_rows(data, args, db, sync.ss.SPECS)
     else:
         rows = queue_rows(data, args)

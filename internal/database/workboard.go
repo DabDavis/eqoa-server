@@ -717,6 +717,7 @@ func (db *SQLiteDB) PostWork(p WorkPost, who GMEdit) (WorkEntry, int64, error) {
 	if err != nil {
 		return WorkEntry{}, 0, err
 	}
+	compactWorkImages(before, after)
 	audit, err := auditRowChange(tx, who, action, "workboard", map[string]any{"id": id}, before, after,
 		workDetail(isNew, id, cur, next, noted))
 	if err != nil {
@@ -730,6 +731,45 @@ func (db *SQLiteDB) PostWork(p WorkPost, who GMEdit) (WorkEntry, int64, error) {
 		return WorkEntry{}, 0, err
 	}
 	return out, audit, nil
+}
+
+// WorkAuditOptional are the entry's optional columns a gm_audit image leaves
+// out while they are empty (jib, board #334: an unrelated edit paid ~100
+// bytes for four empty keys). A line written before them, or before they
+// were left out, carries them or not at all; either way a missing one reads
+// as "" (FillWorkAuditImage), so a revert of a set writes "" back.
+var WorkAuditOptional = []string{"next", "waiting_on", "basis", "basis_ref"}
+
+// compactWorkImages drops from a change's before and after images each
+// optional column empty in both (an insert's: empty in its after). A column
+// set or cleared by the change stays in both, so history shows it and a
+// revert puts it back.
+func compactWorkImages(before, after map[string]any) {
+	empty := func(m map[string]any, k string) bool {
+		v, ok := m[k]
+		return !ok || v == nil || v == ""
+	}
+	for _, k := range WorkAuditOptional {
+		if empty(before, k) && empty(after, k) {
+			delete(before, k)
+			delete(after, k)
+		}
+	}
+}
+
+// FillWorkAuditImage puts back, as "", each optional column a workboard
+// image left out (compactWorkImages), so that history, the panel's change
+// list and revert read a compact line as the full row it stands for. Any
+// other table's image, and nil, are left as they are.
+func FillWorkAuditImage(table string, m map[string]any) {
+	if table != "workboard" || m == nil {
+		return
+	}
+	for _, k := range WorkAuditOptional {
+		if _, ok := m[k]; !ok {
+			m[k] = ""
+		}
+	}
 }
 
 // sameWork is whether two versions of an entry say the same.
@@ -1124,6 +1164,8 @@ func (db *SQLiteDB) WorkHistory(table string, id int64, limit int) ([]WorkChange
 			var b, a map[string]any
 			json.Unmarshal([]byte(before), &b)
 			json.Unmarshal([]byte(after), &a)
+			FillWorkAuditImage(table, b)
+			FillWorkAuditImage(table, a)
 			for k, v := range a {
 				switch k {
 				case "updated", "updated_by", "version":

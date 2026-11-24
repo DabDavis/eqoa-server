@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/handlers"
 )
 
@@ -596,6 +597,8 @@ func scanAuditFaceted(rs *sql.Rows, tables map[string]*Table) ([]auditEntry, err
 		if after.Valid {
 			json.Unmarshal([]byte(after.String), &e.After)
 		}
+		database.FillWorkAuditImage(e.Table, e.Before) // a compact board line reads as its full row
+		database.FillWorkAuditImage(e.Table, e.After)
 		e.RevertedBy = reverted.Int64
 		e.IsRevert = isrev == 1
 		if world.Valid {

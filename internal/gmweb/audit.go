@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+
+	"github.com/eqoa/server/internal/database"
 )
 
 // The audit log: every change through the panel or an agent, who made it and
@@ -120,6 +122,8 @@ func scanAudit(rs *sql.Rows) ([]auditEntry, error) {
 		if after.Valid {
 			json.Unmarshal([]byte(after.String), &e.After)
 		}
+		database.FillWorkAuditImage(e.Table, e.Before) // a compact board line reads as its full row
+		database.FillWorkAuditImage(e.Table, e.After)
 		e.RevertedBy = reverted.Int64
 		out = append(out, e)
 	}

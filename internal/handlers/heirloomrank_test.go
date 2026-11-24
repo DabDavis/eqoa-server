@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
 )
 
 // An Heirloom Rank raises the character's heirloom cap one level a rank past 49: at 60, rank 0 shows
@@ -57,5 +59,57 @@ func TestHeirloomRankRaisesTheCap(t *testing.T) {
 	f.h.Note(f.sid, 0, 0, 50)
 	if h := f.held()[hlHelm]; val(h.AC) != 100+101 {
 		t.Errorf("level 50 at rank 3: %d", val(h.AC))
+	}
+	// the description says the figures' level and the rank (Heirloom petitions 2910/2911): the record's
+	// Level 1, its level to wear it, is left as it is
+	got = f.held()
+	if h := got[hlHelm]; !strings.HasSuffix(h.ItemDesc, "Now of level 50. Heirloom Rank 3: up to level 52, AC +101.") || h.LevelReq != 1 {
+		t.Errorf("rank 3 at 50: helm %q level %d", h.ItemDesc, h.LevelReq)
+	}
+	if b := got[hlBlade]; !strings.HasSuffix(b.ItemDesc, "Now of level 50. Heirloom Rank 3: up to level 52.") {
+		t.Errorf("rank 3 at 50: blade %q", b.ItemDesc)
+	}
+	if _, ok := entity.WeaponProcOf(hlBlade, got[hlBlade].ItemName, got[hlBlade].ItemDesc); ok {
+		t.Errorf("the blade's words read as a proc: %q", got[hlBlade].ItemDesc)
+	}
+}
+
+// The description's words: the control is rank 0 (the level alone); none of them is read as a weapon's
+// proc, the longest description is cut to the wire's most.
+func TestHeirloomDescSaysTheLevel(t *testing.T) {
+	for _, c := range []struct {
+		desc            string
+		level, rank, ac int
+		want            string
+	}{
+		{"Heirloom gear.", 20, 0, 0, "Heirloom gear. Now of level 20."},
+		{"Heirloom gear.", 20, 1, 50, "Heirloom gear. Now of level 20. Heirloom Rank 1: up to level 50, AC +50."},
+		{"Heirloom gear. ", 50, 1, 0, "Heirloom gear. Now of level 50. Heirloom Rank 1: up to level 50."},
+		{"", 0, 0, 0, "Now of level 1."},
+	} {
+		got := heirloomDesc(c.desc, c.level, c.rank, c.ac)
+		if got != c.want {
+			t.Errorf("heirloomDesc(%q, %d, %d, %d) = %q, want %q", c.desc, c.level, c.rank, c.ac, got, c.want)
+		}
+		if _, ok := entity.WeaponProcFromText(got); ok {
+			t.Errorf("%q reads as a proc", got)
+		}
+	}
+	if got := heirloomDesc(strings.Repeat("x", 300), 60, 6, 213); len([]rune(got)) != itemDescMax {
+		t.Errorf("a long description: %d runes", len([]rune(got)))
+	}
+}
+
+// The Keeper's words at a rank bought: the AC at once where the class has a row, and the level the heirlooms
+// grow to (a level 20) or are now (a level 60).
+func TestKeeperRankWords(t *testing.T) {
+	if got := keeperRankWords(20, 1, 50); !strings.HasPrefix(got, "Your heirloom armour gains 50 AC now. Your heirlooms grow with you up to level 50.") {
+		t.Errorf("level 20: %q", got)
+	}
+	if got := keeperRankWords(60, 1, 50); !strings.HasPrefix(got, "Your heirloom armour gains 50 AC now. Your heirlooms are now of level 50.") {
+		t.Errorf("level 60: %q", got)
+	}
+	if got := keeperRankWords(60, 2, 0); !strings.HasPrefix(got, "Your heirlooms are now of level 51.") || !strings.Contains(got, "next login") {
+		t.Errorf("no AC row: %q", got)
 	}
 }

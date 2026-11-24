@@ -17,19 +17,29 @@ location ~ ^/(terms|privacy)$ {
 }
 ```
 
-Put a **Read and accept Player Terms** link to `/terms` and a **Privacy Notice** link to `/privacy` on the public homepage/footer, browser play sign-in and any separately hosted account pages. Point public **Create account** links to `/terms`. The built-in account website provides the links automatically.
+Put a **Read and accept Player Terms** link to `/terms` and a **Privacy Notice** link to `/privacy` on the public homepage/footer, browser play sign-in and any separately hosted account pages. Point public **Create account** links to `/terms?mode=create`. The built-in account website provides the links automatically.
+
+## What players see before choosing a shard
+
+The [public site patch](player-terms-public-site.patch) updates the homepage, PS2 instructions and server guide as served on November 24. From a staging copy of the website root, use `git apply --check /path/to/player-terms-public-site.patch` before applying it. If a page is generated or has changed since then, carry the same edits into its maintained source. Publish those pages and the updated browser play page together with the working account routes.
+
+Keep the two names in the server picker. Use this explanation in the guide, PS2 setup instructions and browser play page, where players decide which character to level:
+
+> **Vanilla Test - Wipes** (Live) characters and their progress will be wiped for testing. **Sandbox Test - No Wipes** (Heirloom) has no planned character wipes. Bugs or rollbacks can still erase progress on either server.
+
+On the public PS2 page, replace the first-login account creation instruction with “Create an account or accept the current Player Terms at eqoaclassic.com/terms on a phone or computer. Then sign in to the game.” Put the terms and privacy links beside sign-in on the browser play page and in the public footer. For the homepage, describe the price and duration as “EQOA Classic will remain free for as long as we operate it.” Keep account help and private operator contact available from outside the game. The Station patch directs users to the account website. Clients that show a generic login error can use the same published link.
 
 ## Enable both shards together
 
 1. Build the same server revision for the account authority and every game shard. Take the normal restricted recovery backup and retain the previous server binary. Keep public gameplay in maintenance while the two processes are switched.
 2. Set `auth.require_player_terms: true` in both shard configurations. Keep the secondary’s existing `auth.shared_db` pointed at the authority. All acceptances are written on the primary. The secondary reads a current receipt there at sign-in, character selection and session resume. A read error denies entry.
 3. Start the primary with its account HTTP service, verify the two public HTTPS routes and then start the secondary. Confirm the current Station patch is served, and reevaluate or end sessions on both processes. Portal registration and acceptance use the same account store. An existing game account has no receipt until its owner explicitly agrees.
-4. Before reopening, use a controlled account on both shards. Check rejection on first login, after a decline, through a reconnect and for a carried session. Open both documents without signing in. Complete the agreement for an existing account on a phone or computer, then sign in on both shards. Create a new eligible account through the public link and verify its recovery email path. Check the under-13 stop on a separate clean browser. Use the native client, browser game and a retail-compatible client to verify the visible prompts and the original disc license. Record the tested builds and shard results privately.
+4. Before reopening, use operator-controlled accounts. On **each** shard verify that no receipt, a declined or unchecked first agreement, and a v1.3-only receipt all refuse play, including reconnect and carried sessions. From signed-out HTTPS, read both documents, create a new eligible account, verify its recovery email path and enter both shards. Have the returning account explicitly accept v1.4 once, then enter both shards. Check that an under-13 answer ends signup before credentials. On native, browser and retail-compatible clients check the actual original SOE disc screen and the separate project terms link. Record both build IDs, the version shown and each shard’s refusal and admission results before opening play.
 5. Keep maintenance in place if a path admits an unaccepted account or the public form cannot record acceptance. A binary rollback predating the gate needs the same access restriction. Leave successful receipts intact for retry.
 
 ## Records and updates
 
-Player Terms v1.3 requires an explicit choice to accept the ordinary risks of free, as-available play. On both signup and returning-account forms, check that the unchecked box follows the notice about bugs, permanent loss of progress, uptime and access, GM discretion, the money-damages exclusion and the US $250 fallback. Check the links to the full exclusion and exceptions. Verify that an account with only a v1.2 receipt is refused on both shards, then accepts v1.3 explicitly and can sign in to both. Keep earlier text and receipts associated with their original versions.
+Player Terms v1.4 and Privacy Notice v1.1 appear together. On both account forms, verify that the unchecked box follows the character-wipe explanation and the notice about permanent loss, service availability, lawful GM discretion, the damages exclusion and the US $250 fallback for those ordinary game losses. Check the exclusion and exceptions links. Record the exact release, publication date and a copy of the rendered acceptance screen with the terms for that release. Earlier receipts remain tied to their original versions.
 
 The primary SQLite database stores one UTC timestamp per account and terms version in `account_terms_acceptances`. Repeated clicks keep the original timestamp. Sanitized public snapshots clear this table. An account deletion removes its receipts. Preserve only the specific records subject to a documented legal hold before deleting the account.
 

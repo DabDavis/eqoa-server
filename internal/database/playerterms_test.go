@@ -13,7 +13,7 @@ func TestPlayerTermsAuthorityVersionsAndAtomicSignup(t *testing.T) {
 	}
 	defer db.Close()
 	s := NewSQLiteAccountStore(db)
-	const previousVersion, nextVersion = "1.2", "1.3"
+	const previousVersion, nextVersion = "1.3", "1.4"
 	account, err := s.CreateWithPlayerTerms("player", "test hash", previousVersion)
 	if err != nil {
 		t.Fatal(err)

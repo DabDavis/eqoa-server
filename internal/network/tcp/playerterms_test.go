@@ -8,12 +8,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/eqoa/server/internal/auth"
 	"github.com/eqoa/server/internal/config"
+	"github.com/eqoa/server/internal/database"
 )
 
 func termsRequest(h http.Handler, method, path string, form url.Values, cookie *http.Cookie) *httptest.ResponseRecorder {
@@ -35,13 +37,20 @@ func TestPlayerTermsAgeBeforeCredentialsAndExplicitAccountDecision(t *testing.T)
 	if get.Code != 200 || !strings.Contains(get.Body.String(), "How old are you?") || strings.Contains(get.Body.String(), `name="username"`) {
 		t.Fatal("the public age screen must precede account fields")
 	}
-	for _, section := range []string{"Version " + PlayerTermsVersion + " ·", `id="ordinary-game-losses"`, `id="player-claim-limit"`} {
+	for _, section := range []string{"Version " + PlayerTermsVersion + " ·", `id="ordinary-game-losses"`, `id="player-claim-limit"`,
+		"If money damages for an ordinary game loss defined above", "You keep all rights the law gives you as a minor"} {
 		if !strings.Contains(get.Body.String(), section) {
 			t.Fatalf("signed-out agreement missing %q", section)
 		}
 	}
-	if privacy := termsRequest(h, "GET", "/privacy", nil, nil); privacy.Code != 200 || !strings.Contains(privacy.Body.String(), "including tells") {
-		t.Fatal("privacy must be readable without age or account information")
+	privacy := termsRequest(h, "GET", "/privacy", nil, nil)
+	if privacy.Code != 200 {
+		t.Fatalf("signed-out privacy notice: %d", privacy.Code)
+	}
+	for _, disclosure := range []string{"Version 1.1", "up to 24 hours", "detailed network logging", "including tells"} {
+		if !strings.Contains(privacy.Body.String(), disclosure) {
+			t.Fatalf("privacy notice missing %q", disclosure)
+		}
 	}
 	age := func(value string) *httptest.ResponseRecorder {
 		return termsRequest(h, "POST", "/terms", url.Values{"step": {"age"}, "age": {value}}, nil)
@@ -64,7 +73,8 @@ func TestPlayerTermsAgeBeforeCredentialsAndExplicitAccountDecision(t *testing.T)
 		if box < 0 || strings.Contains(page, " checked") {
 			t.Fatalf("%s must require an unchecked box for the current terms", path)
 		}
-		for _, notice := range []string{"Bugs and rollbacks can permanently erase progress", "no guarantee of uptime",
+		for _, notice := range []string{"Vanilla Test - Wipes", "will be wiped for testing", "Sandbox Test - No Wipes", "no planned character wipes",
+			"Bugs and rollbacks can permanently erase progress on either server", "no guarantee of uptime", "those ordinary game losses",
 			"may mute, suspend or permanently ban", "give up money damages for ordinary game losses", "own ordinary negligence",
 			"US $250 fallback cap", `href="#ordinary-game-losses"`, `href="#player-claim-limit"`} {
 			if !strings.Contains(page[:box], notice) {
@@ -80,7 +90,7 @@ func TestPlayerTermsAgeBeforeCredentialsAndExplicitAccountDecision(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	const previousVersion = "1.2"
+	const previousVersion = "1.3"
 	if err := r.db.AcceptPlayerTerms(account, previousVersion); err != nil {
 		t.Fatal(err)
 	}
@@ -92,7 +102,7 @@ func TestPlayerTermsAgeBeforeCredentialsAndExplicitAccountDecision(t *testing.T)
 		}
 	}
 	check(false)
-	for _, bad := range []string{"", "1.0", "1.1", previousVersion} {
+	for _, bad := range []string{"", "1.0", "1.1", "1.2", previousVersion} {
 		f.Set("agree", bad)
 		if resp := termsRequest(h, "POST", "/terms", f, cookie); resp.Code != 400 {
 			t.Fatalf("accepted %q: %d", bad, resp.Code)
@@ -195,6 +205,82 @@ func TestPlayerTermsTCPAndUDPRequireCurrentReceipt(t *testing.T) {
 	s.tickets.Revoke("player")
 	if _, why := s.CheckUDPPassword("player", "password", udpFrom); why != "" {
 		t.Fatalf("accepted UDP reconnect: %s", why)
+	}
+}
+
+func TestPlayerTermsOnePortalDecisionForBothShards(t *testing.T) {
+	openShard := func(path string) *database.SQLiteDB {
+		t.Helper()
+		db, err := database.NewSQLite(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { db.Close() })
+		return db
+	}
+	dir := t.TempDir()
+	primaryPath := filepath.Join(dir, "heirloom.db")
+	primary := openShard(primaryPath)
+	secondary := openShard(filepath.Join(dir, "live.db"))
+	mirror := database.NewAccountMirror(secondary, primaryPath)
+	newLogin := func(db *database.SQLiteDB, read func(int, string) (bool, error)) *AuthServer {
+		cfg := config.DefaultConfig()
+		cfg.Auth.RequirePlayerTerms = true
+		cfg.Auth.BCryptCost = 4
+		server := NewAuthServer(cfg, database.NewSQLiteAccountStore(db), auth.NewTicketStore(0))
+		server.PlayerTermsAllowed = func(id int) bool {
+			ok, err := read(id, PlayerTermsVersion)
+			return err == nil && ok
+		}
+		return server
+	}
+	heirloom := newLogin(primary, primary.HasPlayerTerms)
+	live := newLogin(secondary, mirror.HasPlayerTerms)
+	live.SetAccountRefresh(mirror.PullOne)
+	const password = "fixture-pass"
+	hash, err := auth.HashPassword(password, 4)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := database.NewSQLiteAccountStore(primary).CreateWithPlayerTerms("returning", hash, "1.3"); err != nil {
+		t.Fatal(err)
+	}
+	checkEntry := func(username string, want bool) {
+		t.Helper()
+		for shard, server := range map[string]*AuthServer{"Heirloom": heirloom, "Live": live} {
+			_, refusal := server.CheckUDPPassword(username, password, udpFrom)
+			if (refusal == "") != want {
+				t.Fatalf("%s on %s: refusal %q, want admitted=%v", username, shard, refusal, want)
+			}
+			if username == "returning" && !want && refusal != "terms" {
+				t.Fatalf("%s refused the old agreement for the wrong reason: %q", shard, refusal)
+			}
+		}
+	}
+	portal := NewAccountServer(primary, 0, 4)
+	portal.EnablePlayerTerms(true)
+	h := portal.Handler()
+	players := []struct{ name, step string }{
+		{"returning", "accept"},
+		{"newplayer", "create"},
+	}
+	for _, player := range players {
+		checkEntry(player.name, false)
+		age := termsRequest(h, "POST", "/terms", url.Values{"step": {"age"}, "age": {"18"}}, nil)
+		if age.Code != http.StatusSeeOther || len(age.Result().Cookies()) != 1 {
+			t.Fatalf("age check for %s: %d, cookies %d", player.name, age.Code, len(age.Result().Cookies()))
+		}
+		cookie := age.Result().Cookies()[0]
+		form := url.Values{"step": {player.step}, "username": {player.name}, "password": {password}, "proof": {cookie.Value}}
+		if unchecked := termsRequest(h, "POST", "/terms", form, cookie); unchecked.Code != http.StatusBadRequest {
+			t.Fatalf("%s unchecked: %d", player.step, unchecked.Code)
+		}
+		checkEntry(player.name, false)
+		form.Set("agree", PlayerTermsVersion)
+		if reply := termsRequest(h, "POST", "/terms", form, cookie); reply.Code != http.StatusOK {
+			t.Fatalf("%s: %d", player.step, reply.Code)
+		}
+		checkEntry(player.name, true)
 	}
 }
 

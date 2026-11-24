@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-const PlayerTermsVersion = "1.3"
+const PlayerTermsVersion = "1.4"
 const playerTermsAddress = "eqoaclassic.com/terms"
 const playerTermsURL = "https://" + playerTermsAddress
 const playerTermsInstruction = "Use " + playerTermsAddress + " to create or accept for your account."

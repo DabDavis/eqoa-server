@@ -1037,7 +1037,7 @@ def target_in_transaction(db, config=None):
     return tickets.bound_shard(db, config)
 
 
-def preview_ticket(dbpath, data, claim_id, target, output=None, config=None):
+def preview_ticket(dbpath, data, claim_id, target, output=None, config=None, board_db=None):
     c = tickets.get_claim(data, claim_id, target)
     competing = tickets.competing_claims(data).get(claim_id)
     tickets.require(not competing, f"conflicting ticket(s): {competing}")
@@ -1048,7 +1048,7 @@ def preview_ticket(dbpath, data, claim_id, target, output=None, config=None):
     try:
         db.execute("BEGIN")
         tickets.require(target_in_transaction(db, config) == target, "destination database is the other shard")
-        half = tickets.projected(db, c, tickets.overlay_rules(data), ss.SPECS)
+        half = tickets.projected(db, c, tickets.overlay_rules(data), ss.SPECS, board_db, releasing=bool(output))
     finally:
         db.close()
     print(f"{claim_id} on {target}: {len(half['ops'])} change(s); {route}")
@@ -1062,7 +1062,7 @@ def preview_ticket(dbpath, data, claim_id, target, output=None, config=None):
     return half
 
 
-def apply_plan(dbpath, plan_path, ledger_path=None, target=None, config=None):
+def apply_plan(dbpath, plan_path, ledger_path=None, target=None, config=None, board_db=None):
     tickets.require(ledger_path and target in tickets.TARGETS, "--apply requires --tickets and an explicit destination")
     data, ref = tickets.ledger(ledger_path), tickets.load(plan_path)
     tickets.require(isinstance(ref, dict) and ref.get("format") == tickets.FORMAT,
@@ -1076,7 +1076,7 @@ def apply_plan(dbpath, plan_path, ledger_path=None, target=None, config=None):
 
     def prepare(db, side):
         tickets.require(target_in_transaction(db, config) == target, "destination database is the other shard")
-        return tickets.projected(db, c, tickets.overlay_rules(data), ss.SPECS)
+        return tickets.projected(db, c, tickets.overlay_rules(data), ss.SPECS, board_db, releasing=True)
 
     return _replay(dbpath, prepare, {**ref, "reviewer": c["review"]["by"], "approver": c["approval"]["by"],
                                      "approval_ref": c["approval"]["ref"], "basis": tickets.change_basis(c),
@@ -1331,6 +1331,7 @@ def main():
     ap.add_argument("--run", help="with --undo, revert only this logged run")
     ap.add_argument("--shard", choices=sorted(tickets.TARGETS), help="explicit destination for apply or undo")
     ap.add_argument("--config", help="destination server config (defaults to config.yaml alongside the database)")
+    ap.add_argument("--board-db", help="bound shared Heirloom database for work-board references on Live")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true", help="apply one approved ticket receipt on its named destination")
     g.add_argument("--undo", action="store_true", help="undo this tool's runs on the ONE database named")
@@ -1347,18 +1348,18 @@ def main():
         if a.apply and (not a.plan or not a.tickets or a.ticket):
             ap.error("--apply needs --tickets and a single approved --plan receipt")
         if a.undo:
-            if a.ticket or a.tickets or a.plan or not a.run:
+            if a.ticket or a.tickets or a.plan or a.board_db or not a.run:
                 ap.error("use --undo with the destination, --shard and --run")
             undo(db, a.run, target, a.config)
             return
         if a.apply:
-            apply_plan(db, a.plan, a.tickets, target, a.config)
+            apply_plan(db, a.plan, a.tickets, target, a.config, a.board_db)
         elif a.ticket and a.tickets:
-            preview_ticket(db, tickets.ledger(a.tickets), a.ticket, target, a.plan, a.config)
+            preview_ticket(db, tickets.ledger(a.tickets), a.ticket, target, a.plan, a.config, a.board_db)
         else:
             ap.error("preview needs both --tickets and --ticket")
         return
-    if a.shard or a.config or not (a.heirloom and a.live and a.plan):
+    if a.shard or a.config or a.board_db or not (a.heirloom and a.live and a.plan):
         ap.error("a plan needs --heirloom, --live (copies) and --plan")
     make_plan(a.heirloom, a.live, a.plan, a.report)
 

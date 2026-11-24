@@ -2,10 +2,11 @@
   "version": 1,
   "npc_links": {"npcrespawn":["npc_row"],"npctitle":["npcid"],"npcstands":["npc_row"],"npcwander":["npcid"],"npcpaths":["npcid"],"campspawns":["npcid"],"gmportals":["npc_id","exit_npc_id"],"npcitem":["npcid"],"npcspawnonly":["name"]},
   "live_excluded": {
-    "names": ["Enraged Gertrude","Spiritbinder Pluto","The Grinch","Servant of Grinch","Holiday Elf","Christmas","Thanksgiving","christmas-2026"],
+    "names": ["Spiritbinder Pluto","The Grinch","Servant of Grinch","Holiday Elf","Christmas","Thanksgiving","christmas-2026"],
     "quest_ids": [102901,102902,102903,102904,102905,102906,102907,102908,102909,102910,109910,109911,109912]
   },
   "transfer_scope": {
+    "enraged-gertrude": {"scope":"heirloom-only","identities":["Enraged Gertrude"],"basis":"Jibrish, 2026-11-24. Heirloom work 1658 and Live-local work 43/44."},
     "sarek-anvil-and-minions": {"scope": "shared", "fields": {"queststeps": ["events"]}, "basis": "Original-service Anvil footage and guide. Work 709 and Live audits 67607–67608 specify the local encounter. Work 1820 gives each shard a different random respawn."},
     "silver-and-fur-slick": {"scope": "shared", "fields": {"queststeps": ["events", "target", "journal"]}, "basis": "MasterVG782's 2007 Werehunter account and the transformation on both shards in work 1491. Covers the identity of Slick and his transformed actor."},
     "highbourne-cleric-pants": {"scope": "shared", "fields": {"itempattern": ["classuse"]}, "basis": "Prima p. 177 and Live work 1953 identify the level 7 Cleric reward. Live has its own Erudite mask. The reconstruction's individual stat values have separate provenance."},

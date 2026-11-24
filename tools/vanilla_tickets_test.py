@@ -109,6 +109,10 @@ class TransferShortlist(unittest.TestCase):
         self.assertEqual(self.candidates(), [])
 
     def test_hold_unknown_scope_and_heirloom_dependency_are_excluded(self):
+        self.claim.update(lane="live-policy", basis="owner", basis_ref="local ruling")
+        self.assertEqual(self.candidates(), [])
+        self.claim["lane"] = "retail"
+        del self.claim["basis"], self.claim["basis_ref"]
         self.claim["holds"] = ["active progress"]
         self.assertEqual(self.candidates(), [])
         self.claim["holds"] = []
@@ -116,8 +120,9 @@ class TransferShortlist(unittest.TestCase):
             self.t["features"] = features
             self.assertEqual(self.candidates(), [])
         self.t["features"] = ["silver-and-fur-slick"]
-        self.t["live_dependencies"][0]["values"]["steps"] = '[{"do":"sic","target":"Mr. Moogie"}]'
-        self.assertEqual(self.candidates(), [])
+        for actor in ("Mr. Moogie", "Enraged Gertrude", "Spiritbinder Pluto"):
+            self.t["live_dependencies"][0]["values"]["steps"] = json.dumps([{"do":"sic","target":actor}])
+            self.assertEqual(self.candidates(), [])
 
     def test_reused_parent_id_does_not_establish_shared_content(self):
         self.t["quest_parents"][0]["heirloom"]["name"] = "Poison Stingers"
@@ -163,8 +168,8 @@ class Release(unittest.TestCase):
         self.file.write_text(json.dumps(self.data), encoding="utf-8")
         self.ref.write_text(json.dumps(vt.receipt(self.c)), encoding="utf-8")
 
-    def apply(self, path=None, target="live"):
-        return quiet(ls.apply_plan, path or self.l, self.ref, self.file, target)
+    def apply(self, path=None, target="live", board_db=None):
+        return quiet(ls.apply_plan, path or self.l, self.ref, self.file, target, None, board_db)
 
     def test_bound_path_copy_label_and_stray_heirloom_rows(self):
         self.sql(self.l, "INSERT INTO heirlooms VALUES (91234)")
@@ -295,18 +300,52 @@ class Release(unittest.TestCase):
         self.assertEqual(vt.assess(self.c), ("needs-basis", "hold"))
 
     def test_basis_links_and_audit_detail_normalization(self):
-        row = {"id": 9, "basis": "shared", "basis_ref": "regression in the grant test", "notes": "private text"}
+        row = {"id": 9, "version": 4, "basis": "shared", "basis_ref": "regression in the grant test", "notes": "private text"}
         data = {"claims": []}
         vt.intake(data, [row], "work")
-        self.assertEqual(data["claims"][0]["basis_ref"], "board 9")
+        self.assertEqual(data["claims"][0]["basis_ref"], "board 9 v4")
         self.assertNotIn("private text", json.dumps(data))
-        self.sql(self.l, "CREATE TABLE workboard(id INTEGER PRIMARY KEY,basis TEXT,basis_ref TEXT,version INTEGER)")
-        self.sql(self.l, "INSERT INTO workboard VALUES(9,'shared','grant ID test',4)")
+        for path in (self.h, self.l):
+            self.sql(path, "CREATE TABLE workboard(id INTEGER PRIMARY KEY,basis TEXT,basis_ref TEXT,version INTEGER)")
+        self.sql(self.h, "INSERT INTO workboard VALUES(9,'shared','grant ID test',4)")
+        self.sql(self.l, "INSERT INTO workboard VALUES(9,'owner','different local work',4)")
         self.c.update(lane="shared-fix", basis="shared", basis_ref="board 9 v4")
         self.save()
-        self.sql(self.l, "UPDATE workboard SET basis='estimate',version=5 WHERE id=9")
-        with self.assertRaisesRegex(vt.ReviewError, "board basis"):
+        with self.assertRaisesRegex(vt.ReviewError, "requires --board-db"):
             self.apply()
+        with self.assertRaisesRegex(vt.ReviewError, "must be bound to Heirloom"):
+            self.apply(board_db=self.l)
+        cli = [sys.executable, "-B", ls.__file__, "--live", self.l, "--shard", "live", "--board-db", self.h,
+               "--tickets", str(self.file)]
+        queue = [sys.executable, "-B", vt.__file__, "queue", str(self.file), "--target", "live",
+                 "--snapshot", self.l, "--ready", "--json"]
+        def ready(extra):
+            return json.loads(subprocess.run(queue + extra, check=True, capture_output=True, text=True).stdout)
+        self.assertEqual(ready([]), [])
+        self.assertEqual([r["id"] for r in ready(["--board-db", self.h])], [self.c["id"]])
+        output = self.root / "board-receipt.json"
+        subprocess.run(cli + ["--ticket", self.c["id"], "--plan", str(output)], check=True, capture_output=True)
+        self.sql(self.h, "UPDATE workboard SET version=5 WHERE id=9")
+        stale = subprocess.run(cli + ["--apply", "--plan", str(output)], capture_output=True, text=True)
+        self.assertNotEqual(stale.returncode, 0)
+        self.assertIn("board basis version changed", stale.stderr)
+        self.assertEqual(self.sql(self.l, "SELECT itemcost FROM itempattern WHERE patternid=100"), [(10,)])
+        self.c["basis_ref"] = "board 9"
+        self.save()
+        with self.assertRaisesRegex(vt.ReviewError, "pin the board version"):
+            self.apply(board_db=self.h)
+        self.c["basis_ref"] = "board 9 v5"
+        self.save()
+        self.assertEqual(sum(self.apply(board_db=self.h)[0].values()), 1)
+        self.c.update(basis="owner", lane="live-policy", basis_ref="live:board:9 v4")
+        self.save()
+        with contextlib.closing(sqlite3.connect(self.l)) as db:
+            vt.verify_basis_record(db, self.c, releasing=True)
+            self.c["basis_ref"] = "live:board 9 v4"
+            vt.verify_basis_record(db, self.c, releasing=True)
+            self.c["basis_ref"] = "live:board 9 vunknown"
+            with self.assertRaisesRegex(vt.ReviewError, "invalid work-board"):
+                vt.verify_basis_record(db, self.c, releasing=True)
         self.assertEqual(ls.ss._detnorm("[basis:owner work 100] Live's grant 990"),
                          ls.ss._detnorm("[basis:shared] Heirloom's grant 991"))
         self.assertEqual(ls.ss._detnorm("[basis:era Prima p. 50] grant 2"), ls.ss._detnorm("grant 3"))

@@ -212,17 +212,34 @@ def basis_reference(c):
     return "sources" if c["lane"] == "retail" and c.get("sources") else None
 
 
-def verify_basis_record(db, c):
-    """A work-board or shard audit reference resolves in place on the destination copy."""
+def verify_basis_record(db, c, board_db=None, releasing=False):
+    """Shared work numbers live on Heirloom. Local board and audit numbers name their shard."""
     ref = c.get("basis_ref", "")
-    board = re.fullmatch(r"board ([1-9][0-9]*)(?: v([1-9][0-9]*))?", ref)
+    board = re.fullmatch(r"(?:board |(heirloom|live):board[: ])([1-9][0-9]*)(?: v([1-9][0-9]*))?", ref, re.I)
+    if re.match(r"^(?:(?:heirloom|live):)?board\b", ref, re.I):
+        require(board, "invalid work-board basis reference")
     if board:
-        row = db.execute("SELECT basis,basis_ref,version FROM workboard WHERE id=?", (int(board[1]),)).fetchone()
+        source, number, version = board.groups()
+        source = (source or "heirloom").casefold()
+        require(not releasing or version, "pin the board version in basis_ref before releasing")
+        sql = "SELECT basis,basis_ref,version FROM workboard WHERE id=?"
+        if source == c["target"]:
+            row = db.execute(sql, (int(number),)).fetchone()
+        else:
+            require(source == "heirloom", "a Live-local board reference belongs to Live")
+            require(board_db, "shared board reference on Live requires --board-db for Heirloom")
+            uri = Path(board_db).resolve().as_uri() + "?mode=ro"
+            with contextlib.closing(sqlite3.connect(uri, uri=True)) as shared:
+                shared.execute("BEGIN")
+                require(bound_shard(shared) == "heirloom", "--board-db must be bound to Heirloom's shared board")
+                row = shared.execute(sql, (int(number),)).fetchone()
         require(row and row[0] == change_basis(c) and nonblank(row[1]), "board basis differs or lacks a reference")
-        require(not board[2] or row[2] == int(board[2]), "board basis version changed")
-    audit = re.fullmatch(r"(live|heirloom):audit:([1-9][0-9]*)", ref)
+        require(not version or row[2] == int(version), "board basis version changed")
+    audit = re.fullmatch(r"(live|heirloom):audit:([1-9][0-9]*)", ref, re.I)
+    if re.match(r"^(?:live|heirloom):audit\b", ref, re.I):
+        require(audit, "invalid shard audit basis reference")
     if audit:
-        require(audit[1] == c["target"], "basis audit belongs to the other shard")
+        require(audit[1].casefold() == c["target"], "basis audit belongs to the other shard")
         row = db.execute("SELECT detail FROM gm_audit WHERE id=?", (int(audit[2]),)).fetchone()
         tag = re.match(r"\[basis:([a-z]+)(?: [^\]]*)?\]", row[0] or "") if row else None
         require(tag and tag[1] == change_basis(c), "audit basis differs or is missing")
@@ -476,9 +493,9 @@ def embedded_refs(column, kind, value):
                 yield ("spell" if kind == "stext" else "quest"), int(ident)
 
 
-def projected(db, c, rules, tables):
+def projected(db, c, rules, tables, board_db=None, releasing=False):
     """Read all dependencies and all before-images before handing any operation to the writer."""
-    verify_basis_record(db, c)
+    verify_basis_record(db, c, board_db, releasing)
     identified, npc_names = set(), {}
     heirloom_feature = c["target"] == "heirloom" and c["lane"] == "heirloom-only"
     for check in c["checks"]:
@@ -598,13 +615,15 @@ def intake(data, batch, source):
             claim = {"id": base + "/intake", "lane": "unreviewed", "target": None,
                      "claim": f"Review {base} and split its distinct changes."}
             if source == "work" and row.get("basis") in BASES:
-                claim.update(basis=row["basis"], basis_ref=f"board {number}")
+                version = row.get("version")
+                pin = f" v{version}" if type(version) is int and version > 0 else ""
+                claim.update(basis=row["basis"], basis_ref=f"board {number}{pin}")
             data["claims"].append(claim)
             known.add(base)
     return data
 
 
-def queue_rows(data, args, db=None, tables=None):
+def queue_rows(data, args, db=None, tables=None, board_db=None):
     rows = []
     rules = overlay_rules(data) if db is not None else []
     conflicts = competing_claims(data)
@@ -621,7 +640,7 @@ def queue_rows(data, args, db=None, tables=None):
             try:
                 require(isinstance(c.get("changes"), list) and isinstance(c.get("checks"), list)
                         and (c["changes"] or c["checks"]), "incomplete change packet")
-                half = projected(db, c, rules, tables)
+                half = projected(db, c, rules, tables, board_db, releasing=args.ready)
                 state = "changes pending" if half["ops"] else "already present"
             except (ReviewError, sqlite3.Error, KeyError, TypeError) as exc:
                 state, reason = "blocked", str(exc)
@@ -733,13 +752,17 @@ def transfer_rows(claim, scope, excluded):
 
 
 def transfer_shortlist(data):
-    scope = load(Path(__file__).with_name("shard_overlays.json"))["transfer_scope"]
+    policy = load(Path(__file__).with_name("shard_overlays.json"))
+    scope = policy["transfer_scope"]
     excluded = {name.replace("’", "'").casefold() for feature in scope.values() if feature["scope"] != "shared"
                 for name in feature.get("identities", [])}
+    excluded.update(name.casefold() for name in policy["live_excluded"]["names"])
     conflicts = competing_claims(data)
     rows = []
     for c in data["claims"]:
-        if c["target"] != "live" or c["id"] in conflicts or assess(c)[1] not in {"needs-approval", "approved"}:
+        history, release = assess(c)
+        if (c["target"] != "live" or c["id"] in conflicts or history != "certified" or
+                release not in {"needs-approval", "approved"}):
             continue
         try:
             n = transfer_rows(c, scope, excluded)
@@ -762,6 +785,7 @@ def main():
     queue.add_argument("--certified", action="store_true")
     queue.add_argument("--snapshot", help="check the named target on a read-only destination snapshot")
     queue.add_argument("--config", help="trusted server config when checking its bound database")
+    queue.add_argument("--board-db", help="bound Heirloom database for shared work references on Live")
     queue.add_argument("--ready", action="store_true", help="show approved tickets with verified pending changes")
     queue.add_argument("--json", action="store_true")
     shortlist = sub.add_parser("shortlist", help="filter recorded Heirloom-to-Live comparisons for review")
@@ -794,14 +818,14 @@ def main():
         else:
             print(result)
         return
-    if (args.snapshot and not args.target) or ((args.ready or args.config) and not args.snapshot):
+    if (args.snapshot and not args.target) or ((args.ready or args.config or args.board_db) and not args.snapshot):
         parser.error("--ready requires --snapshot and --target; a snapshot requires --target")
     if args.snapshot:
         import live_sync_20261122 as sync
         with contextlib.closing(sync.ss.readonly(args.snapshot)) as db:
             db.execute("BEGIN")
             require(sync.target_in_transaction(db, args.config) == args.target, "snapshot belongs to the other shard")
-            rows = queue_rows(data, args, db, sync.ss.SPECS)
+            rows = queue_rows(data, args, db, sync.ss.SPECS, args.board_db)
     else:
         rows = queue_rows(data, args)
     if args.json:

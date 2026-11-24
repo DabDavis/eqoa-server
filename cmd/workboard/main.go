@@ -11,6 +11,7 @@
 //	workboard add -title "..." -touches "npcs, npcpaths" -status in_progress
 //	workboard note 12 "half moved"
 //	workboard done 12 -result "18 guards moved"
+//	workboard set 12 -next "read back the ids after the next login" -waiting jibrish -basis era -basis-ref "Prima p.212"
 //	workboard overview                 the overview and its version
 //	workboard overview set -version 4 -file overview.md
 //	workboard boards                   the personal boards, with what is unread
@@ -52,13 +53,16 @@ Commands:
   list [-status s] [-area a] [-owner o] [-touches t] [-search q] [-all]
                                     the board; -all: the done ones older than 14 days too
   show <id>                         one entry whole, with its history and what it overlaps
-  add -title t [-area a] [-touches t] [-status s] [-owner o] [-details text | -details-file f] [-note text]
+  add -title t [-area a] [-touches t] [-status s] [-owner o] [-details text | -details-file f] [-note text] [resume flags]
                                     post a new entry (status planned unless given)
-  update <id> [-title] [-area] [-touches] [-status] [-owner] [-details | -details-file] [-note] [-result] [-version n]
-  start <id> [-note text]           in progress
-  block <id> -note why              blocked, saying on what
+  update|set <id> [-title] [-area] [-touches] [-status] [-owner] [-details | -details-file] [-note] [-result] [resume flags] [-version n]
+  start <id> [-note text] [resume flags]
+                                    in progress
+  block <id> -note why [resume flags]
+                                    blocked, saying on what
   done <id> -result "one line" [-note text]
-  note <id> text...                 a note, with the time and who
+                                    done (clears -next and -waiting unless given)
+  note <id> [resume flags] text...  a note, with the time and who
   overview [show]                   the overview's text and its version
   overview set -version n [-file f | -text t]
                                     replace it (stdin when neither); refused if it changed since version n
@@ -73,6 +77,24 @@ Personal boards (a GM's private thread with dab's sessions; config.yaml's gm.per
 
 Statuses: in_progress, blocked, planned, done. Areas: code, data, quests, client, gm_tools, other.
 -touches is comma separated: table names (npcs, queststeps), paths (internal/gmweb/ops.go) or folders.
+
+Resume flags (each one line; "" clears it; JSON fields next, waiting_on, basis, basis_ref):
+  -next text        the one next action, exact (a command, an id); the final check once that is all that is left
+  -waiting who      who or what it waits on: jibrish, dab, codex, a restart, a player's login
+  -basis b          why the change was made: era (a source from the live game's time, cited in -basis-ref),
+                    decomp, shared (a defect both shards share), owner (the owner's decision), estimate,
+                    test (operational, a tester's grant: outside the accuracy record), or none
+  -basis-ref ref    a short source or reference: "Prima p.212", "decomp viswing.cpp", "owner 2026-11-24",
+                    "petition 5590" (not text another record already holds: its id is enough)
+
+The resume convention, for multi-step work in progress (#321-#324 on jib's board):
+  Last verified  a note that begins "Verified" or names an audit or receipt id: "Verified: npcs 121689 renamed,
+                 read back (audit 163600)". Not stored apart: -json gives the newest such note as last_verified.
+  Next           -next: the exact next step. Its final check goes there once it is the last step left
+                 ("Final check: read the item ids back after the next login"), or in a note.
+  Waiting on     -waiting, with the owner, status and version every entry has.
+  A view of who acts next (needs jibrish, waiting on dab) is computed from these; the board is the record.
+  workboard [-db ~/eqoa-live/eqoa.db] list -json  (or show <id> -json) gives every field.
 
 Flags (before or after the command):
 `
@@ -350,10 +372,11 @@ func (c *cli) list(args []string) error {
 	owner := fs.String("owner", "", "only entries whose owner holds this")
 	touches := fs.String("touches", "", "only entries touching any of these tables or files, comma separated")
 	search := fs.String("search", "", "only entries holding this text")
+	basis := fs.String("basis", "", "only entries of this basis (era, decomp, shared, owner, estimate, test; none: without one)")
 	all := fs.Bool("all", false, "the done entries older than 14 days too")
 	return c.withDB(args, "list", fs, func(db *database.SQLiteDB, _ []string) error {
 		q := database.WorkQuery{Statuses: database.ParseWorkTouches(*status), Area: *area, Owner: *owner,
-			Touches: database.ParseWorkTouches(*touches), Search: *search, OldDone: *all, Limit: 1000}
+			Touches: database.ParseWorkTouches(*touches), Search: *search, Basis: *basis, OldDone: *all, Limit: 1000}
 		b, err := db.WorkBoard(q)
 		if err != nil {
 			return usagef("%v", err)
@@ -401,11 +424,34 @@ func (c *cli) printBrief(e database.WorkEntry) {
 	}
 	parts = append(parts, fmt.Sprintf("changed %s by %s", c.ago(e.Updated), e.UpdatedBy), fmt.Sprintf("v%d", e.Version))
 	fmt.Fprintf(w, "      %s\n", strings.Join(parts, " · "))
+	if r := resumeLine(e); r != "" {
+		fmt.Fprintf(w, "      %s\n", r)
+	}
 	if e.Status == database.WorkDone && e.Result != "" {
 		fmt.Fprintf(w, "      result: %s\n", e.Result)
 	} else if note := lastNote(e.Notes); note != "" {
 		fmt.Fprintf(w, "      last note %s\n", note)
 	}
+}
+
+// resumeLine is an entry's next action, what it waits on and its basis, as
+// one line ("" when it has none of them).
+func resumeLine(e database.WorkEntry) string {
+	var parts []string
+	if e.Next != "" {
+		parts = append(parts, "next: "+e.Next)
+	}
+	if e.WaitingOn != "" {
+		parts = append(parts, "waiting on "+e.WaitingOn)
+	}
+	if e.Basis != "" {
+		b := "basis " + e.Basis
+		if e.BasisRef != "" {
+			b += " (" + e.BasisRef + ")"
+		}
+		parts = append(parts, b)
+	}
+	return strings.Join(parts, " · ")
 }
 
 // lastNote is the last note's first line, cut to fit a line.
@@ -454,6 +500,22 @@ func (c *cli) show(args []string) error {
 		fmt.Fprintf(w, "posted %s by %s · changed %s by %s\n", e.Created, e.CreatedBy, e.Updated, e.UpdatedBy)
 		if e.Status == database.WorkDone {
 			fmt.Fprintf(w, "done %s: %s\n", e.DoneAt, e.Result)
+		}
+		if e.LastVerified != "" {
+			fmt.Fprintf(w, "last verified %s\n", e.LastVerified)
+		}
+		if e.Next != "" {
+			fmt.Fprintf(w, "next %s\n", e.Next)
+		}
+		if e.WaitingOn != "" {
+			fmt.Fprintf(w, "waiting on %s\n", e.WaitingOn)
+		}
+		if e.Basis != "" {
+			if e.BasisRef != "" {
+				fmt.Fprintf(w, "basis %s · %s\n", e.Basis, e.BasisRef)
+			} else {
+				fmt.Fprintf(w, "basis %s\n", e.Basis)
+			}
 		}
 		if e.Details != "" {
 			fmt.Fprintf(w, "\nDetails:\n%s\n", indent(e.Details))
@@ -510,8 +572,18 @@ func (c *cli) printOverlaps(overlaps []database.WorkOverlap) {
 // entryFlags are the flags add and update share.
 type entryFlags struct {
 	title, area, touches, status, owner, details, result, note opt
+	next, waiting, basis, basisRef                             opt
 	detailsFile                                                string
 	version                                                    int64
+}
+
+// resumeFlags adds the resume flags (next, waiting on, basis) to fs.
+func resumeFlags(fs *flag.FlagSet, f *entryFlags) {
+	fs.Var(&f.next, "next", "the one next action, one line (\"\" clears it)")
+	fs.Var(&f.waiting, "waiting", "who or what it waits on, short (\"\" clears it)")
+	fs.Var(&f.waiting, "waiting-on", "the same as -waiting")
+	fs.Var(&f.basis, "basis", "why: era, decomp, shared, owner, estimate, test, or none")
+	fs.Var(&f.basisRef, "basis-ref", "a short source or reference: \"Prima p.212\", \"petition 5590\"")
 }
 
 func (c *cli) entryFlagSet(name string, f *entryFlags, withVersion bool) *flag.FlagSet {
@@ -525,6 +597,7 @@ func (c *cli) entryFlagSet(name string, f *entryFlags, withVersion bool) *flag.F
 	fs.StringVar(&f.detailsFile, "details-file", "", "the details from a file (- for stdin)")
 	fs.Var(&f.result, "result", "one line: what came of it (done needs it)")
 	fs.Var(&f.note, "note", "a note added with the time and who")
+	resumeFlags(fs, f)
 	if withVersion {
 		fs.Int64Var(&f.version, "version", 0, "the entry's version as you read it (refused if it changed since)")
 	}
@@ -534,7 +607,8 @@ func (c *cli) entryFlagSet(name string, f *entryFlags, withVersion bool) *flag.F
 func (c *cli) post(db *database.SQLiteDB, f *entryFlags, id int64) error {
 	p := database.WorkPost{ID: id, Title: f.title.ptr(), Area: f.area.ptr(), Touches: f.touches.ptr(),
 		Status: f.status.ptr(), Owner: f.owner.ptr(), Details: f.details.ptr(), Result: f.result.ptr(),
-		Note: f.note.v, Version: f.version}
+		Note: f.note.v, Version: f.version, Next: f.next.ptr(), WaitingOn: f.waiting.ptr(), Basis: f.basis.ptr(),
+		BasisRef: f.basisRef.ptr()}
 	if f.detailsFile != "" {
 		if f.details.set {
 			return usagef("give -details or -details-file, not both")
@@ -622,7 +696,10 @@ func (c *cli) update(args []string, name string, status *string) error {
 }
 
 func (c *cli) note(args []string) error {
-	return c.withDB(args, "note", nil, func(db *database.SQLiteDB, pos []string) error {
+	f := &entryFlags{}
+	fs := c.flags("note")
+	resumeFlags(fs, f)
+	return c.withDB(args, "note", fs, func(db *database.SQLiteDB, pos []string) error {
 		id, rest, err := entryID(pos, "note")
 		if err != nil {
 			return err
@@ -638,7 +715,7 @@ func (c *cli) note(args []string) error {
 		if strings.TrimSpace(text) == "" {
 			return usagef("note needs its text: workboard note %d \"what happened\" (- reads it from stdin)", id)
 		}
-		f := &entryFlags{note: opt{v: text, set: true}}
+		f.note = opt{v: text, set: true}
 		return c.post(db, f, id)
 	})
 }

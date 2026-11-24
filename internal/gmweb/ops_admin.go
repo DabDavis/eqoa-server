@@ -193,21 +193,26 @@ func (s *Server) registerAdminOps() {
 		Description: "Run statements that change the database (UPDATE, INSERT, DELETE, ALTER...), in one transaction, " +
 			"after a backup of the whole database. The audit log keeps the statements but not the rows, so revert " +
 			"is by the backup. Prefer the row operations, which are revertible. NPCs changed this way reach the world " +
-			"with reload_npcs. An admin only.",
-		Input: obj(map[string]any{
+			"with reload_npcs. An admin only. " + whyHelp,
+		Input: obj(whyProps(map[string]any{
 			"sql":    str("the statements"),
 			"backup": boolean("back the database up first (default true)"),
-		}, "sql"),
+		}), "sql"),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct {
 				SQL    string
 				Backup *bool
+				WhyArgs
 			}
 			if err := c.decode(&req); err != nil {
 				return nil, err
 			}
+			why, err := req.detail()
+			if err != nil {
+				return nil, err
+			}
 			backup := req.Backup == nil || *req.Backup
-			return c.s.sqlExecute(c, req.SQL, backup)
+			return c.s.sqlExecute(c, req.SQL, backup, why)
 		},
 	})
 	s.addOp(&Op{
@@ -582,7 +587,7 @@ func (s *Server) readOnlyQuery(q string, limit int) ([]string, [][]any, bool, er
 	return cols, out, more, nil
 }
 
-func (s *Server) sqlExecute(c *opCtx, stmts string, backup bool) (any, error) {
+func (s *Server) sqlExecute(c *opCtx, stmts string, backup bool, why string) (any, error) {
 	q := strings.TrimSpace(stmts)
 	if q == "" {
 		return nil, badRequest("no SQL")
@@ -613,7 +618,10 @@ func (s *Server) sqlExecute(c *opCtx, stmts string, backup bool) (any, error) {
 	}
 	s.schema.invalidate()
 	database.InvalidateDefaultCharacters()
-	s.audit(c.a, "sql", "", nil, nil, nil, fmt.Sprintf("execute (%d rows; backup %s): %s", n, backupPath, clip(q, 2000)))
+	if why != "" {
+		why += " "
+	}
+	s.audit(c.a, "sql", "", nil, nil, nil, fmt.Sprintf("%sexecute (%d rows; backup %s): %s", why, n, backupPath, clip(q, 2000)))
 	return map[string]any{"rowsAffected": n, "backup": backupPath,
 		"note": "NPCs changed this way reach the running world with reload_npcs"}, nil
 }

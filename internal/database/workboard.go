@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -46,7 +47,11 @@ const workBoardSchema = `
 		updated    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
 		updated_by TEXT NOT NULL DEFAULT '',
 		done_at    TEXT NOT NULL DEFAULT '',
-		version    INTEGER NOT NULL DEFAULT 1
+		version    INTEGER NOT NULL DEFAULT 1,
+		next       TEXT NOT NULL DEFAULT '',
+		waiting_on TEXT NOT NULL DEFAULT '',
+		basis      TEXT NOT NULL DEFAULT '',
+		basis_ref  TEXT NOT NULL DEFAULT ''
 	);
 	CREATE INDEX IF NOT EXISTS idx_workboard_status ON workboard(status);
 	CREATE TABLE IF NOT EXISTS workboard_overview (
@@ -62,6 +67,11 @@ const workBoardSchema = `
 	CREATE TRIGGER IF NOT EXISTS workboard_overview_version AFTER UPDATE ON workboard_overview
 		WHEN NEW.version <= OLD.version
 		BEGIN UPDATE workboard_overview SET version = OLD.version + 1 WHERE id = NEW.id; END;`
+
+// workBoardColumns are the columns added to workboard after it was first
+// made (2026-11-24): ensureWorkBoard adds each one a database lacks, so the
+// server and cmd/workboard both bring an older board up to date.
+var workBoardColumns = []string{"next", "waiting_on", "basis", "basis_ref"}
 
 // DefaultWorkOverview is the overview a new board starts with: what the board
 // is for, the loop its workers keep, the statuses and the tools.
@@ -84,6 +94,15 @@ var WorkStatuses = []string{WorkInProgress, WorkBlocked, WorkPlanned, WorkDone}
 // code, its tables and content, quests, the client, the GM tools, other.
 var WorkAreas = []string{"code", "data", "quests", "client", "gm_tools", "other"}
 
+// WorkBases is every basis an entry may give (or none, ""): why a change to
+// the server's data or code was made, so that a reader can tell evidence from
+// a decision. era: a source from the live game's time (Prima, SOE's records,
+// a period guide, a capture), cited in basis_ref; decomp: the decomp or
+// CLIENT's own handling; shared: a defect in code or data both shards share;
+// owner: the owner's decision; estimate: a fitted or guessed value; test: an
+// operational change or a tester's grant, outside the accuracy record.
+var WorkBases = []string{"era", "decomp", "shared", "owner", "estimate", "test"}
+
 // What else a person or an agent may call a status or an area.
 var (
 	workStatusAliases = map[string]string{
@@ -100,6 +119,13 @@ var (
 		"gm": "gm_tools", "gmtools": "gm_tools", "gm_tool": "gm_tools", "panel": "gm_tools", "gm_panel": "gm_tools",
 		"tools": "gm_tools",
 	}
+	workBasisAliases = map[string]string{
+		"source": "era", "era_source": "era", "era/source": "era", "evidence": "era",
+		"shared_fix": "shared", "fix": "shared", "bug": "shared", "defect": "shared", "shared_defect": "shared",
+		"owner_decision": "owner", "decision": "owner",
+		"estimated": "estimate", "guess": "estimate", "fit": "estimate",
+		"operational": "test", "ops": "test", "operational/test": "test", "test_grant": "test", "grant": "test",
+	}
 )
 
 // The bounds of an entry and of the overview, in characters.
@@ -112,6 +138,9 @@ const (
 	WorkMaxNotes    = 60000
 	WorkMaxResult   = 300
 	WorkMaxOverview = 50000
+	WorkMaxNext     = 500 // the next action, one line (a final check may close it)
+	WorkMaxWaiting  = 100 // who or what it waits on, one line
+	WorkMaxBasisRef = 120 // a short source or reference, one line
 )
 
 // WorkDoneDays is how long a done entry stays on the board before it is
@@ -142,6 +171,48 @@ func NormalizeWorkArea(s string) (string, bool) {
 	}
 	v, ok := workAreaAliases[k]
 	return v, ok
+}
+
+// NormalizeWorkBasis is a basis as the board keeps it ("shared fix" is
+// shared, "owner decision" owner, "operational" test; "" or "none" is none),
+// false for one it does not have.
+func NormalizeWorkBasis(s string) (string, bool) {
+	k := workKey(s)
+	if k == "" || k == "none" || k == "-" {
+		return "", true
+	}
+	if containsString(WorkBases, k) {
+		return k, true
+	}
+	v, ok := workBasisAliases[k]
+	return v, ok
+}
+
+// BasisTag is the short tag a change's gm_audit line begins its detail with
+// to say why it was made: "[basis:shared petition 5590] ", or "" when there is
+// no basis. The basis is normalized (NormalizeWorkBasis) and the reference
+// made one line without square brackets. The GM panel's row edits and the data
+// tools write it; the audit log's search finds it ("[basis:era").
+func BasisTag(basis, ref string) (string, error) {
+	b, ok := NormalizeWorkBasis(basis)
+	if !ok {
+		return "", fmt.Errorf("basis %q is not one of %s (or none)", basis, strings.Join(WorkBases, ", "))
+	}
+	ref = strings.NewReplacer("[", "(", "]", ")").Replace(workLine(ref))
+	if b == "" {
+		if ref != "" {
+			return "", errors.New("a basis_ref goes with a basis: " + strings.Join(WorkBases, ", "))
+		}
+		return "", nil
+	}
+	if workRunes(ref) > WorkMaxBasisRef {
+		return "", fmt.Errorf("the basis_ref is %d characters: %d at most (a short reference: \"Prima p.212\", \"petition 5590\")",
+			workRunes(ref), WorkMaxBasisRef)
+	}
+	if ref == "" {
+		return "[basis:" + b + "] ", nil
+	}
+	return "[basis:" + b + " " + ref + "] ", nil
 }
 
 // ParseWorkTouches reads what an entry touches: items separated by commas,
@@ -208,6 +279,18 @@ type WorkEntry struct {
 	UpdatedBy string   `json:"updated_by"`
 	DoneAt    string   `json:"done_at,omitempty"`
 	Version   int64    `json:"version"`
+	// Next is the one next action (a final check, once that is all that is
+	// left); WaitingOn who or what it waits on. Both are cleared when the entry
+	// is done, unless that change gives them.
+	Next      string `json:"next"`
+	WaitingOn string `json:"waiting_on"`
+	// Basis is why the change was made (WorkBases, or ""), BasisRef a short
+	// source or reference for it.
+	Basis    string `json:"basis"`
+	BasisRef string `json:"basis_ref"`
+	// LastVerified is not stored: the newest note that begins "Verified" or
+	// names an audit or a receipt id (lastVerifiedNote), "" when none does.
+	LastVerified string `json:"last_verified,omitempty"`
 }
 
 // WorkOverview is the board's overview.
@@ -247,6 +330,17 @@ func (db *SQLiteDB) ensureWorkBoard() error {
 	}
 	if _, err := db.Exec(workBoardSchema); err != nil {
 		return fmt.Errorf("workboard: %w", err)
+	}
+	for _, col := range workBoardColumns {
+		var n int
+		if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('workboard') WHERE name = ?`, col).Scan(&n); err != nil {
+			return fmt.Errorf("workboard: %w", err)
+		}
+		if n == 0 {
+			if _, err := db.Exec(`ALTER TABLE workboard ADD COLUMN ` + col + ` TEXT NOT NULL DEFAULT ''`); err != nil {
+				return fmt.Errorf("workboard: add %s: %w", col, err)
+			}
+		}
 	}
 	if _, err := db.Exec(`INSERT OR IGNORE INTO workboard_overview (id, text, version, updated, updated_by)
 		VALUES (1, ?, 1, ?, 'the server')`, workText(DefaultWorkOverview), workStamp(time.Now())); err != nil {
@@ -368,24 +462,68 @@ func WorkEntryProblem(e WorkEntry) error {
 			workRunes(e.Result), WorkMaxResult)
 	case strings.ContainsAny(e.Result, "\r\n"):
 		return errors.New("the result is one line")
+	case workRunes(e.Next) > WorkMaxNext:
+		return fmt.Errorf("next is %d characters: %d at most, one line (the details and notes hold the rest)",
+			workRunes(e.Next), WorkMaxNext)
+	case strings.ContainsAny(e.Next, "\r\n"):
+		return errors.New("next is one line")
+	case workRunes(e.WaitingOn) > WorkMaxWaiting:
+		return fmt.Errorf("waiting_on is %d characters: %d at most (who or what, short)", workRunes(e.WaitingOn), WorkMaxWaiting)
+	case strings.ContainsAny(e.WaitingOn, "\r\n"):
+		return errors.New("waiting_on is one line")
+	case e.Basis != "" && !containsString(WorkBases, e.Basis):
+		return fmt.Errorf("basis %q is not one of %s (or none)", e.Basis, strings.Join(WorkBases, ", "))
+	case workRunes(e.BasisRef) > WorkMaxBasisRef:
+		return fmt.Errorf("basis_ref is %d characters: %d at most (a short reference: \"Prima p.212\", \"petition 5590\")",
+			workRunes(e.BasisRef), WorkMaxBasisRef)
+	case strings.ContainsAny(e.BasisRef, "\r\n"):
+		return errors.New("basis_ref is one line")
+	case e.BasisRef != "" && e.Basis == "":
+		return errors.New("a basis_ref goes with a basis: " + strings.Join(WorkBases, ", "))
 	case e.Status == WorkDone && strings.TrimSpace(e.Result) == "":
 		return errors.New("a done entry says what came of it: give result, one line (\"18 guards moved\", \"dropped: not needed\")")
 	}
 	return nil
 }
 
-const workCols = `id, title, area, touches, status, owner, details, notes, result, created, created_by, updated, updated_by, done_at, version`
+const workCols = `id, title, area, touches, status, owner, details, notes, result, created, created_by, updated, updated_by, done_at, version, next, waiting_on, basis, basis_ref`
 
 func scanWorkEntry(sc interface{ Scan(...any) error }) (WorkEntry, error) {
 	var e WorkEntry
 	var touches string
 	err := sc.Scan(&e.ID, &e.Title, &e.Area, &touches, &e.Status, &e.Owner, &e.Details, &e.Notes, &e.Result,
-		&e.Created, &e.CreatedBy, &e.Updated, &e.UpdatedBy, &e.DoneAt, &e.Version)
+		&e.Created, &e.CreatedBy, &e.Updated, &e.UpdatedBy, &e.DoneAt, &e.Version, &e.Next, &e.WaitingOn, &e.Basis, &e.BasisRef)
 	e.Touches = ParseWorkTouches(touches)
+	e.LastVerified = lastVerifiedNote(e.Notes)
 	if e.Touches == nil {
 		e.Touches = []string{}
 	}
 	return e, err
+}
+
+// verifiedRE is a note that records a verified step: it begins "Verified",
+// or names an audit line or a receipt ("audit 163544", "receipt r-1123").
+var verifiedRE = regexp.MustCompile(`(?i)^verified\b|\baudit\s*(?:id\s*)?#?\d+|\breceipts?\s*(?:id\s*)?[:#]?\s*[A-Za-z0-9_-]*\d`)
+
+// lastVerifiedNote is the newest note recording a verified step (verifiedRE)
+// as the notes keep it, its time and who first, "" when there is none: the
+// convention's "Last verified", read from the notes and never stored twice.
+func lastVerifiedNote(notes string) string {
+	items := strings.Split("\n"+notes, "\n- ")
+	for i := len(items) - 1; i > 0; i-- {
+		item := strings.ReplaceAll(items[i], "\n  ", "\n")
+		text := item
+		// "2026-11-24 05:04 UTC, who: text"
+		if j := strings.Index(item, " UTC, "); j >= 0 {
+			if k := strings.Index(item[j+6:], ": "); k >= 0 {
+				text = item[j+6+k+2:]
+			}
+		}
+		if verifiedRE.MatchString(strings.TrimSpace(text)) {
+			return strings.TrimSpace(item)
+		}
+	}
+	return ""
 }
 
 // WorkEntryByID is one entry, false when there is none.
@@ -414,6 +552,12 @@ type WorkPost struct {
 	// Note is added to the entry's notes: a line with the time and who wrote it.
 	Note   string
 	Result *string
+	// Next, WaitingOn, Basis and BasisRef replace the entry's (an empty
+	// string clears one). Done clears Next and WaitingOn unless given.
+	Next      *string
+	WaitingOn *string
+	Basis     *string
+	BasisRef  *string
 	// Version is the entry's version as it was read; 0 is not checked.
 	Version int64
 }
@@ -485,6 +629,30 @@ func (db *SQLiteDB) PostWork(p WorkPost, who GMEdit) (WorkEntry, int64, error) {
 	if p.Result != nil {
 		next.Result = workLine(*p.Result)
 	}
+	if next.Status == WorkDone && (cur.Status != WorkDone || isNew) {
+		// nothing is next of a finished entry: a view of who acts next never
+		// shows it again
+		next.Next, next.WaitingOn = "", ""
+	}
+	if p.Next != nil {
+		next.Next = workLine(*p.Next)
+	}
+	if p.WaitingOn != nil {
+		next.WaitingOn = workLine(*p.WaitingOn)
+	}
+	if p.Basis != nil {
+		b, ok := NormalizeWorkBasis(*p.Basis)
+		if !ok {
+			return WorkEntry{}, 0, fmt.Errorf("basis %q is not one of %s (or none)", *p.Basis, strings.Join(WorkBases, ", "))
+		}
+		next.Basis = b
+		if b == "" && p.BasisRef == nil {
+			next.BasisRef = "" // no basis, so nothing to refer to
+		}
+	}
+	if p.BasisRef != nil {
+		next.BasisRef = workLine(*p.BasisRef)
+	}
 	note := workText(p.Note)
 	noted := note != ""
 	if noted {
@@ -517,9 +685,10 @@ func (db *SQLiteDB) PostWork(p WorkPost, who GMEdit) (WorkEntry, int64, error) {
 	action := "insert"
 	if isNew {
 		res, err := tx.Exec(`INSERT INTO workboard (title, area, touches, status, owner, details, notes, result,
-			created, created_by, updated, updated_by, done_at, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+			created, created_by, updated, updated_by, done_at, version, next, waiting_on, basis, basis_ref)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)`,
 			next.Title, next.Area, touches, next.Status, next.Owner, next.Details, next.Notes, next.Result,
-			stamp, by, stamp, by, next.DoneAt)
+			stamp, by, stamp, by, next.DoneAt, next.Next, next.WaitingOn, next.Basis, next.BasisRef)
 		if err != nil {
 			return WorkEntry{}, 0, err
 		}
@@ -532,10 +701,11 @@ func (db *SQLiteDB) PostWork(p WorkPost, who GMEdit) (WorkEntry, int64, error) {
 			return WorkEntry{}, 0, err
 		}
 		res, err := tx.Exec(`UPDATE workboard SET title = ?, area = ?, touches = ?, status = ?, owner = ?, details = ?,
-			notes = ?, result = ?, done_at = ?, updated = ?, updated_by = ?, version = version + 1
+			notes = ?, result = ?, done_at = ?, next = ?, waiting_on = ?, basis = ?, basis_ref = ?,
+			updated = ?, updated_by = ?, version = version + 1
 			WHERE id = ? AND version = ?`,
 			next.Title, next.Area, touches, next.Status, next.Owner, next.Details, next.Notes, next.Result, next.DoneAt,
-			stamp, by, id, cur.Version)
+			next.Next, next.WaitingOn, next.Basis, next.BasisRef, stamp, by, id, cur.Version)
 		if err != nil {
 			return WorkEntry{}, 0, err
 		}
@@ -566,7 +736,8 @@ func (db *SQLiteDB) PostWork(p WorkPost, who GMEdit) (WorkEntry, int64, error) {
 func sameWork(a, b WorkEntry) bool {
 	return a.Title == b.Title && a.Area == b.Area && FormatWorkTouches(a.Touches) == FormatWorkTouches(b.Touches) &&
 		a.Status == b.Status && a.Owner == b.Owner && a.Details == b.Details && a.Notes == b.Notes &&
-		a.Result == b.Result && a.DoneAt == b.DoneAt
+		a.Result == b.Result && a.DoneAt == b.DoneAt && a.Next == b.Next && a.WaitingOn == b.WaitingOn &&
+		a.Basis == b.Basis && a.BasisRef == b.BasisRef
 }
 
 // workDetail is the audit line's words for a post.
@@ -585,6 +756,8 @@ func workDetail(isNew bool, id int64, cur, next WorkEntry, noted bool) string {
 		{"title", cur.Title, next.Title}, {"area", cur.Area, next.Area},
 		{"touches", FormatWorkTouches(cur.Touches), FormatWorkTouches(next.Touches)},
 		{"owner", cur.Owner, next.Owner}, {"details", cur.Details, next.Details}, {"result", cur.Result, next.Result},
+		{"next", cur.Next, next.Next}, {"waiting_on", cur.WaitingOn, next.WaitingOn},
+		{"basis", cur.Basis, next.Basis}, {"basis_ref", cur.BasisRef, next.BasisRef},
 	} {
 		if f.a != f.b {
 			what = append(what, f.name)
@@ -691,7 +864,8 @@ type WorkQuery struct {
 	Area     string
 	Owner    string   // in the owner, any case
 	Touches  []string // entries touching any of these (TouchesOverlap)
-	Search   string   // in the title, owner, touches, details, notes and result, any case
+	Search   string   // in the title, owner, touches, details, notes, result, next, waiting_on and basis_ref, any case
+	Basis    string   // only entries of this basis (WorkBases); "none": those without one
 	OldDone  bool     // done entries older than WorkDoneDays too
 	Limit    int      // entries at most: default 200, at most 1000
 	Offset   int
@@ -773,6 +947,14 @@ func (db *SQLiteDB) WorkBoard(q WorkQuery) (WorkBoard, error) {
 		}
 		area = a
 	}
+	basis, anyBasis := "", strings.TrimSpace(q.Basis) == ""
+	if !anyBasis {
+		b, ok := NormalizeWorkBasis(q.Basis)
+		if !ok {
+			return WorkBoard{}, fmt.Errorf("basis %q is not one of %s (or none)", q.Basis, strings.Join(WorkBases, ", "))
+		}
+		basis = b
+	}
 	owner := strings.ToLower(strings.TrimSpace(q.Owner))
 	search := strings.ToLower(strings.TrimSpace(q.Search))
 	var match []WorkEntry
@@ -792,6 +974,9 @@ func (db *SQLiteDB) WorkBoard(q WorkQuery) (WorkBoard, error) {
 		if area != "" && e.Area != area {
 			continue
 		}
+		if !anyBasis && e.Basis != basis {
+			continue
+		}
 		if owner != "" && !strings.Contains(strings.ToLower(e.Owner), owner) {
 			continue
 		}
@@ -799,7 +984,7 @@ func (db *SQLiteDB) WorkBoard(q WorkQuery) (WorkBoard, error) {
 			continue
 		}
 		if search != "" && !strings.Contains(strings.ToLower(strings.Join([]string{e.Title, e.Owner,
-			FormatWorkTouches(e.Touches), e.Details, e.Notes, e.Result}, "\n")), search) {
+			FormatWorkTouches(e.Touches), e.Details, e.Notes, e.Result, e.Next, e.WaitingOn, e.BasisRef}, "\n")), search) {
 			continue
 		}
 		match = append(match, e)

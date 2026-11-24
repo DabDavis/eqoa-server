@@ -48,6 +48,14 @@ Areas: `code` (the server's code), `data` (tables and content), `quests`, `clien
 - What only the owner's sessions can do (a deploy, a restart, a tool run on the box): an entry titled
   "For the owner's sessions: ...", status `planned`.
 
+## Next, waiting on, basis
+
+For multi-step work, keep `next` (the one next action, exact; the final check once that is all that is left) and
+`waiting_on` current, and note each verified step with its audit or receipt id ("Verified: ... (audit 163600)").
+`basis` says why a change was made: `era` (a source from the live game's time, cited in `basis_ref`), `decomp`,
+`shared` (a defect both shards share), `owner` (the owner's decision), `estimate` or `test` (operational, a tester's
+grant). Row edits take `reason`, `basis` and `basis_ref` too, kept in their audit line.
+
 ## Conventions
 
 - Who is around, what not to touch, when the server restarts: write it here.

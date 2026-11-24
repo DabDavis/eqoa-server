@@ -7,6 +7,9 @@ said). Not run on its own.
 A tool calls main(spec) with spec a dict:
     log      its log table's name
     detail   the gm_audit lines' detail
+    basis    optional: why (era, decomp, shared, owner, estimate, test), written at the detail's start as the GM panel's
+             row edits write it, "[basis:shared petition 5590] ..." (database.BasisTag); --basis overrides it
+    basis_ref  optional: a short source for it ("Prima p.212"); leave it out when the detail already names the petition
     keys     {table: (key columns,)} for every table it writes
     needs    tables that must be there (else refused)
     changes  f(db) -> (out, lines, refusals, applied): out a list of (table, key, after); applied True when the rows
@@ -92,6 +95,24 @@ def write(db, tbl, key, after):
     return action, before, get(db, tbl, key)
 
 
+BASES = ("era", "decomp", "shared", "owner", "estimate", "test")
+
+
+def basis_tag(basis, ref=""):
+    """The tag a gm_audit detail begins with to say why, as database.BasisTag writes it: "" for no basis."""
+    basis = (basis or "").strip().lower()
+    ref = " ".join((ref or "").split()).replace("[", "(").replace("]", ")")
+    if not basis or basis == "none":
+        if ref:
+            raise SystemExit("a --basis-ref goes with a --basis: " + ", ".join(BASES))
+        return ""
+    if basis not in BASES:
+        raise SystemExit(f"basis {basis!r} is not one of {', '.join(BASES)}")
+    if len(ref) > 120:
+        raise SystemExit(f"the basis ref is {len(ref)} characters: 120 at most")
+    return f"[basis:{basis} {ref}] " if ref else f"[basis:{basis}] "
+
+
 def apply(db, spec, out):
     db.execute(log_schema(spec["log"]))
     n = 0
@@ -100,7 +121,7 @@ def apply(db, spec, out):
         if r is None:
             continue
         action, before, now = r
-        a = audit(db, action, tbl, key, before, now, spec["detail"])
+        a = audit(db, action, tbl, key, before, now, basis_tag(spec.get("basis"), spec.get("basis_ref")) + spec["detail"])
         db.execute(f"INSERT INTO {spec['log']} (tbl, rowkey, before, after, audit) VALUES (?, ?, ?, ?, ?)",
                    (tbl, json.dumps(key, sort_keys=True), None if before is None else json.dumps(before, sort_keys=True),
                     None if now is None else json.dumps(now, sort_keys=True), a))
@@ -147,7 +168,12 @@ def main(spec, argv=None, doc=None):
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true")
     g.add_argument("--undo", action="store_true")
+    ap.add_argument("--basis", help="why: " + ", ".join(BASES) + " (written at the audit lines' start)")
+    ap.add_argument("--basis-ref", help="a short source for the basis: \"Prima p.212\", \"owner 2026-11-24\"")
     a = ap.parse_args(argv)
+    if a.basis is not None or a.basis_ref is not None:
+        spec = dict(spec, basis=a.basis or spec.get("basis"), basis_ref=a.basis_ref or spec.get("basis_ref"))
+    basis_tag(spec.get("basis"), spec.get("basis_ref"))  # refuse a bad one before anything is read
     db = sqlite3.connect(a.db, isolation_level=None, timeout=30)
     try:
         if a.undo:

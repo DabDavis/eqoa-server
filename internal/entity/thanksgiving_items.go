@@ -22,7 +22,12 @@ func (w *World) thanksgivingCharmRefusalLocked(npc *NPC, spell *CastSpell) strin
 	if npc.Dead || npc.Owner != 0 || npc.Dummy != NotDummy {
 		return charmCannot
 	}
-	if rule, ok := w.charmRuleLocked(npc); ok && rule.ResistPct >= 100 {
+	// never a raid boss, a quest or event spawn, a rare standing, a familiar or the barrel's monkeys:
+	// the same creatures the Puppet Strings refuse (charmcon.go), so a sure charm takes no boss
+	if npc.isMonkey() || npc.isMerc() || npc.isFamiliar() || npc.QuestSpawn || npc.EventAggro || w.raidBossLocked(npc) || w.rareStandingLocked(npc) {
+		return charmCannot
+	}
+	if rule, ok := w.charmRuleLocked(npc); ok && (!rule.Charmable || rule.ResistPct >= 100) {
 		return charmCannot
 	}
 	return w.charmStartLocked(spell, []EntityID{npc.ServerID})

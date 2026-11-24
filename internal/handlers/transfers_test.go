@@ -105,6 +105,66 @@ func TestTransferAppliesAtTheLogin(t *testing.T) {
 	}
 }
 
+// A GM's grant gives its gear as the record itself, whatever its label says
+// after "GM grant" (the grant scripts' "GM grant (petition 5577)"); a
+// transfer from a server named like it still gives the imported copy.
+func TestGrantLabelsGiveTheRecord(t *testing.T) {
+	db, err := database.NewSQLite(t.TempDir() + "/t.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	for _, q := range []string{
+		`INSERT INTO accountinfo (accountid, username, pwhash, acctstatus, acctlevel) VALUES (3, 'player', 'x', 1, 0)`,
+		`INSERT INTO characters (charName, accountid, serverid, modelid, tclass, race, humType, level, haircolor, hairlength, hairstyle,
+			faceoption, sex, world, x, y, z) VALUES ('Plain', 3, 7, 1, 3, 5, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+			('Labelled', 3, 8, 1, 3, 5, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+			('Owner', 3, 9, 1, 3, 5, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+			('Lookalike', 3, 10, 1, 3, 5, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0)`,
+		`INSERT INTO itempattern (patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, attacktype,
+			weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, unk6, craft, itemname, itemdesc, model, color)
+			VALUES (6089, 0, 0, 1, 0, 13, 0, 0, 1, 0, 0, 0, 0, 60, 1, 100, 0, 8, 1023, 0, 0, 0, 0, 'Tower of Woe', '', 0, 0)`,
+	} {
+		if _, err := db.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	now := time.Now()
+	h := NewCharacterHandler(database.NewSQLiteCharacterStore(db), nil, nil, database.NewSpellbookStore(db))
+	h.SetGameWorld(entity.NewWorld())
+	for _, c := range []struct {
+		id   uint32
+		name string
+		from string
+		copy bool
+	}{
+		{7, "Plain", "GM grant", false},
+		{8, "Labelled", "GM grant (petitions 5517/5519)", false},
+		{9, "Owner", "GM grant(the owner)", false},
+		{10, "Lookalike", "GM grantor", true},
+	} {
+		tr, err := db.FileTransfer(database.Transfer{AccountID: 3, ServerID: c.id, FromServer: c.from, FromName: c.name, FromLevel: 60}, now)
+		if err != nil {
+			t.Fatal(err)
+		}
+		plan, _ := json.Marshal(charmove.Plan{Character: c.name, CharacterID: c.id, Level: 60, To: "auto",
+			Items: []charmove.Item{{Pattern: 6089}}})
+		if _, _, err := db.ApproveTransfer(tr.ID, string(plan), "", database.GMEdit{Username: "gm"}, now); err != nil {
+			t.Fatal(err)
+		}
+		if !h.applyTransfer(c.id, clientLists) {
+			t.Fatalf("%s: not applied", c.from)
+		}
+		var real, copies int
+		db.QueryRow(`SELECT COUNT(*) FROM charinventory WHERE serverid = ? AND patternid = 6089`, c.id).Scan(&real)
+		db.QueryRow(`SELECT COUNT(*) FROM charinventory i JOIN itemimported m ON m.patternid = i.patternid
+			WHERE i.serverid = ? AND m.base = 6089`, c.id).Scan(&copies)
+		if want := map[bool][2]int{false: {1, 0}, true: {0, 1}}[c.copy]; real != want[0] || copies != want[1] {
+			t.Errorf("%q: %d of the record, %d copies; want %v", c.from, real, copies, want)
+		}
+	}
+}
+
 // An approval is told at once on a character of the account in the world
 // (the transfer's own: log out and in), with the items approximated and the
 // ask to report them, and marked told; none in the world, not told, so the

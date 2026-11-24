@@ -69,6 +69,15 @@ const ImportedTag = " (Imported)"
 // as it is, never as an import's copies.
 const GMGrantSource = "GM grant"
 
+// IsGMGrant reports whether a transfer's from_server marks a GM's grant:
+// GMGrantSource alone, or followed by a space or a parenthesis (the grant
+// scripts' labels: "GM grant (petition 5577)", "GM grant (the owner)").
+// "GM grantor" or a player's server named like it is not one.
+func IsGMGrant(fromServer string) bool {
+	rest, ok := strings.CutPrefix(fromServer, GMGrantSource)
+	return ok && (rest == "" || rest[0] == ' ' || rest[0] == '(')
+}
+
 // importedFirst and importedLast bound the copies' ids.
 const (
 	importedFirst = 990001

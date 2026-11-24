@@ -184,3 +184,26 @@ func TestAnImportedCopyTakesTheLowestFreeID(t *testing.T) {
 		t.Errorf("Steelwind's copy beside a taken top: %d (made %v), want %d", id, made, importedFirst+1)
 	}
 }
+
+// A GM's grant is "GM grant" alone or with a label after a space or a
+// parenthesis (the grant scripts' "GM grant (petition 5577)"); anything else,
+// a player's server named like it too, is a transfer.
+func TestIsGMGrant(t *testing.T) {
+	for s, want := range map[string]bool{
+		"GM grant":                       true,
+		"GM grant (petition 5577)":       true,
+		"GM grant (petitions 5517/5519)": true,
+		"GM grant (side quests 35-45)":   true,
+		"GM grant (the owner)":           true,
+		"GM grant(the owner)":            true,
+		"GM grantor":                     false,
+		"gm grant":                       false,
+		" GM grant":                      false,
+		"Sandstorm":                      false,
+		"":                               false,
+	} {
+		if got := IsGMGrant(s); got != want {
+			t.Errorf("IsGMGrant(%q) = %v, want %v", s, got, want)
+		}
+	}
+}

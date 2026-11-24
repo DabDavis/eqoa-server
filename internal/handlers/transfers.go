@@ -54,8 +54,9 @@ func (h *CharacterHandler) applyTransfer(serverID uint32, room listSizes) bool {
 		plan.BankSlots = database.AccountBankSlots()
 	}
 	// a transfer's gear comes in as its imported copies, damped; a GM's grant
-	// as given (database/imported.go; petition 1314)
-	plan.Imported = plan.Imported || t.FromServer != database.GMGrantSource
+	// as given, whatever its label says after "GM grant" (database/imported.go;
+	// petition 1314)
+	plan.Imported = plan.Imported || !database.IsGMGrant(t.FromServer)
 	var out strings.Builder
 	run, err := charmove.Migrate(db.DB, plan, true, false, &out)
 	if err != nil {

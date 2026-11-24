@@ -516,6 +516,20 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 				}
 			}
 			a.Effects = area
+		} else if len(targetOnly) > 0 && !d.Harmful {
+			// no hit of the area's own, but parts for the target alone (Heirloom
+			// petition 2886, Radiance: its target's 730 + 25% CHA heal over time
+			// beside the group's 350; until then the area took the whole
+			// spell, the target's part with it): the area takes the rest.
+			// Divinity's and Wild Growth's areas the same. A harmful one
+			// (Lightning Column) is left as it was: the owner's call
+			area = []SpellEffect{}
+			for i, e := range d.Effects {
+				if !e.Self && !targetOnly[i] {
+					area = append(area, e)
+				}
+			}
+			a.Effects = area
 		}
 		d.Area = &a
 	case scope == "player_aoe":

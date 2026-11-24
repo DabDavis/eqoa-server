@@ -640,6 +640,7 @@ func main() {
 	// Initialize handler registry
 	handlerRegistry := handlers.NewRegistry()
 	handlers.RegisterDefaultHandlers(handlerRegistry, charStore, accountStore, sessionMgr, cfg.Server.ServerIP, gameWorld, inventoryStore, spellbookStore)
+	shardChat := handlerRegistry.SetShardChat(cfg.GM.ShardID)
 	// a temporary password a GM set (a password reset): the world says to set
 	// one's own on the website (handlers/pwtemp.go), on every shard
 	gameWorld.OnPlayerEntered(handlers.PasswordTempNotice(db, cfg.Auth.PasswordURL))
@@ -1298,6 +1299,7 @@ func main() {
 	if cfg.GM.Port != 0 {
 		gm, err := gmweb.New(gmweb.Deps{
 			Config: cfg, ConfigPath: *configPath, DB: db, World: gameWorld, Sessions: sessionMgr,
+			Chat:       shardChat,
 			Characters: charStore, Accounts: accountStore, NPCs: npcStore,
 			ApplyNewCharacterRules: func(r database.NewCharacterRules) {
 				charStore.SetNewCharacterRules(r)

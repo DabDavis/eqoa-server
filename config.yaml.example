@@ -825,6 +825,14 @@ gm:
   # taken from a loopback address alone, never through the proxy. Empty:
   # this panel takes none.
   # shard_key_file: "/home/eqoa/gm-shard.key"
+  #
+  # Two-way player chat uses this same Heirloom -> Live panel route. Set
+  # gm.shard_id to "heirloom" on Sandbox and "live" on Vanilla. Heirloom's
+  # live peer uses Live's direct loopback URL and key_file. Live reads the
+  # matching shard_key_file. The two game servers reconnect automatically.
+  # A remote shout or tell shows v.Name or s.Name. Both /tell vanilla.Name and
+  # /tell sandbox.Name accept the long forms. A bare name stays local. /reply
+  # uses the short address shown to the recipient.
 
 # The quest engine (handlers/quests.go).
 # quests:

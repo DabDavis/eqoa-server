@@ -302,3 +302,91 @@ func TestAnOwnDropAheadLeftKeepsTheCorpse(t *testing.T) {
 		t.Fatal("past the keep a closed corpse with only a drop ahead on it stayed")
 	}
 }
+
+// A kill's quest drops come from the quests' queue, after the death (Heirloom
+// petition 2833, 2026-11-24: a corpse opened and emptied in the two seconds
+// before its quest ring was placed went, and the ring with it). While the kill
+// waits (QuestDropsPending) the emptied corpse stays and its window waits; the
+// drop placed (QuestDropsPlaced), the window shows it, it is taken, and the
+// corpse goes then. The control: a kill the quests have worked goes at once.
+func TestACorpseWaitsForItsQuestDrops(t *testing.T) {
+	f := newCorpseFixture(t, 1)
+	f.h.lootNow = func() time.Time { return f.npc.DeathTime.Add(2 * time.Second) }
+	f.h.QuestDropsPending(f.npc.ServerID, f.npc.DeathTime) // heard: the queue not yet worked
+
+	f.h.OpenCorpse(f.sess, f.npc)
+	if n := lootCount(t, f.sent()[0]); n != 1 {
+		t.Fatalf("the looter sees %d records, want the corpse's 1", n)
+	}
+	f.send(protocol.OpcodeLootTakeAll, nil) // emptied before the drop is placed
+	f.sent()
+	if f.heldOf(f.sword) != 1 {
+		t.Fatalf("the corpse's item not taken: %d", f.heldOf(f.sword))
+	}
+	if len(f.cleared) != 0 {
+		t.Fatal("the corpse went with its kill's quest drops still to come")
+	}
+
+	// the quests work the kill: the ring on the corpse, shown in the waiting window
+	f.h.AddCorpseQuestDrop(f.npc.ServerID, f.npc.DeathTime, f.dropOf(f.bait), true)
+	f.h.QuestDropsPlaced(f.npc.ServerID, f.npc.DeathTime)
+	got := f.sent()
+	if len(got) != 2 || opOf(got[0]) != protocol.OpcodeClientCloseLoot || opOf(got[1]) != protocol.OpcodeLoot {
+		t.Fatalf("the drop placed: %s, want the window sent again", ops(got))
+	}
+	if n := lootCount(t, got[1]); n != 1 {
+		t.Fatalf("the waiting window shows %d records, want the drop", n)
+	}
+	f.send(protocol.OpcodeLootTakeAll, nil)
+	f.sent()
+	if f.heldOf(f.bait) != 1 {
+		t.Fatalf("the quest drop not looted: %d", f.heldOf(f.bait))
+	}
+	if len(f.cleared) != 1 {
+		t.Fatalf("everything taken, the corpse did not go: cleared %v", f.cleared)
+	}
+
+	// the control: no kill waiting, an emptied corpse goes at once
+	g := newCorpseFixture(t, 1)
+	g.h.lootNow = func() time.Time { return g.npc.DeathTime.Add(2 * time.Second) }
+	g.h.QuestDropsPending(g.npc.ServerID, g.npc.DeathTime)
+	g.h.QuestDropsPlaced(g.npc.ServerID, g.npc.DeathTime) // worked before the opening: nothing dropped
+	g.h.OpenCorpse(g.sess, g.npc)
+	g.sent()
+	g.send(protocol.OpcodeLootTakeAll, nil)
+	g.sent()
+	if len(g.cleared) != 1 {
+		t.Fatalf("worked and emptied, the corpse did not go: cleared %v", g.cleared)
+	}
+}
+
+// A corpse closed empty while its kill waits lies on; the kill worked with no
+// drop for it, it goes then (QuestDropsPlaced), and a waiting kill keeps no
+// corpse past questPendingHold.
+func TestACorpseClosedWhileItsKillWaitsGoesWhenWorked(t *testing.T) {
+	f := newCorpseFixture(t, 1)
+	now := f.npc.DeathTime.Add(time.Second)
+	f.h.lootNow = func() time.Time { return now }
+	f.h.QuestDropsPending(f.npc.ServerID, f.npc.DeathTime)
+	f.h.OpenCorpse(f.sess, f.npc)
+	f.send(protocol.OpcodeLootTakeAll, nil)
+	f.send(protocol.OpcodeClientCloseLoot, nil)
+	f.sent()
+	if len(f.cleared) != 0 {
+		t.Fatal("closed empty, the corpse went with its kill still waiting")
+	}
+	f.h.QuestDropsPlaced(f.npc.ServerID, f.npc.DeathTime)
+	if len(f.cleared) != 1 {
+		t.Fatalf("the kill worked with nothing for it, the corpse did not go: cleared %v", f.cleared)
+	}
+
+	g := newCorpseFixture(t, 1)
+	g.h.lootNow = func() time.Time { return g.npc.DeathTime.Add(questPendingHold + time.Second) }
+	g.h.QuestDropsPending(g.npc.ServerID, g.npc.DeathTime) // never worked (an engine stopped)
+	g.h.OpenCorpse(g.sess, g.npc)
+	g.send(protocol.OpcodeLootTakeAll, nil)
+	g.sent()
+	if len(g.cleared) != 1 {
+		t.Fatalf("past the hold, the emptied corpse did not go: cleared %v", g.cleared)
+	}
+}

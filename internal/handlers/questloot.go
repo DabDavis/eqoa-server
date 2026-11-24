@@ -212,6 +212,9 @@ func (ls *lootState) emptyLocked(id entity.EntityID, c *corpse, now time.Time) b
 	if c.owedLocked() { // a share's copy a character of the kill waits for (lootshare.go)
 		return false
 	}
+	if ls.pendingLocked(id, c, now) { // its kill's quest drops still to come
+		return false
+	}
 	d := ls.drops[id]
 	if d == nil || !d.died.Equal(c.died) {
 		return true
@@ -225,6 +228,74 @@ func (ls *lootState) emptyLocked(id entity.EntityID, c *corpse, now time.Time) b
 		}
 	}
 	return true
+}
+
+// questPendingHold is the longest a kill the quests have not worked yet keeps its
+// corpse (QuestDropsPending): the queue is worked in well under a second, so this
+// only stops a kill lost to a stopped engine keeping its corpse past it.
+const questPendingHold = 30 * time.Second
+
+// QuestDropsPending is the quests' hook as a kill joins their queue (the World's
+// lock held: no loot lock taken): the corpse of NPC id's death died may have loot
+// steps' drops still to come, so it is not taken away emptied (emptyLocked) and a
+// window emptied on it stays open for them, until QuestDropsPlaced. Heirloom
+// petition 2833 (2026-11-24): a quest ring was placed two seconds after the kill,
+// its corpse opened and emptied in between and gone with it.
+func (h *NPCWindowHandler) QuestDropsPending(id entity.EntityID, died time.Time) {
+	h.loots().pending.Store(id, died)
+}
+
+// QuestDropsPlaced is the quests' hook once a kill is worked, its drops on its
+// corpse (no quest lock held): the corpse no longer waits, each window open on it
+// is sent again with them, and a corpse with no window open and nothing on it goes.
+func (h *NPCWindowHandler) QuestDropsPlaced(id entity.EntityID, died time.Time) {
+	ls := h.loots()
+	ls.mu.Lock()
+	defer ls.mu.Unlock()
+	v, ok := ls.pending.Load(id)
+	if !ok || !v.(time.Time).Equal(died) {
+		return
+	}
+	ls.pending.CompareAndDelete(id, v)
+	c := ls.corpses[id]
+	if c == nil || !c.died.Equal(died) {
+		return // never opened: nothing waits
+	}
+	var looking []*session.Session
+	for s, open := range ls.open {
+		if open == id {
+			looking = append(looking, s)
+		}
+	}
+	for _, s := range looking {
+		if ls.open[s] == id && ls.corpses[id] == c {
+			h.resendCorpse(s, ls, c)
+		}
+	}
+	if ls.corpses[id] != c {
+		return // gone with the last window's close
+	}
+	for _, open := range ls.open {
+		if open == id {
+			return
+		}
+	}
+	if now := h.lootClock(); ls.emptyLocked(id, c, now) {
+		h.emptiedLocked(ls, id, c)
+	} else {
+		h.keepAheadLocked(ls, id, c, now)
+	}
+}
+
+// pendingLocked is whether the corpse c of NPC id waits at now for its kill's
+// quest drops (QuestDropsPending). Must be called with ls.mu held.
+func (ls *lootState) pendingLocked(id entity.EntityID, c *corpse, now time.Time) bool {
+	v, ok := ls.pending.Load(id)
+	if !ok {
+		return false
+	}
+	died := v.(time.Time)
+	return died.Equal(c.died) && now.Before(died.Add(questPendingHold))
 }
 
 // aheadOnlyLocked is whether what keeps the corpse at now is only drops ahead

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -32,7 +34,8 @@ import (
 //     as /camp refuses them; the target's own kind may be one. It is the row's
 //     campspawns row (database/placeholder.go: camp 0, or a camp's spawn's own
 //     with its camp kept), read into the world at once (entity/campspawn.go),
-//     so the next respawn pops by it. A placeholder stands or wanders as the
+//     so the next respawn pops by it. Alternate records stay with the binding
+//     when the last fixed spawn of a kind is deleted. A placeholder stands or wanders as the
 //     kind it popped; a keep restart keeps the kind it stands as.
 //   - /ph alone: the target's kinds and odds.
 //   - /ph clear: the binding off; it comes back as its own row's kind at its
@@ -267,7 +270,7 @@ func (h *ChatHandler) phCommand(sess *session.Session, player *entity.Player, ar
 	// the names first: a list that is wrong is said so before the target
 	var kinds []phKind
 	if arg != "" && !strings.EqualFold(arg, "clear") {
-		lookup, suggest := phNames(h.gameWorld.NPCNames())
+		lookup, suggest := phNames(h.gameWorld.PlaceholderNames())
 		var bad string
 		if kinds, bad = phParse(arg, lookup, suggest); bad != "" {
 			h.gmReply(sess, "/ph: "+bad)
@@ -343,16 +346,14 @@ func (h *ChatHandler) phCommand(sess *session.Session, player *entity.Player, ar
 			weights = append(weights, k.Weight)
 		}
 	}
-	// a kind with no row to be made from (a GM's spawn alone has the name)
-	for _, n := range names {
-		if _, ok := h.gameWorld.CampTemplate(n, uint8(rec.World), float32(rec.XCoord), float32(rec.ZCoord)); !ok {
-			h.gmReply(sess, fmt.Sprintf("/ph: no NPC row is called %q (a GM's spawn has none): nothing changed.", n))
-			return
-		}
+	alternates, err := h.phTemplates(rec, cur, names)
+	if err != nil {
+		h.gmReply(sess, fmt.Sprintf("/ph: %v: nothing changed.", err))
+		return
 	}
 	odds := phOdds(names, weights)
 	detail := fmt.Sprintf("/ph in the game: %s pops %s", what, odds)
-	action, err := h.camps.db.SetPlaceholderAudited(int(id), names, weights, gmEditOf(sess), detail)
+	action, err := h.camps.db.SetPlaceholderAudited(int(id), names, weights, gmEditOf(sess), detail, alternates...)
 	if err != nil {
 		h.gmReply(sess, "/ph: nothing changed: "+err.Error())
 		return
@@ -367,4 +368,34 @@ func (h *ChatHandler) phCommand(sess *session.Session, player *entity.Player, ar
 	}
 	h.gmReply(sess, fmt.Sprintf("%s%s is a placeholder now: it pops %s, from its next respawn. /ph clear takes it off.", what, campNote(), odds))
 	log.Printf("GM: %s made NPC %d (%s) a placeholder popping %s", player.Name, id, rec.NPCName, odds)
+}
+
+// phTemplates captures alternate NPC records before acknowledging the bind.
+// Editing the odds on an existing point can reuse its last saved record.
+func (h *ChatHandler) phTemplates(spot *database.NPCRecord, current database.CampSpawnRow, names []string) ([]database.NPCRecord, error) {
+	store := database.NewNPCStore(h.camps.db)
+	own := database.NPCClassKey(spot.NPCName)
+	var alternates []database.NPCRecord
+	for _, name := range names {
+		key := database.NPCClassKey(name)
+		if key == own {
+			continue
+		}
+		if id, ok := h.gameWorld.CampTemplate(name, uint8(spot.World), spot.XCoord, spot.ZCoord); ok {
+			source, err := store.GetNPC(int(id))
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+				return nil, err
+			}
+			if source != nil && database.NPCClassKey(source.NPCName) == key {
+				alternates = append(alternates, *source)
+				continue
+			}
+		}
+		saved, ok := current.Templates[key]
+		if !ok || database.NPCClassKey(saved.NPCName) != key {
+			return nil, fmt.Errorf("no NPC row is called %q (a GM's spawn has none)", name)
+		}
+		alternates = append(alternates, saved)
+	}
+	return alternates, nil
 }

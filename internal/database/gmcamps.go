@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"strings"
 	"time"
 )
@@ -71,20 +72,25 @@ func (db *SQLiteDB) ensureCamps() error {
 		npcid   INTEGER PRIMARY KEY,
 		camp    INTEGER NOT NULL DEFAULT 0,
 		kinds   TEXT NOT NULL DEFAULT '',
-		weights TEXT NOT NULL DEFAULT ''
+		weights TEXT NOT NULL DEFAULT '',
+		templates TEXT NOT NULL DEFAULT '{}'
 	);
 	CREATE INDEX IF NOT EXISTS idx_campspawns_camp ON campspawns(camp);`)
 	if err != nil {
 		return err
 	}
-	// weights came with /ph (placeholder.go): a table made before has none
-	var has int
-	if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('campspawns') WHERE name = 'weights'`).Scan(&has); err != nil {
-		return fmt.Errorf("campspawns: %w", err)
-	}
-	if has == 0 {
-		if _, err := db.Exec(`ALTER TABLE campspawns ADD COLUMN weights TEXT NOT NULL DEFAULT ''`); err != nil {
-			return fmt.Errorf("campspawns: weights: %w", err)
+	for _, column := range []struct{ name, definition string }{
+		{"weights", "TEXT NOT NULL DEFAULT ''"},
+		{"templates", "TEXT NOT NULL DEFAULT '{}'"},
+	} {
+		has, err := hasColumn(db.DB, "campspawns", column.name)
+		if err != nil {
+			return err
+		}
+		if !has {
+			if _, err := db.Exec("ALTER TABLE campspawns ADD COLUMN " + column.name + " " + column.definition); err != nil {
+				return fmt.Errorf("campspawns: %s: %w", column.name, err)
+			}
 		}
 	}
 	return nil
@@ -316,28 +322,60 @@ func sameMarks(tx *sql.Tx, accountID int, want []GMMark) error {
 // CampSpawnRow is a row of campspawns: Weights is one a kind, in the kinds'
 // order, or nil for even odds (CampKindWeights).
 type CampSpawnRow struct {
-	NPCID   int
-	Camp    int64
-	Kinds   []string
-	Weights []int
+	NPCID     int
+	Camp      int64
+	Kinds     []string
+	Weights   []int
+	Templates map[string]NPCRecord `json:"-"` // alternate kinds retained by this spawn, keyed by NPCClassKey
+
+	kindsText     string
+	templatesText string
+}
+
+func scanCampSpawn(row interface{ Scan(...any) error }) (CampSpawnRow, error) {
+	var r CampSpawnRow
+	var weights string
+	if err := row.Scan(&r.NPCID, &r.Camp, &r.kindsText, &weights, &r.templatesText); err != nil {
+		return r, err
+	}
+	r.Kinds = CampKindNames(r.kindsText)
+	r.Weights = CampKindWeights(weights, len(r.Kinds))
+	if r.templatesText != "" && r.templatesText != "{}" {
+		if err := json.Unmarshal([]byte(r.templatesText), &r.Templates); err != nil {
+			return r, fmt.Errorf("camp spawn %d templates: %w", r.NPCID, err)
+		}
+	}
+	return r, nil
+}
+
+// RememberCampTemplates fills legacy bindings and refreshes the fallback when a live source changes.
+// A concurrent edit to the list or its saved records takes precedence over this reload.
+func (db *SQLiteDB) RememberCampTemplates(r CampSpawnRow, templates map[string]NPCRecord) error {
+	if maps.Equal(r.Templates, templates) {
+		return nil
+	}
+	data, err := json.Marshal(templates)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(`UPDATE campspawns SET templates = ? WHERE npcid = ? AND kinds = ? AND templates = ?`,
+		string(data), r.NPCID, r.kindsText, r.templatesText)
+	return err
 }
 
 // CampSpawns is every row of campspawns, by npcs row.
 func (db *SQLiteDB) CampSpawns() ([]CampSpawnRow, error) {
-	rows, err := db.Query(`SELECT npcid, camp, kinds, weights FROM campspawns ORDER BY npcid`)
+	rows, err := db.Query(`SELECT npcid, camp, kinds, weights, templates FROM campspawns ORDER BY npcid`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	var out []CampSpawnRow
 	for rows.Next() {
-		var r CampSpawnRow
-		var kinds, weights string
-		if err := rows.Scan(&r.NPCID, &r.Camp, &kinds, &weights); err != nil {
+		r, err := scanCampSpawn(rows)
+		if err != nil {
 			return nil, err
 		}
-		r.Kinds = CampKindNames(kinds)
-		r.Weights = CampKindWeights(weights, len(r.Kinds))
 		out = append(out, r)
 	}
 	return out, rows.Err()

@@ -172,7 +172,8 @@ type World struct {
 	paths pathTable
 	// The GMs' camps: their spawns, the rows their kinds are made from, their
 	// grounds the wander keeps out of (campspawn.go)
-	camps campTable
+	camps      campTable
+	campLoadMu sync.Mutex // serialize rule reloads without holding the world lock during database I/O
 	// The rare spawns on placeholders: by the placeholder's row, its own row and
 	// the rare's, and the chance (npcrare.go)
 	rares map[EntityID]*rareRule

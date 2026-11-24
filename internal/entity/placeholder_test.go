@@ -97,6 +97,56 @@ func TestAPlaceholderPopsItsKindsAtTheirOdds(t *testing.T) {
 	}
 }
 
+func TestLegacyPlaceholderRetainsItsWeightedAlternate(t *testing.T) {
+	rows := []campRow{
+		{campMixed, "wolf", 2700, 2000, 32, creatureModel, 20},
+		{campPariah, "pariah of Xrag", 2800, 2000, 0, pariahModel, 33},
+	}
+	db := phDB(t, rows, campMixed, "wolf, pariah of Xrag", "75, 25")
+	campProcess(t, db) // existing rule, first load with the donor still available
+	if _, err := db.Exec("DELETE FROM npcs WHERE id = ?", campPariah); err != nil {
+		t.Fatal(err)
+	}
+	// Reusing the retired numeric ID for an unrelated mob must not supply the rare's body.
+	if _, err := db.Exec("INSERT INTO npcs (id, npc_name, npc_level) VALUES (?, 'badger', 5)", campPariah); err != nil {
+		t.Fatal(err)
+	}
+	w := campProcess(t, db)
+	cs := w.camps.spawns[campMixed]
+	if len(cs.weights) != 2 || cs.weights[0] != 75 || cs.weights[1] != 25 {
+		t.Fatalf("weights after reload: %v", cs.weights)
+	}
+	seen := map[string]bool{}
+	for range 100 {
+		w.KillNPCNow(campMixed)
+		w.RespawnNPCNow(campMixed)
+		n := w.NPCs[campMixed]
+		seen[n.Name] = true
+		if n.Name == "pariah of Xrag" && (n.ModelID != pariahModel || n.Level != 33) {
+			t.Fatalf("saved rare: model %x, level %d", n.ModelID, n.Level)
+		}
+	}
+	if len(seen) != 2 || !seen["wolf"] || !seen["pariah of Xrag"] {
+		t.Fatalf("kinds after cold start: %v", seen)
+	}
+	// A matching source becomes authoritative again when one is restored.
+	if _, err := db.Exec("UPDATE npcs SET npc_name = 'pariah of Xrag', npc_level = 41 WHERE id = ?", campPariah); err != nil {
+		t.Fatal(err)
+	}
+	w = campProcess(t, db)
+	for range 100 {
+		w.KillNPCNow(campMixed)
+		w.RespawnNPCNow(campMixed)
+		if n := w.NPCs[campMixed]; n.Name == "pariah of Xrag" {
+			if n.Level != 41 {
+				t.Fatalf("restored rare has level %d", n.Level)
+			}
+			return
+		}
+	}
+	t.Fatal("restored rare never rolled")
+}
+
 // A placeholder standing as its other kind comes through a keep restart as
 // it; unbound (its row deleted, as /ph clear does, and the camps read again),
 // it stands as that kind until it dies and then is its own row's kind. The

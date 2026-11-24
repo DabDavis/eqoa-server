@@ -120,6 +120,18 @@ type campWant struct {
 	same  bool
 }
 
+// PlaceholderNames includes the names already retained by bindings even if
+// their only standing NPC is currently showing another kind.
+func (w *World) PlaceholderNames() []string {
+	names := w.NPCNames()
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	for _, r := range w.camps.recs {
+		names = append(names, r.rec.NPCName)
+	}
+	return names
+}
+
 // nearestRowsLocked finds each want's row: the NPC of its name (by
 // database.NPCClassKey) whose spawn is nearest it, one in its world before
 // any other, the lowest id between two as near; never a GM's spawn or an id
@@ -196,9 +208,11 @@ func (w *World) CampKindRefused(name string) string {
 // LoadCampSpawns reads the camps (table campspawns, each spawn's own row and
 // the rows its other kinds are made from) into the world: at the start and
 // after a change to them. Call it without the database held, the NPCs loaded.
-// It reports how many spawns it read; a spawn whose row is gone, or a kind
-// with no row of its name, is logged and left out.
+// A binding retains each alternate's NPC record so retiring its last static
+// spawn does not change the odds when camps are reloaded.
 func (w *World) LoadCampSpawns(db *database.SQLiteDB) (int, error) {
+	w.campLoadMu.Lock()
+	defer w.campLoadMu.Unlock()
 	rows, err := db.CampSpawns()
 	if err != nil {
 		return 0, fmt.Errorf("campspawns: %w", err)
@@ -261,17 +275,19 @@ func (w *World) LoadCampSpawns(db *database.SQLiteDB) (int, error) {
 			}
 		}
 		if id == 0 {
-			log.Printf("Camps: spawn %d: no NPC row is called %q: that kind is left out", n.spawn, n.want.key)
 			continue
 		}
-		kindRow[spawnKind{n.spawn, n.want.key}] = id
 		if own[id] == nil && others[id] == nil {
 			rec, err := store.GetNPC(id)
+			if errors.Is(err, sql.ErrNoRows) {
+				continue // the source was deleted during the reload
+			}
 			if err != nil {
 				return 0, fmt.Errorf("NPC row %d: %w", id, err)
 			}
 			others[id] = rec
 		}
+		kindRow[spawnKind{n.spawn, n.want.key}] = id
 	}
 
 	t := campTable{spawns: map[EntityID]*campSpawn{}, recs: map[int]*campRec{}, areas: map[uint8][]campArea{}}
@@ -286,6 +302,7 @@ func (w *World) LoadCampSpawns(db *database.SQLiteDB) (int, error) {
 		t.recs[id] = &campRec{rec: *r, class: classes[database.NPCClassKey(r.NPCName)]}
 	}
 	byCamp := map[[2]int64][][2]float32{} // (world, camp) -> its spawns
+	savedID := 0                          // negative keys index saved records in this table only; world spawn IDs stay intact
 	for _, r := range rows {
 		o := own[r.NPCID]
 		if o == nil {
@@ -295,6 +312,7 @@ func (w *World) LoadCampSpawns(db *database.SQLiteDB) (int, error) {
 		cs := &campSpawn{camp: r.Camp}
 		mine := database.NPCClassKey(o.NPCName)
 		seen := map[string]bool{}
+		templates := make(map[string]database.NPCRecord)
 		for i, name := range r.Kinds {
 			k := database.NPCClassKey(name)
 			if seen[k] {
@@ -303,15 +321,31 @@ func (w *World) LoadCampSpawns(db *database.SQLiteDB) (int, error) {
 			seen[k] = true
 			id := r.NPCID
 			if k != mine {
-				if id = kindRow[spawnKind{r.NPCID, k}]; id == 0 {
-					continue
+				if id = kindRow[spawnKind{r.NPCID, k}]; id != 0 {
+					rec(id)
 				}
-				rec(id)
+				if id == 0 || database.NPCClassKey(t.recs[id].rec.NPCName) != k {
+					saved, ok := r.Templates[k]
+					if !ok || database.NPCClassKey(saved.NPCName) != k {
+						log.Printf("Camps: spawn %d: no NPC record for %q: that kind is left out", r.NPCID, k)
+						continue
+					}
+					savedID--
+					id = savedID
+					t.recs[id] = &campRec{rec: saved, class: classes[k]}
+				}
+				templates[k] = t.recs[id].rec
 			}
 			cs.kinds = append(cs.kinds, id)
 			if r.Weights != nil {
 				cs.weights = append(cs.weights, r.Weights[i])
 			}
+		}
+		// saving the records back is a cache: a failed write keeps this
+		// load's kinds and is tried again at the next load, never drops
+		// every camp
+		if err := db.RememberCampTemplates(r, templates); err != nil {
+			log.Printf("Camps: spawn %d: its kinds' records not saved: %v", r.NPCID, err)
 		}
 		t.spawns[EntityID(r.NPCID)] = cs
 		if r.Camp == 0 {

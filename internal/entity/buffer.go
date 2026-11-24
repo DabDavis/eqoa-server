@@ -58,7 +58,10 @@ const (
 	BufferLineDead   = "Buffer cannot help you now."
 	BufferLinePvP    = "Buffer will not buff you while you are flagged for PvP."
 	BufferLineDuel   = "Buffer will not buff you while you are in a duel."
-	BufferLineNone   = "Bruce Buffer says, 'I have no blessings to give today.'"
+	// BufferLineHardcore is his answer to a Hardcore character: no buffs, its own way (the owner, 2026-11-24:
+	// "make sure hardcore players cant get bruce buffer buffs", his words given)
+	BufferLineHardcore = "Bruce Buffer says, 'It's TIME to be HARDCORE!'"
+	BufferLineNone     = "Bruce Buffer says, 'I have no blessings to give today.'"
 )
 
 // bufferCast is one of his casts on its way: whom it is at (the player as it was: a new login under the same id
@@ -85,6 +88,8 @@ func (w *World) StartBuffer(sess *session.Session, buffer EntityID, spells []Cas
 		return BufferLineDead, false
 	case npc == nil || npc.Dead || len(spells) == 0:
 		return "", false
+	case p.HardcoreBound():
+		return BufferLineHardcore, false
 	case p.pvp.on:
 		return BufferLinePvP, false
 	case w.duelOnLocked(p.ServerID) != nil || w.metalDuelOfLocked(p.ServerID):

@@ -265,12 +265,14 @@ func TestBufferTheSpeakerAlone(t *testing.T) {
 	}{
 		{"dead", func(p *Player) { p.HP = 0 }, BufferLineDead},
 		{"flagged for PvP", func(p *Player) { p.pvp.on = true }, BufferLinePvP},
+		{"Hardcore", func(p *Player) { SetHardcoreOn(true); p.Hardcore = true }, BufferLineHardcore},
 	} {
 		c := newBufferRig(t)
 		k.set(c.p)
 		if line, ok := c.w.StartBuffer(c.sess, c.npc.ServerID, bufferFive(), c.at(0)); ok || line != k.want || len(casts(c.sent())) != 0 {
 			t.Errorf("%s: %q %v", k.name, line, ok)
 		}
+		SetHardcoreOn(false)
 	}
 
 	c = newBufferRig(t)

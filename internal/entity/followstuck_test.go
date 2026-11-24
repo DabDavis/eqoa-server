@@ -149,6 +149,12 @@ func TestAMercsStuckPetAndAMercOnStay(t *testing.T) {
 		pet, m := ms.pet.npc, ms.npc
 		r.w.mu.Lock()
 		pet.X, pet.Z = m.X+30, m.Z
+		// the merc kept from its ease (mercidle.go): at ease it strolls round
+		// its hirer at random times, and a stroll toward its held pet closes
+		// the gap, which the watch rightly counts as progress and starts
+		// again; the window measured here is the pet's alone, its merc
+		// standing
+		ms.mercIdleNoteBusy(r.at(time.Hour))
 		r.w.mu.Unlock()
 		x, z := pet.X, pet.Z
 		var put time.Duration

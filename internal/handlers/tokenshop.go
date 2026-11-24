@@ -40,6 +40,34 @@ import (
 // A row's token is an item by name ("" the season's, DefaultEnchanterToken:
 // Holly Token), so a shop may sell in several; the greeting counts the first
 // ware's.
+//
+// A row's token "faction:<name>" is paid in standing with that faction, not in
+// an item (Live petition 5575, a player, 2026-11-24: "The stroyteller Mercants
+// should sale items for Storyteller faction"; the Storyteller's points were
+// "redeemable for special rewards", the players' guide of 2010): what may be
+// spent is the standing above factionShopFloor, a purchase takes its price off
+// the standing (entity.SpendFaction, told as a faction's change is) before the
+// item is given and gives it back if the item cannot be, and the standing is
+// kept at once (charfactions, as the Testing Heroes Vendor's: an item given and
+// a standing lost with a crash would be a free item). A faction table factions
+// lacks closes the shop. The purchase is logged with its token as written.
+
+// factionTokenPrefix starts a row's token paid in a faction's standing.
+const factionTokenPrefix = "faction:"
+
+// factionShopFloor is the standing a purchase in faction never goes below: what
+// is spent is the points earned above it.
+const factionShopFloor = 0
+
+// factionOfToken is the faction a row's token names ("faction:<name>"), "" for
+// an item's token.
+func factionOfToken(token string) string {
+	t := strings.TrimSpace(token)
+	if len(t) > len(factionTokenPrefix) && strings.EqualFold(t[:len(factionTokenPrefix)], factionTokenPrefix) {
+		return strings.TrimSpace(t[len(factionTokenPrefix):])
+	}
+	return ""
+}
 
 // tokenShopBoxMark marks a token shop's questions' ids.
 const tokenShopBoxMark = 0x66000000
@@ -74,15 +102,29 @@ const (
 	tokenShopCantWear  = " You could not wear it as you are."
 	tokenShopShowLinks = "%s: %s, %s. Click its name to see it."
 	tokenShopShowPlain = "%s: %s, %s: %s"
+	// a shop paid in a faction's standing (factionTokenPrefix)
+	factionShopGreeting = "Welcome, %s! I trade for standing with %s: you have %d to spend, and a purchase takes it off."
+	factionShopAskList  = "%s: 'You have %d to spend with %s. What will you have?'"
+	factionShopShort    = "%s costs %s, and you have %d to spend: %d more to earn."
+	factionShopFailed   = "I could not hand it over: you keep your standing. Try again."
 )
 
 // tokenWare is something a shop sells: its stock row, its record and its
 // token's record.
 type tokenWare struct {
-	row   database.TokenShopRow
-	pat   database.ItemPatternRecord
-	token int    // the token's record (0: the database holds none)
-	tname string // the token's name
+	row     database.TokenShopRow
+	pat     database.ItemPatternRecord
+	token   int    // the token's record (0: the database holds none, or a faction's)
+	tname   string // the token's name (a faction's: the faction)
+	faction string // the faction it is paid in ("": an item, token)
+}
+
+// priceWords is a ware's price in words: "36 Holly Tokens", "125 faction".
+func (w tokenWare) priceWords(n int) string {
+	if w.faction != "" {
+		return fmt.Sprintf("%d faction", n)
+	}
+	return reagentWords(w.tname, n)
 }
 
 // tokenName is a row's token by name ("" the season's).
@@ -146,6 +188,9 @@ type TokenShop struct {
 	take func(sess *session.Session, p *entity.Player, held []database.CharInventoryEntry, n int)
 	// near is whether the player stands by the shop that asked (a test's stands in)
 	near func(p *entity.Player, id entity.EntityID) bool
+	// chars keeps a standing spent at once (database.SQLiteCharacterStore; nil:
+	// at its logout alone)
+	chars heroesKeeper
 
 	mu      sync.Mutex
 	seq     uint32
@@ -270,6 +315,10 @@ func (t *TokenShop) stock(shop string) ([]tokenWare, error) {
 			log.Printf("TokenShop: tokenshop row %d (%s) sells record %d, which is no item (%v): not offered", r.ID, r.Shop, r.PatternID, err)
 			continue
 		}
+		if f := factionOfToken(r.Token); f != "" {
+			out = append(out, tokenWare{row: r, pat: *pat, tname: f, faction: f})
+			continue
+		}
 		name := tokenName(r.Token)
 		out = append(out, tokenWare{row: r, pat: *pat, token: t.tokenOf(name, tokens), tname: name})
 	}
@@ -295,16 +344,40 @@ func (t *TokenShop) Talk(sess *session.Session, p *entity.Player, npc *entity.NP
 		return true
 	}
 	first := wares[0]
-	have := 0
-	if first.token != 0 {
-		if _, n, err := t.held(sess, p, first.token); err == nil {
-			have = n
-		}
+	if first.faction != "" && !t.gw.FactionKnown(first.faction) {
+		log.Printf("TokenShop: %s sells for %q, which table factions lacks: closed", speaker, first.faction)
+		t.say(sess, speaker, tokenShopClosed)
+		return true
 	}
-	t.say(sess, speaker, fmt.Sprintf(tokenShopGreeting, p.Name, tokensWord(first.tname), have))
-	t.list(sess, p, wares, 0, npc.ServerID, speaker, have, first.tname)
+	have := t.have(sess, p, first)
+	if first.faction != "" {
+		t.say(sess, speaker, fmt.Sprintf(factionShopGreeting, p.Name, first.faction, have))
+	} else {
+		t.say(sess, speaker, fmt.Sprintf(tokenShopGreeting, p.Name, tokensWord(first.tname), have))
+	}
+	t.list(sess, p, wares, 0, npc.ServerID, speaker, have, first)
 	log.Printf("TokenShop: %s talked to %s: %d %s carried, %d wares", p.Name, speaker, have, first.tname, len(wares))
 	return true
+}
+
+// have is what the player has to pay a ware's price with: the token's count
+// in its pack, or its standing above factionShopFloor with the ware's faction.
+func (t *TokenShop) have(sess *session.Session, p *entity.Player, w tokenWare) int {
+	if w.faction != "" {
+		s, ok := t.gw.Standing(sess, w.faction)
+		if !ok {
+			return 0
+		}
+		return max(s-factionShopFloor, 0)
+	}
+	if w.token == 0 {
+		return 0
+	}
+	_, n, err := t.held(sess, p, w.token)
+	if err != nil {
+		return 0
+	}
+	return n
 }
 
 // tokensWord is a token's name made plural ("Holly Tokens"), as reagentWords does.
@@ -314,7 +387,7 @@ func tokensWord(name string) string {
 }
 
 // list asks which ware, a page of them.
-func (t *TokenShop) list(sess *session.Session, p *entity.Player, wares []tokenWare, page int, npc entity.EntityID, speaker string, have int, token string) {
+func (t *TokenShop) list(sess *session.Session, p *entity.Player, wares []tokenWare, page int, npc entity.EntityID, speaker string, have int, first tokenWare) {
 	room := dialogRoom(sess)
 	shown, more := heroesPageOf(len(wares), page, room)
 	answers := make([]string, 0, room)
@@ -324,8 +397,12 @@ func (t *TokenShop) list(sess *session.Session, p *entity.Player, wares []tokenW
 	if more {
 		answers = append(answers, tokenShopMore)
 	}
+	question := fmt.Sprintf(tokenShopAskList, speaker, have, tokensWord(first.tname))
+	if first.faction != "" {
+		question = fmt.Sprintf(factionShopAskList, speaker, have, first.faction)
+	}
 	t.ask(sess, p, tokenAsk{stage: tokenStageList, wares: wares, page: page, room: room, npc: npc, speaker: speaker},
-		fmt.Sprintf(tokenShopAskList, speaker, have, tokensWord(token)), answers)
+		question, answers)
 }
 
 // Answer is HandleDialogueOption's question for a shop's box: a ware asked
@@ -357,11 +434,7 @@ func (t *TokenShop) Answer(sess *session.Session, p *entity.Player, box uint32, 
 		shown, more := heroesPageOf(len(a.wares), a.page, max(a.room, maxDialogOptions))
 		switch {
 		case more && n == shown[1]-shown[0]:
-			have := 0
-			if a.wares[0].token != 0 {
-				_, have, _ = t.held(sess, p, a.wares[0].token)
-			}
-			t.list(sess, p, a.wares, a.page+1, a.npc, a.speaker, have, a.wares[0].tname)
+			t.list(sess, p, a.wares, a.page+1, a.npc, a.speaker, t.have(sess, p, a.wares[0]), a.wares[0])
 		case n < shown[1]-shown[0]:
 			t.offer(sess, p, a.wares[shown[0]+n], a.npc, a.speaker)
 		}
@@ -392,7 +465,7 @@ func (t *TokenShop) offer(sess *session.Session, p *entity.Player, w tokenWare, 
 		t.say(sess, speaker, about)
 	}
 	t.ask(sess, p, tokenAsk{stage: tokenStageBuy, ware: w, npc: npc, speaker: speaker},
-		fmt.Sprintf(tokenShopAskBuy, speaker, theItem(w.pat.ItemName), reagentWords(w.tname, w.row.Price)),
+		fmt.Sprintf(tokenShopAskBuy, speaker, theItem(w.pat.ItemName), w.priceWords(w.row.Price)),
 		[]string{tokenShopYes, tokenShopNo})
 }
 
@@ -400,7 +473,7 @@ func (t *TokenShop) offer(sess *session.Session, p *entity.Player, w tokenWare, 
 // links, else its figures in words (heroesStats).
 func (t *TokenShop) show(sess *session.Session, w tokenWare, speaker string) {
 	name := strings.TrimSpace(w.pat.ItemName)
-	price := reagentWords(w.tname, w.row.Price)
+	price := w.priceWords(w.row.Price)
 	if t.links != nil && sess.ItemLinks() && name != "" {
 		rec := wireRecord(database.CharInventoryEntry{StackLeft: 1, RemainHP: w.pat.MaxHP, Pattern: w.pat})
 		linkedLine(t.links, speaker, tokenShopShowLinks, speaker, lootItem(rec, 1), price).client(sess)
@@ -414,16 +487,28 @@ func (t *TokenShop) show(sess *session.Session, w tokenWare, speaker string) {
 // itself, the price, a Lore item held already, the pack's room.
 func (t *TokenShop) refusal(sess *session.Session, p *entity.Player, w tokenWare) (string, []database.CharInventoryEntry, int) {
 	name := strings.TrimSpace(w.pat.ItemName)
-	if w.token == 0 {
-		return fmt.Sprintf(tokenShopNoToken, tokensWord(w.tname)), nil, 0
-	}
-	held, have, err := t.held(sess, p, w.token)
-	if err != nil {
-		log.Printf("TokenShop: %s's pack: %v", p.Name, err)
-		return tokenShopFailed, nil, 0
-	}
-	if have < w.row.Price {
-		return fmt.Sprintf(tokenShopShort, theItem(name), reagentWords(w.tname, w.row.Price), have, w.row.Price-have), held, have
+	var held []database.CharInventoryEntry
+	var have int
+	if w.faction != "" {
+		if !t.gw.FactionKnown(w.faction) {
+			return tokenShopClosed, nil, 0
+		}
+		if have = t.have(sess, p, w); have < w.row.Price {
+			return fmt.Sprintf(factionShopShort, theItem(name), w.priceWords(w.row.Price), have, w.row.Price-have), nil, have
+		}
+	} else {
+		if w.token == 0 {
+			return fmt.Sprintf(tokenShopNoToken, tokensWord(w.tname)), nil, 0
+		}
+		var err error
+		held, have, err = t.held(sess, p, w.token)
+		if err != nil {
+			log.Printf("TokenShop: %s's pack: %v", p.Name, err)
+			return tokenShopFailed, nil, 0
+		}
+		if have < w.row.Price {
+			return fmt.Sprintf(tokenShopShort, theItem(name), reagentWords(w.tname, w.row.Price), have, w.row.Price-have), held, have
+		}
 	}
 	l := sessionInvList(sess)
 	if l == nil {
@@ -455,7 +540,7 @@ func (t *TokenShop) buy(sess *session.Session, p *entity.Player, asked tokenWare
 			w = &wares[i]
 		}
 	}
-	if w == nil || w.row.Price != asked.row.Price || w.row.PatternID != asked.row.PatternID || w.token != asked.token {
+	if w == nil || w.row.Price != asked.row.Price || w.row.PatternID != asked.row.PatternID || w.token != asked.token || w.faction != asked.faction {
 		t.say(sess, speaker, tokenShopChanged)
 		return
 	}
@@ -464,6 +549,10 @@ func (t *TokenShop) buy(sess *session.Session, p *entity.Player, asked tokenWare
 	if why != "" {
 		log.Printf("TokenShop: %s may not buy %q from %s (%d %s): %s", p.Name, name, speaker, w.row.Price, w.tname, why)
 		t.say(sess, speaker, why)
+		return
+	}
+	if w.faction != "" {
+		t.buyForFaction(sess, p, *w, speaker)
 		return
 	}
 	if n, err := t.give(sess, w.pat); err != nil || n < 1 {
@@ -478,4 +567,42 @@ func (t *TokenShop) buy(sess *session.Session, p *entity.Player, asked tokenWare
 		log.Printf("TokenShop: %s's purchase of %q not logged in tokenshop_purchases: %v", p.Name, name, err)
 	}
 	t.say(sess, speaker, fmt.Sprintf(tokenShopBought, theItem(name), reagentWords(w.tname, have-w.row.Price)))
+}
+
+// buyForFaction is a Yes to a ware paid in standing, its refusal checked: the
+// price spent, the item given (the price given back if it cannot be), the
+// standing kept at once and the purchase logged.
+func (t *TokenShop) buyForFaction(sess *session.Session, p *entity.Player, w tokenWare, speaker string) {
+	name := strings.TrimSpace(w.pat.ItemName)
+	before, after, ok := t.gw.SpendFaction(sess, w.faction, factionShopFloor, w.row.Price)
+	if !ok {
+		have := max(before-factionShopFloor, 0)
+		t.say(sess, speaker, fmt.Sprintf(factionShopShort, theItem(name), w.priceWords(w.row.Price), have, max(w.row.Price-have, 0)))
+		return
+	}
+	if n, err := t.give(sess, w.pat); err != nil || n < 1 {
+		back, _ := t.gw.RefundFaction(sess, w.faction, w.row.Price)
+		log.Printf("TokenShop: %s paid %d %s for %q from %s and it could not be given (%d given, %v): given back, standing %d",
+			p.Name, w.row.Price, w.faction, name, speaker, n, err, back)
+		t.keep(p, w.faction, back)
+		t.say(sess, speaker, factionShopFailed)
+		return
+	}
+	t.keep(p, w.faction, after)
+	log.Printf("TokenShop: %s bought %q (record %d) from %s for %d: %s %d -> %d", p.Name, name, w.pat.PatternID, speaker, w.row.Price, w.faction, before, after)
+	if err := t.db.LogTokenShopPurchase(database.TokenShopPurchase{At: t.now(), ServerID: p.CharServerID, CharName: p.Name,
+		AccountID: sess.AccountID(), Shop: speaker, PatternID: w.pat.PatternID, Item: name, Price: w.row.Price, Token: factionTokenPrefix + w.faction}); err != nil {
+		log.Printf("TokenShop: %s's purchase of %q not logged in tokenshop_purchases: %v", p.Name, name, err)
+	}
+	t.say(sess, speaker, fmt.Sprintf(tokenShopBought, theItem(name), fmt.Sprintf("%d to spend", max(after-factionShopFloor, 0))))
+}
+
+// keep writes a standing spent at once.
+func (t *TokenShop) keep(p *entity.Player, faction string, standing int) {
+	if t.chars == nil {
+		return
+	}
+	if err := t.chars.SetFaction(p.CharServerID, faction, standing); err != nil {
+		log.Printf("TokenShop: %s's standing %d with %s not kept: %v (its logout keeps it)", p.Name, standing, faction, err)
+	}
 }

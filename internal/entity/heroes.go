@@ -184,15 +184,7 @@ func (w *World) heroesCreditLocked(sess *session.Session, p *Player, npc *NPC) {
 // within FactionMin..FactionMax: the standing before and after. Must be called
 // with the lock held.
 func (w *World) heroesMoveLocked(p *Player, delta int) (old, now int) {
-	old = w.ownStandingLocked(p, HeroesFaction)
-	now = clampFaction(old + delta)
-	if now != old {
-		if p.Factions == nil {
-			p.Factions = make(map[string]int)
-		}
-		p.Factions[HeroesFaction] = now
-	}
-	return old, now
+	return w.moveFactionLocked(p, HeroesFaction, delta)
 }
 
 // HeroesBalance is what sess's player may spend with the Testing Heroes, its

@@ -341,8 +341,11 @@ func (w *World) LoadCampSpawns(db *database.SQLiteDB) (int, error) {
 				cs.weights = append(cs.weights, r.Weights[i])
 			}
 		}
+		// saving the records back is a cache: a failed write keeps this
+		// load's kinds and is tried again at the next load, never drops
+		// every camp
 		if err := db.RememberCampTemplates(r, templates); err != nil {
-			return 0, fmt.Errorf("camp spawn %d templates: %w", r.NPCID, err)
+			log.Printf("Camps: spawn %d: its kinds' records not saved: %v", r.NPCID, err)
 		}
 		t.spawns[EntityID(r.NPCID)] = cs
 		if r.Camp == 0 {

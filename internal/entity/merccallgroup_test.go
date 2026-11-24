@@ -119,9 +119,17 @@ func TestAnAggressiveMercHealsItsGroup(t *testing.T) {
 			if !tc.heals {
 				return
 			}
+			// the crab put down once the heal is begun (its landing asks
+			// nothing of it: merccast.go's mercLandLocked), so what Bea has
+			// when it lands is the heal's alone, not a race with the crab's
+			// hits (it could hit her for more than the heal gave)
+			r.w.mu.Lock()
+			r.w.killNPC(crab)
+			before := b.HP
+			r.w.mu.Unlock()
 			r.run(4*time.Second, 8*time.Second)
-			if b.HP <= top/2 {
-				t.Errorf("the heal did not land on Bea: %d/%d", b.HP, top)
+			if b.HP-before < 125 || b.HP > top {
+				t.Errorf("the heal (125 and more) did not land on Bea: %d before, %d/%d after", before, b.HP, top)
 			}
 		})
 	}

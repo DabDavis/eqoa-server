@@ -15,6 +15,7 @@ import (
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
+	"github.com/eqoa/server/internal/shardchat"
 	"github.com/eqoa/server/internal/skyisles"
 )
 
@@ -48,6 +49,8 @@ const tellR, tellG, tellB = 0xFF, 0x7F, 0xFF
 type ChatHandler struct {
 	sessionManager *session.Manager
 	gameWorld      *entity.World
+	shards         *shardchat.Bridge
+	tellMu         sync.Mutex // queue a received tell alongside its reply name
 
 	// diceAt is when each character last rolled the Rolling Dice (roll.go)
 	diceMu sync.Mutex
@@ -503,6 +506,14 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 	}
 
 	if name, body, isTell := parseTell(message); isTell {
+		// A qualified address always names a character. The PS2's command
+		// aliases below (including a tell whose body is "duel") are local.
+		if realm, character := shardchat.Address(name); realm != "" {
+			if h.gmChatGate(sess, player, "tell "+name, body) {
+				h.addressedTell(sess, player, realm, character, line.tail(body))
+			}
+			return
+		}
 		// a PS2's /who: it keeps an unknown /command to itself and cannot type a #
 		if body == "" && strings.EqualFold(name, "who") {
 			h.whoList(sess)
@@ -783,7 +794,14 @@ func (h *ChatHandler) shout(sess *session.Session, player *entity.Player, messag
 	if message = message.clean(chatLineMost); message.text == "" {
 		return
 	}
-	line := message.wrap(player.Name+" shouts: ", "").made()
+	h.broadcastShout(player.Name, message, sess, player)
+	if h.shards != nil {
+		_, _ = h.shards.Send(shardMessage("shout", player.Name, "", message))
+	}
+}
+
+func (h *ChatHandler) broadcastShout(name string, message chatText, sess *session.Session, player *entity.Player) {
+	line := message.wrap(name+" shouts: ", "").made()
 	n := 0
 	self := false
 	sessions := playerSessions(h.gameWorld)
@@ -798,11 +816,11 @@ func (h *ChatHandler) shout(sess *session.Session, player *entity.Player, messag
 			return
 		}
 		to(s, p)
-		if p.ServerID == player.ServerID {
+		if player != nil && p.ServerID == player.ServerID {
 			self = true
 		}
 	})
-	if !self {
+	if !self && sess != nil {
 		to(sess, player)
 	}
 	log.Printf("ShoutChat: %q to %d players", line.text, n)
@@ -970,21 +988,31 @@ func (h *ChatHandler) tell(sess *session.Session, from *entity.Player, name stri
 		SendErrorMessage(sess, "Tell Failed")
 		return
 	}
-	to := findPlayerByName(h.gameWorld, name)
-	var toSess *session.Session
-	if to != nil {
-		toSess = playerSessions(h.gameWorld)[to.ServerID]
-	}
+	to, toSess := h.tellTarget(name)
 	if toSess == nil {
 		SendErrorMessage(sess, fmt.Sprintf("%s is not connected.", name))
 		return
 	}
 	text = text.made()
-	SendReplyName(toSess, from.Name)
-	h.tellLine(toSess, to, text.wrap(from.Name+" tells you, '", "'"))
+	h.receiveTell(toSess, to, from.Name, text)
 	h.tellLine(sess, from, text.wrap("You told "+to.Name+", '", "'"))
 	h.afkAnswer(sess, from, to) // its away message, if it is away (afk.go)
 	log.Printf("Tell: %s -> %s", from.Name, to.Name)
+}
+
+func (h *ChatHandler) tellTarget(name string) (*entity.Player, *session.Session) {
+	to := h.gameWorld.PlayerByName(name)
+	if to == nil || h.gameWorld.SessionManager == nil {
+		return nil, nil
+	}
+	return to, h.gameWorld.FindSessionByEntityID(to.ServerID)
+}
+
+func (h *ChatHandler) receiveTell(sess *session.Session, to *entity.Player, sender string, text chatText) {
+	h.tellMu.Lock()
+	defer h.tellMu.Unlock()
+	SendReplyName(sess, sender)
+	h.tellLine(sess, to, text.wrap(sender+" tells you, '", "'"))
 }
 
 // tellLine is one of a tell's or a whisper's lines to p, in the tells' colour.

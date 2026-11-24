@@ -68,7 +68,13 @@ type afkState struct {
 	on      bool
 	msg     string
 	at      [3]float32
-	replied map[EntityID]time.Time
+	replied map[afkTeller]time.Time
+}
+
+// Entity IDs can coincide across shards. Remote tellers have a qualified name.
+type afkTeller struct {
+	local  EntityID
+	remote string
 }
 
 // AFK reports whether the player is away.
@@ -192,17 +198,29 @@ func (w *World) afkEndLocked(p *Player, sess *session.Session, why string) {
 // that teller had one within the minute. A player telling itself is answered
 // nothing.
 func (w *World) AFKReply(to, teller EntityID, now time.Time) (string, bool) {
+	if to == teller {
+		return "", false
+	}
+	return w.afkReply(to, afkTeller{local: teller}, now)
+}
+
+// AFKReplyFromShard applies the same cooldown to a teller on the other shard.
+func (w *World) AFKReplyFromShard(to EntityID, sender string, now time.Time) (string, bool) {
+	return w.afkReply(to, afkTeller{remote: strings.ToLower(sender)}, now)
+}
+
+func (w *World) afkReply(to EntityID, teller afkTeller, now time.Time) (string, bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.Players[to]
-	if p == nil || !p.afk.on || to == teller {
+	if p == nil || !p.afk.on {
 		return "", false
 	}
 	if last, ok := p.afk.replied[teller]; ok && now.Sub(last) < afkReplyEvery {
 		return "", false
 	}
 	if p.afk.replied == nil {
-		p.afk.replied = make(map[EntityID]time.Time)
+		p.afk.replied = make(map[afkTeller]time.Time)
 	}
 	p.afk.replied[teller] = now
 	if p.afk.msg == "" {

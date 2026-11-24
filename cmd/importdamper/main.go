@@ -110,15 +110,17 @@ type given struct {
 
 func move(tx *sql.Tx, skip map[string]bool, now time.Time) error {
 	grants := map[string]bool{}
-	rows, err := tx.Query(`SELECT run FROM chartransfers WHERE from_server = ? AND run != ''`, database.GMGrantSource)
+	rows, err := tx.Query(`SELECT run, from_server FROM chartransfers WHERE run != ''`)
 	if err == nil {
 		for rows.Next() {
-			var r string
-			if err := rows.Scan(&r); err != nil {
+			var r, from string
+			if err := rows.Scan(&r, &from); err != nil {
 				rows.Close()
 				return err
 			}
-			grants[r] = true
+			if database.IsGMGrant(from) {
+				grants[r] = true
+			}
 		}
 		rows.Close()
 	}

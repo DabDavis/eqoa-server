@@ -28,9 +28,17 @@ type SQLiteDB struct {
 // statement waits for a lock another connection holds, in milliseconds.
 const BusyTimeoutDSN = "_pragma=busy_timeout(5000)"
 
+// SynchronousDSN is the server's database's fsync setting, run on every
+// connection NewSQLite opens (synchronous is per connection, not kept in the
+// file). NORMAL, the owner 2026-11-25: in WAL a commit no longer waits for an
+// fsync, only a checkpoint does. The trade is durability, never integrity: a
+// power loss or OS crash may lose the last transactions, but cannot corrupt
+// the database; a crash of the process alone loses nothing.
+const SynchronousDSN = "_pragma=synchronous(NORMAL)"
+
 // NewSQLite creates or opens a SQLite database.
 func NewSQLite(dbPath string) (*SQLiteDB, error) {
-	dsn := dbPath + "?" + BusyTimeoutDSN
+	dsn := dbPath + "?" + BusyTimeoutDSN + "&" + SynchronousDSN
 	if dbPath != "" && dbPath != ":memory:" && !strings.HasPrefix(dbPath, "file:") {
 		if err := os.MkdirAll(filepath.Dir(dbPath), 0o755); err != nil {
 			return nil, err
@@ -41,7 +49,7 @@ func NewSQLite(dbPath string) (*SQLiteDB, error) {
 			return nil, err
 		}
 		u := url.URL{Scheme: "file", Opaque: (&url.URL{Path: filepath.ToSlash(dbPath)}).EscapedPath()}
-		dsn = u.String() + "?" + BusyTimeoutDSN
+		dsn = u.String() + "?" + BusyTimeoutDSN + "&" + SynchronousDSN
 	}
 
 	// Open the database with a busy timeout: a statement that finds the

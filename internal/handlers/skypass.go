@@ -91,8 +91,11 @@ var skyIsleOfWonder = wayPlace{World: 4, X: 5000.09, Y: 333.54, Z: 4998.23, Faci
 
 var skyPasses = []skyPass{
 	// the chain of rain: the main isle's essence, over the bridge north-west
+	// lands on the isle's north tip, the side facing the main isle (Heirloom petition 3046: "it took me right to
+	// where the end guy is"): Artiokanis comes at the south end past the isle's essence, reached by crossing the
+	// isle; the top floor at 229.2 off world 4's ground file, the nearest flesh fiend's spawn 51 away, facing south
 	{NPC: "essence of rain", X: 4482.5, Z: 5293.2, Key: "rain key", To: "the first isle of rain",
-		At: wayPlace{World: 4, X: 4236.2, Y: 233.05, Z: 5727.7, Facing: 3.38}, Steps: [][2]int{{101301, 2}}},
+		At: wayPlace{World: 4, X: 4225.0, Y: 229.2, Z: 5500.0, Facing: 0}, Steps: [][2]int{{101301, 2}}},
 	// a player's spot (petition 2049) was on Day Chain 2: back on its isle (the owner, 2026-11-14)
 	{NPC: "essence of rain", X: 4222.7, Z: 5714.6, Key: "Rain Key 1", To: "the second isle of rain",
 		At: wayPlace{World: 4, X: 4177.0, Y: 180.06, Z: 5210.0, Facing: 3.98}, Steps: [][2]int{{101301, 4}}},

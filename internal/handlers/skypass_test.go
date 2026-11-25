@@ -214,7 +214,7 @@ func TestTheMainIslesEssenceTakesTheRainKeyOnce(t *testing.T) {
 	r.by("main")
 	r.talk(r.anna, r.npcs["main"])
 	got := r.msgs(r.anna)
-	if !hasMsg(got, "teleport") || r.pa.X != 4236.2 || r.pa.Z != 5727.7 {
+	if !hasMsg(got, "teleport") || r.pa.X != 4225.0 || r.pa.Z != 5500.0 {
 		t.Fatalf("the first isle: %q at (%.1f, %.1f)", got, r.pa.X, r.pa.Z)
 	}
 	if n := r.held(r.pa, "rain key"); n != 1 {
@@ -448,7 +448,7 @@ func TestTheMainIslesEssenceTakesUpTheChain(t *testing.T) {
 	r.by("main")
 	r.talk(r.anna, r.npcs["main"])
 	got := r.msgs(r.anna)
-	if !hasMsg(got, "teleport") || r.pa.X != 4236.2 || r.pa.Z != 5727.7 {
+	if !hasMsg(got, "teleport") || r.pa.X != 4225.0 || r.pa.Z != 5500.0 {
 		t.Fatalf("the first isle: %q at (%.1f, %.1f)", got, r.pa.X, r.pa.Z)
 	}
 	if s, d := r.step(r.pa, 101301); s != 3 || d != 0 {

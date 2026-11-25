@@ -1070,17 +1070,17 @@ func (h *ChatHandler) gmFreeze(sess *session.Session, gm *entity.Player, name st
 }
 
 // gmRename is Change Name on the GM's target (or the GM): the creation's
-// rules (letters only, no reserved or profane word) and the client's own 12
-// at most, another character's name refused; kept in the characters table
-// and taken by the world at once.
+// rules (letters only, no reserved or profane word, CharNameMin to
+// CharNameMax), another character's name refused; kept in the characters
+// table and taken by the world at once.
 func (h *ChatHandler) gmRename(sess *session.Session, gm *entity.Player, id uint32, name string) {
 	t, _, ok := h.gmPlayerTarget(sess, gm, id, "Change Name")
 	if !ok {
 		return
 	}
 	name = strings.TrimSpace(name)
-	if len(name) > 12 || !validCharName(name) {
-		h.gmReply(sess, fmt.Sprintf("Change Name: %q is not a name a character may have (letters, 3 to 12)", name))
+	if !validCharName(name) {
+		h.gmReply(sess, fmt.Sprintf("Change Name: %q is not a name a character may have (letters, %d to %d)", name, CharNameMin, CharNameMax))
 		return
 	}
 	name = strings.ToUpper(name[:1]) + strings.ToLower(name[1:])

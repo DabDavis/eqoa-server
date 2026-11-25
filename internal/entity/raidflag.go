@@ -152,7 +152,7 @@ func (w *World) raidAskedLocked(t, leader *Player, now time.Time) (waiting, refu
 // them. Must be called with the lock held.
 func (w *World) raidFlagLocked(sess *session.Session, leader *Player, now time.Time) {
 	if g := w.groups[leader.GroupID]; leader.GroupID != 0 && g != nil {
-		g.flagged = true // a raid's group to its chat (raid.go's GroupIsRaid)
+		g.raiseRaidFlagLocked()
 	}
 	var asked []string
 	waiting := 0

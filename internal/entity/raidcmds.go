@@ -178,7 +178,7 @@ func (w *World) raidInviteLocked(sess *session.Session, inviter *Player, g *Grou
 		return
 	}
 	w.mercGivesWayLocked(t) // its merc comes with its yes, past four as a flag's (mercgroup.go)
-	g.flagged = true
+	g.raiseRaidFlagLocked()
 	w.raidBoxLocked(t, inviter, ts, fmt.Sprintf("%s invites you to %s's raid.", inviter.Name, w.raidNameLocked(inviter)))
 	w.raidLineLocked(sess, fmt.Sprintf("You invite %s to the raid.", t.Name))
 	log.Printf("Raid: %s invites %s to group %d", inviter.Name, t.Name, g.ID)
@@ -506,12 +506,13 @@ func (w *World) raidLootRuleLocked(sess *session.Session, p *Player, rule LootRu
 	if g == nil {
 		return
 	}
-	if rule == g.rules.loot {
-		w.raidLineLocked(sess, fmt.Sprintf("Your raid's loot rule is %s already.", rule))
+	if rule != g.rules.loot && len(w.raidFoesLocked(g)) > 0 {
+		w.refuseLocked(sess, "Your raid is in combat: its loot rule cannot change until the fight is over.")
 		return
 	}
-	if len(w.raidFoesLocked(g)) > 0 {
-		w.refuseLocked(sess, "Your raid is in combat: its loot rule cannot change until the fight is over.")
+	g.rules.lootSelected = true
+	if rule == g.rules.loot {
+		w.raidLineLocked(sess, fmt.Sprintf("Your raid's loot rule is %s already.", rule))
 		return
 	}
 	g.rules.loot = rule

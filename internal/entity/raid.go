@@ -50,6 +50,14 @@ var (
 // isRaid is whether g is a raid group.
 func (g *Group) isRaid() bool { return len(g.Members) > GroupWindowSize }
 
+// raiseRaidFlagLocked promotes a group to a raid on its first flag.
+func (g *Group) raiseRaidFlagLocked() {
+	if !raidingLocked(g) {
+		g.setDefaultRaidLootLocked()
+	}
+	g.flagged = true
+}
+
 // GroupIsRaid reports p's group a raid to its chat (the user, 2026-11-08: "make it
 // say tells the raid instead of group and make text color orange"): one whose leader
 // raised a raid flag, or past GroupWindowSize members.
@@ -120,6 +128,9 @@ func (w *World) raidChangedLocked(g *Group) {
 	g.raid = now
 	log.Printf("Group: group %d, %d members, raid group %v", g.ID, len(g.Members), now)
 	if now {
+		if !g.flagged {
+			g.setDefaultRaidLootLocked()
+		}
 		for _, id := range g.Members {
 			if o := w.Players[id]; o != nil {
 				if s := w.sessionOfLocked(o); s != nil {

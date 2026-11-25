@@ -115,6 +115,8 @@ func TestRaidInviteAndInviteFromNoGroupAskTheCallerFirst(t *testing.T) {
 	r.accept(0, r.p[0])
 	if g := r.raidOf(0); g == nil || !g.flagged {
 		t.Fatalf("Ann's yes: group %v, want one flagged", g)
+	} else if g.rules.loot != LootNeedGreed {
+		t.Fatalf("a new raid from /raidinvite uses %s, want need before greed", g.rules.loot)
 	}
 	if got := r.boxFrom(1); got != "Ann's raid" {
 		t.Fatalf("Bob's box: %q", got)
@@ -196,7 +198,7 @@ func TestRaidLeaderHandsOnTheLead(t *testing.T) {
 		}
 	}
 	r.w.RaidLeader(r.sess[4], "", 0)
-	if l := r.heard(4); !saidPart(l, "leader Cal") || !saidPart(l, "loot free for all") {
+	if l := r.heard(4); !saidPart(l, "leader Cal") || !saidPart(l, "loot need before greed") {
 		t.Fatalf("the raid as it stands: %q", l)
 	}
 }
@@ -257,22 +259,26 @@ func TestRaidLootRuleNotInAFight(t *testing.T) {
 	r := newRaidRig(t, 6, 30)
 	r.form(5)
 	r.drainAll()
-	r.w.RaidLootRule(r.sess[1], "needgreed")
-	if r.raidOf(0).rules.loot != LootFreeForAll {
-		t.Fatal("a member set the rule")
+	r.w.RaidLootRule(r.sess[1], "ffa")
+	if r.raidOf(0).rules.loot != LootNeedGreed || !saidPart(r.heard(1), "Only your raid's leader") {
+		t.Fatal("a member could change the raid's default")
 	}
 	outsider := r.fight(9100, 5) // Fay, in no raid
 	_ = outsider
-	r.w.RaidLootRule(r.sess[0], "nbg")
-	if r.raidOf(0).rules.loot != LootNeedGreed || !saidPart(r.heard(2), "sets the raid's loot rule: need before greed") {
+	r.w.RaidLootRule(r.sess[0], "ffa")
+	if r.raidOf(0).rules.loot != LootFreeForAll || !saidPart(r.heard(2), "sets the raid's loot rule: free for all") {
 		t.Fatal("the rule did not change out of the raid's fight")
+	}
+	r.w.RaidCall(r.sess[0])
+	if r.raidOf(0).rules.loot != LootFreeForAll {
+		t.Fatal("raising the raid flag reset the leader's loot choice")
 	}
 	r.fight(9101, 3) // Dee fights
 	if !r.w.RaidInCombat(r.p[0]) {
 		t.Fatal("the raid is not in a fight with a member on a hate list")
 	}
 	r.w.RaidLootRule(r.sess[0], "master")
-	if r.raidOf(0).rules.loot != LootNeedGreed || !saidPart(r.heard(0), "in combat") {
+	if r.raidOf(0).rules.loot != LootFreeForAll || !saidPart(r.heard(0), "in combat") {
 		t.Fatal("the rule changed in a fight")
 	}
 	// a pet's fight is its master's
@@ -392,11 +398,15 @@ func TestARaidsKillTellsItsSeats(t *testing.T) {
 		r.w.mu.Unlock()
 		return heard[len(heard)-1].Raid
 	}
-	if k := kill(9500); k != nil {
+	if k := kill(9500); k == nil || k.Rule != LootNeedGreed {
+		t.Fatalf("a kill with the default raid rule: %+v", k)
+	}
+	r.w.RaidLootRule(r.sess[0], "ffa")
+	if k := kill(9501); k != nil {
 		t.Fatal("a free for all kill carries the raid")
 	}
-	r.raidOf(0).rules.loot = LootMaster
-	k := kill(9501)
+	r.w.RaidLootRuleTo(r.sess[0], LootMaster)
+	k := kill(9502)
 	if k == nil || k.Rule != LootMaster || k.Leader.Name != "Ann" || len(k.Members) != 6 || len(k.Seats) != 5 {
 		t.Fatalf("the kill: %+v", k)
 	}
@@ -537,7 +547,7 @@ func TestARaidsRulesAreKeptOverARestart(t *testing.T) {
 	r.raidOf(0).flagged = true
 	r.w.RaidHelper(r.sess[0], "Bob", 0)
 	r.w.RaidAssistSet(r.sess[0], "Cal", 0)
-	r.w.RaidLootRule(r.sess[0], "needgreed")
+	r.w.RaidLootRule(r.sess[0], "ffa")
 	b, err := json.Marshal(r.w.KeepGroups())
 	if err != nil {
 		t.Fatal(err)
@@ -554,7 +564,7 @@ func TestARaidsRulesAreKeptOverARestart(t *testing.T) {
 		t.Fatalf("restored %d: %v", n, err)
 	}
 	g := r.raidOf(0)
-	if !g.flagged || g.rules.loot != LootNeedGreed || g.rules.helper != r.p[1].ServerID || g.rules.assist != r.p[2].ServerID {
+	if !g.flagged || g.rules.loot != LootFreeForAll || g.rules.helper != r.p[1].ServerID || g.rules.assist != r.p[2].ServerID {
 		t.Fatalf("restored %+v", g)
 	}
 	// a plain group's keeps nothing of the kind

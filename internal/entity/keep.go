@@ -131,10 +131,11 @@ type KeptGroup struct {
 	Members []uint32 `json:"members"`
 	// a raid's own (raidrules.go): its flag, its loot rule, its helper and main
 	// assist by their characters
-	Flagged bool     `json:"flagged,omitempty"`
-	Loot    LootRule `json:"loot,omitempty"`
-	Helper  uint32   `json:"helper,omitempty"`
-	Assist  uint32   `json:"assist,omitempty"`
+	Flagged      bool     `json:"flagged,omitempty"`
+	Loot         LootRule `json:"loot,omitempty"`
+	LootSelected bool     `json:"loot_selected,omitempty"`
+	Helper       uint32   `json:"helper,omitempty"`
+	Assist       uint32   `json:"assist,omitempty"`
 	// Subs: each member's group inside the raid, by Members' places
 	// (raidsubgroups.go); none from a server before them: filled again
 	Subs []uint8 `json:"subs,omitempty"`
@@ -345,7 +346,7 @@ func (w *World) KeepGroups() []KeptGroup {
 	defer w.mu.RUnlock()
 	var out []KeptGroup
 	for _, g := range w.groups {
-		k := KeptGroup{ID: g.ID, Flagged: g.flagged, Loot: g.rules.loot}
+		k := KeptGroup{ID: g.ID, Flagged: g.flagged, Loot: g.rules.loot, LootSelected: g.rules.lootSelected}
 		var subs map[EntityID]uint8 // a raid's groups inside it (raidsubgroups.go)
 		if raidingLocked(g) {
 			subs = w.subgroupsLocked(g)
@@ -393,7 +394,7 @@ func (w *World) RestoreGroups(groups []KeptGroup) (int, error) {
 			continue
 		}
 		g := &Group{ID: k.ID, lastRoster: map[EntityID]string{}, raid: len(k.Members) > GroupWindowSize,
-			flagged: k.Flagged, rules: raidRules{loot: k.Loot}}
+			flagged: k.Flagged, rules: raidRules{loot: k.Loot, lootSelected: k.LootSelected}}
 		for i, c := range k.Members {
 			if p := w.playerByCharacterLocked(c); p != nil && p.GroupID == 0 {
 				g.Members = append(g.Members, p.ServerID)

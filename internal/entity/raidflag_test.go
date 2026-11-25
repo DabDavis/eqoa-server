@@ -638,9 +638,15 @@ func TestAFlaggedGroupIsARaidsToItsChat(t *testing.T) {
 	if r.w.GroupIsRaid(r.p[0]) {
 		t.Fatal("the control: a group of three by invites is a raid's")
 	}
+	if g := r.raidOf(0); g.rules.loot != LootFreeForAll {
+		t.Fatalf("a plain group uses %s, want free for all", g.rules.loot)
+	}
 	r.w.RaidCall(r.sess[0])
 	if !r.w.GroupIsRaid(r.p[0]) || !r.w.GroupIsRaid(r.p[1]) {
 		t.Error("a flag raised: the group is not a raid's to its chat")
+	}
+	if g := r.raidOf(0); g.rules.loot != LootNeedGreed {
+		t.Fatalf("a new flagged raid uses %s, want need before greed", g.rules.loot)
 	}
 	if r.w.GroupIsRaid(r.p[3]) {
 		t.Error("one in no group is a raid's")

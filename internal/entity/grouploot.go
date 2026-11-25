@@ -114,12 +114,13 @@ func (w *World) groupLootRuleLocked(sess *session.Session, p *Player, rule LootR
 		w.refuseLocked(sess, "Master looter is a raid's loot rule: a group loots free for all or need before greed.")
 		return
 	}
-	if rule == g.rules.loot {
-		w.raidLineLocked(sess, fmt.Sprintf("Your group's loot rule is %s already.", rule))
+	if rule != g.rules.loot && len(w.raidFoesLocked(g)) > 0 {
+		w.refuseLocked(sess, "Your group is in combat: its loot rule cannot change until the fight is over.")
 		return
 	}
-	if len(w.raidFoesLocked(g)) > 0 {
-		w.refuseLocked(sess, "Your group is in combat: its loot rule cannot change until the fight is over.")
+	g.rules.lootSelected = true
+	if rule == g.rules.loot {
+		w.raidLineLocked(sess, fmt.Sprintf("Your group's loot rule is %s already.", rule))
 		return
 	}
 	g.rules.loot = rule

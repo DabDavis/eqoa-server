@@ -544,6 +544,25 @@ var catalog = map[string]tableNote{
 			"active":   {Label: "Reliving now"},
 		},
 	},
+	"petitionadopted": {
+		Label: "Adopted features", Group: "Players", Title: "feature", Sort: "id",
+		Help: "The features petitions asked for that the game took up (handlers/ideaboard.go, petition 3016): a row a feature " +
+			"a petition named, by its name as the Idea Contributors board by Freeport's well lists it (\"Auto Loot\"), with " +
+			"when and by whom. The board ranks each account (named as the Bug Finder Leaderboard names it) by its features, " +
+			"each once in any case, and lists them under it; two players who asked for the same feature each get a row and " +
+			"each have it. Add one when a Feature Request is built (tools/adopt_feature.py does it from a shell); a petition " +
+			"is this shard's number, as the Petitions page shows it.",
+		Live:   "Within a minute: the board counts again at most once a minute.",
+		Show:   []string{"id", "petitionid", "feature", "adopted_at", "adopted_by"},
+		Search: []string{"feature", "adopted_by", "note"},
+		Cols: map[string]colNote{
+			"petitionid": {Label: "Petition", Help: "the petition's number (Ticket #) on this shard"},
+			"feature":    {Label: "Feature", Help: "its name on the board; the same name in any case on one petition once"},
+			"adopted_at": {Label: "Adopted", Format: "stamp"},
+			"adopted_by": {Label: "By", Help: "the GM's name, or the tool's"},
+			"note":       {Label: "Note", Help: "ours, for the GMs; never shown to players"},
+		},
+	},
 	"hotzones": {
 		Label: "Hot zones", Group: "World", Title: "name", Sort: "id",
 		Help: "The GMs' Hot zones (handlers/hotzones.go): Heirloom Marks earned in one get its bonus_pct (default 35). A camp zone " +

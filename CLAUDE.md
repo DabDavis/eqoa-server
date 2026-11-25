@@ -272,6 +272,7 @@ Each system's file is its long form; its tests document the edge cases. `world.<
 | Instanced raid dungeons (world 14), the lockout before a new instance | `entity/dungeons.go`, `dungeonlockout.go`, `handlers/dungeons.go`, `world.dungeons` |
 | Mail, resets, Master Class, petitions (the live client's) | `handlers/mail.go`, `mailattach.go`, `gmresets.go`, `classmastery.go`, `petitionview.go` |
 | Bug reports as petitions with the server's view | `handlers/bugreport.go`, `petitionview.go`; bug board `handlers/bugboard.go` |
+| Idea Contributors board (adopted feature requests) | `handlers/ideaboard.go`, table `petitionadopted`; mark with `tools/adopt_feature.py` or the panel's Adopted features |
 | Camp fix reports | `handlers/campfixreview.go`, `cmd/campfixfile` |
 | Character transfers | `internal/transfers`, `database/transfers.go`, `internal/charmove` |
 | Password resets, account e-mail | `tcp/accountpassword.go`, `internal/accountmail`, `internal/mailer`, `tcp/station*.go`, `handlers/emailgate.go` |

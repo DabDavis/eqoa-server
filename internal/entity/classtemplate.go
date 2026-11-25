@@ -263,6 +263,8 @@ type templateFight struct {
 	rampRound time.Time
 	rampAt    time.Time
 	rampNext  time.Time
+	// swarm is its swarm under way, rooted, nil none (swarm.go)
+	swarm *swarmOn
 }
 
 // templateContactGap is the longest gap between two of a templated NPC's
@@ -669,7 +671,7 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 				t.hitHeal += ra.Heal // hitheal.go
 				continue
 			case database.AbilitySelfDoT, database.AbilityRaidHeal, database.AbilityPowerZero, database.AbilitySetHP, database.AbilityUnreached,
-				database.AbilityDeathTouch, database.AbilityPortNear, database.AbilityPortFoe:
+				database.AbilityDeathTouch, database.AbilityPortNear, database.AbilityPortFoe, database.AbilitySwarm:
 				t.moments = append(t.moments, ra) // bossmoments.go
 				continue
 			case database.AbilityPrefer:

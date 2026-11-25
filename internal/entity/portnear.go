@@ -49,13 +49,18 @@ func (w *World) deathTouchLocked(npc *NPC, m *database.TemplateAbility, now time
 	if p == nil || p.IsDead() || p.respawnPending() || p.World != npc.World || !w.npcSharesLocked(npc, p) {
 		return
 	}
-	name := momentName(m)
 	fx := m.FX
 	if fx == 0 {
 		fx = templateSpecialFX
 	}
-	took := p.HP
 	w.broadcastNPCSwingLocked(npc, p.ServerID, 0, fx)
+	w.deathTouchPlayerLocked(npc, p, momentName(m), now)
+}
+
+// deathTouchPlayerLocked kills p outright by npc's name (its swing or cast already shown): its hit points
+// taken, a line, its death. Must be called with the lock held.
+func (w *World) deathTouchPlayerLocked(npc *NPC, p *Player, name string, now time.Time) {
+	took := p.HP
 	w.damagePlayerFromNPCLocked(npc, p, took)
 	p.StatsDirty = true
 	p.LastCombatTime = now

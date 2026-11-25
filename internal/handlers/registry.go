@@ -638,6 +638,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 			tradeHandler.received = qe.Received           // a traded item on a loot step (petition 5248)
 			// a kill's corpse kept for its loot steps' drops (questloot.go)
 			qe.pending, qe.placed = npcWindowHandler.QuestDropsPending, npcWindowHandler.QuestDropsPlaced
+			npcWindowHandler.workKill = qe.WorkKill // a corpse opens with its quest drops on it (petition 2980)
 			qe.Start()
 			r.Register(protocol.OpcodeDeleteQuest, qe.HandleDrop)
 		}

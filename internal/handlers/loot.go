@@ -135,9 +135,10 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 		queueReliable(sess, protocol.OpcodeLootOptions, buildLootOption(lootAnotherOwner))
 		return true
 	}
+	ls := h.loots()
+	h.workPendingKill(ls, npc.ServerID, died) // its quest drops on it before it opens (questloot.go)
 	var won []winTake
 	defer func() { tellWinsQuests(won) }() // after the lock: a raid's won items taken (raidloot.go)
-	ls := h.loots()
 	ls.mu.Lock()
 	defer ls.mu.Unlock()
 	h.takeRaidKillLocked(ls, npc, died) // a raid's kill, rolled at its death (raidloot.go)
@@ -486,12 +487,15 @@ func (h *NPCWindowHandler) resendCorpse(sess *session.Session, ls *lootState, c 
 	h.servedHoldersLocked(c, sess, h.charOf(sess), sessionInvList(sess))
 	view := ls.viewLocked(id, c, h.charOf(sess))
 	if len(view) == 0 {
+		delete(ls.open, sess) // the 0x0016 above closed CLIENT's window: nothing to send again later
+		delete(ls.since, sess)
 		if now := h.lootClock(); open && ls.pendingLocked(id, c, now) {
-			ls.since[sess] = now // the kill's quest drops to come: shown when placed (QuestDropsPlaced)
+			// the kill's quest drops still to come: the corpse lies on for them
+			// (emptyLocked), for its looter to open again, but no window is kept
+			// to be opened on them when placed (Heirloom petition 2980: a window
+			// emptied by Take all came back seconds later on a player gone)
 			return
 		}
-		delete(ls.open, sess)
-		delete(ls.since, sess)
 		if now := h.lootClock(); open && ls.emptyLocked(id, c, now) {
 			h.emptiedLocked(ls, id, c)
 		} else if open {

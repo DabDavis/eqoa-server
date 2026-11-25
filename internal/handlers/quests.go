@@ -137,6 +137,14 @@ type QuestEngine struct {
 	owed map[uint32]map[[2]int]bool
 
 	kills chan entity.KillCredit
+	// queued is the kills in kills not yet taken to be worked, by NPC and death
+	// (queuedMu: taken under the World's lock, so never q.mu), and workMu is held
+	// across a kill's taking and its working (workKill): a corpse opened while its
+	// kill waits in the queue has the kill worked first, its loot steps' drops on
+	// it before its window opens (WorkKill; Heirloom petition 2980)
+	queuedMu sync.Mutex
+	queued   map[killKey]entity.KillCredit
+	workMu   sync.Mutex
 	// infections are the weres' bites that infect (wereinfect.go), cures
 	// the cures the campfire's advisors offered, by character
 	infections chan entity.InfectionHit
@@ -407,6 +415,7 @@ func NewQuestEngine(db *database.SQLiteDB, gw *entity.World, sm *session.Manager
 		sm:         sm,
 		chars:      map[uint32]*questChar{},
 		kills:      make(chan entity.KillCredit, 256),
+		queued:     map[killKey]entity.KillCredit{},
 		infections: make(chan entity.InfectionHit, 64),
 		cures:      map[uint32]advisorBox{},
 		wake:       make(chan struct{}, 1),
@@ -481,14 +490,67 @@ func (q *QuestEngine) Stop() {
 
 // heardKill takes a kill from the World (its lock held: never wait here).
 func (q *QuestEngine) heardKill(k entity.KillCredit) {
+	key := killKey{k.NPCID, k.Died.UnixNano()}
+	q.queuedMu.Lock()
+	if q.queued == nil {
+		q.queued = map[killKey]entity.KillCredit{}
+	}
+	q.queued[key] = k // before the queue: run may take it at once
+	q.queuedMu.Unlock()
 	select {
 	case q.kills <- k:
 		if q.pending != nil {
-			q.pending(k.NPCID, k.Died) // its corpse waits for its drops (placed, in run)
+			q.pending(k.NPCID, k.Died) // its corpse waits for its drops (placed, in workKill)
 		}
 	default:
+		q.queuedMu.Lock()
+		delete(q.queued, key)
+		q.queuedMu.Unlock()
 		log.Printf("Quests: a kill of %q was not counted (the queue is full)", k.NPCName)
 	}
+}
+
+// killKey is a kill in the queue: its NPC and its death.
+type killKey struct {
+	npc  entity.EntityID
+	died int64 // UnixNano
+}
+
+// workKill works the queued kill of NPC npc's death died, once, whoever comes
+// first, the queue (run) or a corpse's opening (WorkKill): its kill steps
+// counted, its loot steps' items on its corpse (killed), a raid's flag
+// (killFlags), and the corpse told (placed). With no quest lock held. It
+// reports whether it worked it (false: worked already, or never queued).
+func (q *QuestEngine) workKill(npc entity.EntityID, died time.Time) bool {
+	q.workMu.Lock()
+	defer q.workMu.Unlock()
+	key := killKey{npc, died.UnixNano()}
+	q.queuedMu.Lock()
+	k, ok := q.queued[key]
+	delete(q.queued, key)
+	q.queuedMu.Unlock()
+	if !ok {
+		return false
+	}
+	q.killed(k)
+	q.killFlags(k) // raidportal.go: a raid's flag at a kill
+	if q.placed != nil {
+		q.placed(k.NPCID, k.Died) // with no quest lock held: the loot's, then the World's
+	}
+	return true
+}
+
+// WorkKill is the loot windows' hook as a corpse opens whose kill waits in the
+// queue (questloot.go's QuestDropsPending): the kill worked now, ahead of the
+// queue, so its loot steps' drops lie on the corpse before its window opens,
+// never a moment after. Heirloom petition 2980 (2026-11-25, Matonxwiz at the
+// fungals of Guk): with the queue behind, the Flavored Mushroom came onto a
+// corpse one to ten seconds after its window opened, and the window was sent
+// again then, opening on a player who had looted and walked on. Called with no
+// lock held but the opener's item lists' (the handler's: the quests take none).
+// When the queue is working the kill already, it waits for that to end.
+func (q *QuestEngine) WorkKill(npc entity.EntityID, died time.Time) {
+	q.workKill(npc, died)
 }
 
 func (q *QuestEngine) run() {
@@ -499,11 +561,7 @@ func (q *QuestEngine) run() {
 		case <-q.stop:
 			return
 		case k := <-q.kills:
-			q.killed(k)
-			q.killFlags(k) // raidportal.go: a raid's flag at a kill
-			if q.placed != nil {
-				q.placed(k.NPCID, k.Died) // with no quest lock held: the loot's, then the World's
-			}
+			q.workKill(k.NPCID, k.Died) // unless a corpse's opening worked it already (WorkKill)
 		case h := <-q.infections:
 			q.infect(h) // wereinfect.go
 		case <-q.wake:

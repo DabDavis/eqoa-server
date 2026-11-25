@@ -203,13 +203,16 @@ func procDebuffedMore(ae *ActiveEffect, npc *NPC, bearer EntityID, now time.Time
 // already the figure alone, green, so a proc's heal is always seen (the user, 2026-11-08:
 // "the heal proc should show green numbers for player": a healer kept a player full, and
 // his Shroud of Death's heals showed nothing). A spell's heal on a full target still shows
-// none (healLocked). Must be called with the lock held.
+// none (healLocked). Its figure is told as a heal's (numberHeal, green on Default), not a
+// proc's: petition 3022 (a player colouring "Your Procs" saw Crusader's Aura's heal in the
+// proc colour; the owner, 2026-11-25: "you can draw proc heals in green"). Must be called
+// with the lock held.
 func (w *World) procHealLocked(caster *Player, casterSess *session.Session, t *Player, n int) {
 	if n > 0 && !t.IsDead() && t.HP >= t.MaxHPNow() {
-		w.tellAmountLocked(caster, casterSess, t.ServerID, n, numberProc)
+		w.tellAmountLocked(caster, casterSess, t.ServerID, n, numberHeal)
 		return
 	}
-	w.healLocked(caster, casterSess, t, n, numberProc)
+	w.healLocked(caster, casterSess, t, n, numberHeal)
 }
 
 // procHitFX is the look of ae's proc on what it hits: its own (EffectRules.ProcFX, the effects

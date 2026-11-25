@@ -133,7 +133,7 @@ func TestNumberKinds(t *testing.T) {
 		hit, heal, tick, htick numberKind
 	}{
 		{figuresSpell, numberSpell, numberHeal, numberDoT, numberHoT},
-		{figuresProc, numberProc, numberProc, numberProc, numberHoT}, // a proc's heal over time's ticks a heal over time's
+		{figuresProc, numberProc, numberHeal, numberProc, numberHoT}, // a proc's heals a heal's, its heal over time's ticks a heal over time's (3022)
 		{figuresPet, 0x82, 0x86, 0x83, 0x87},
 		{figuresGift, 0, 0, 0, 0},
 	} {
@@ -230,12 +230,25 @@ func TestNumberTagsByPath(t *testing.T) {
 			procIntn = dice(0, 99)
 			r.p.Effects = []*ActiveEffect{{SpellID: 9202, Name: "Test Flux", Until: r.later, Proc: 40, ProcMax: 40, Rules: EffectRules{ProcHeal: 25}}}
 			r.w.playerProcsLocked(r.sess, r.p, r.npc, r.t0)
-		}, []int{5, 5}, nil},
+		}, []int{5, 6}, nil},
 		{"a proc heal at a hit", func(r *tagRig) {
 			procIntn = dice(0)
 			r.p.Effects = []*ActiveEffect{{SpellID: 9203, Name: "Test Aura", Until: r.later, Rules: EffectRules{ProcHeal: 25, ProcHealDef: true}}}
 			r.w.defenceProcsLocked(r.sess, r.p, r.npc, r.t0)
-		}, []int{5}, nil},
+		}, []int{6}, nil},
+		{"a group proc heal (Crusader's Aura's): its heal on the bearer and the member, each a heal's (3022)", func(r *tagRig) {
+			procIntn = dice(0)
+			r.friend.HP = 100
+			g := &Group{ID: 78, Members: []EntityID{r.p.ServerID, r.friend.ServerID}}
+			if r.w.groups == nil {
+				r.w.groups = make(map[uint32]*Group)
+			}
+			r.w.groups[g.ID] = g
+			r.p.GroupID, r.friend.GroupID = g.ID, g.ID
+			r.p.Effects = []*ActiveEffect{{SpellID: 9214, Name: "Test Crusader's Aura", Until: r.later,
+				Rules: EffectRules{ProcHeal: 416, ProcHealDef: true, ProcHealChance: 100, ProcHealGroup: 50}}}
+			r.w.defenceProcsLocked(r.sess, r.p, r.npc, r.t0)
+		}, []int{6, 6}, []int{none}},
 		{"a weapon's proc", func(r *tagRig) {
 			procIntn = dice(0, 99)
 			r.p.Gear.MainProc = &WeaponProc{Item: "Test Blade", Kind: ProcHit, Damage: 33, Chance: 100}
@@ -245,7 +258,7 @@ func TestNumberTagsByPath(t *testing.T) {
 			procIntn = dice(0, 99)
 			r.p.Gear.MainProc = &WeaponProc{Item: "Test Saw", Kind: ProcTap, Damage: 25, Chance: 100}
 			r.w.weaponProcLocked(r.sess, r.p, r.npc, r.t0)
-		}, []int{5, 5}, nil},
+		}, []int{5, 6}, nil},
 		{"a weapon's damage over time", func(r *tagRig) {
 			procIntn = dice(0, 99)
 			r.p.Gear.MainProc = &WeaponProc{Item: "Test Tongue", Kind: ProcDoT, Damage: 9, Chance: 100}
@@ -262,15 +275,15 @@ func TestNumberTagsByPath(t *testing.T) {
 			r.p.GroupID, r.friend.GroupID = g.ID, g.ID
 			r.p.Gear.MainProc = &WeaponProc{Item: "Test Mace", Kind: ProcRestore, Damage: 20, Chance: 100}
 			r.w.weaponProcLocked(r.sess, r.p, r.npc, r.t0)
-		}, []int{5, 5}, []int{none}},
+		}, []int{6, 6}, []int{none}},
 		{"a worn item's answer and heal", func(r *tagRig) {
 			r.p.Gear.Shields = []WornShield{{Item: "Test Crown", Damage: 30, Heal: 15}}
 			r.w.wornShieldsLocked(r.sess, r.p, r.npc)
-		}, []int{5, 5}, nil},
+		}, []int{5, 6}, nil},
 		{"a mark's heal at a weapon's hit", func(r *tagRig) {
 			r.npc.Effects = []*ActiveEffect{{SpellID: 9204, Name: "Test Mark", Until: r.later, Rules: EffectRules{MarkHeal: 65}}}
 			r.w.markHealPlayerLocked(r.sess, r.p, r.npc, r.t0)
-		}, []int{5}, nil},
+		}, []int{6}, nil},
 		{"a spell proc: its heal for its bearer, its hit, its tick (a workbook's first, twice)", func(r *tagRig) {
 			procIntn = dice(0, 99)
 			own := heal(22)
@@ -278,7 +291,7 @@ func TestNumberTagsByPath(t *testing.T) {
 			r.p.Effects = []*ActiveEffect{{SpellID: 9205, Name: "Test Fervor", Until: r.later,
 				ProcSpells: []ProcSpell{{Chance: 100, Duration: 12 * time.Second, Effects: []SpellEffect{own, hit(44), tick(-6)}}}}}
 			r.w.procSpellsLocked(r.p, r.sess, r.npc, false, r.t0)
-		}, []int{5, 5, 5, 5}, nil},
+		}, []int{6, 5, 5, 5}, nil},
 		{"a spell proc's heal over time on its bearer (Fervor's at a hit): a heal over time's tick", func(r *tagRig) {
 			procIntn = dice(0, 99)
 			own := tick(9)

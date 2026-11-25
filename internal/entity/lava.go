@@ -98,49 +98,55 @@ func (r LavaRule) burn(p *Player) int {
 	return n
 }
 
-// lavaSystem burns each player in the lava (the file's doc), on its own clock
-// (Player.lavaNext): at once on stepping in, then every tick it stays. Must be called with the
-// lock held.
+// lavaSystem keeps burning players who stay put and finds players placed in lava by the
+// server. Run due burns on their own clocks, between the slower scans for new arrivals.
+// Must be called with the lock held.
 func (w *World) lavaSystem(now time.Time) {
-	if (!w.lava.On() && w.duels.arenaMove == nil) || w.env == nil || w.TickCount%hazardEvery != 0 {
+	if (!w.lava.On() && w.duels.arenaMove == nil) || w.env == nil {
 		return
 	}
+	scan := w.TickCount%hazardEvery == 0
 	for _, p := range w.Players {
-		rule := w.lava
-		fighter := p.arenaStay != nil && !p.arenaStay.observer && p.World == DuelArenaWorld
-		if fighter && !rule.On() {
-			rule = LavaRule{PctMaxHP: 5, Every: lavaEveryDefault}
+		if scan || (!p.lavaNext.IsZero() && !now.Before(p.lavaNext)) {
+			w.lavaStepLocked(p, now)
 		}
-		if !rule.On() || p.HP <= 0 || p.respawnPending() || (!fighter && (p.GM || p.flyingNow(now))) {
-			continue
-		}
-		if !w.playerInLavaLocked(p) {
-			p.lavaNext = time.Time{} // out of it: the next step in burns
-			continue
-		}
-		if now.Before(p.lavaNext) {
-			continue
-		}
-		sess := w.findSessionByEntityIDLocked(p.ServerID)
-		if sess != nil && sess.StateChannelsHeld() {
-			continue // loading a world
-		}
-		p.lavaNext = now.Add(rule.every())
-		n := min(rule.burn(p), p.HP)
-		if n <= 0 {
-			continue
-		}
-		p.HP -= n
-		p.StatsDirty = true
-		log.Printf("Lava: %s at (%.1f, %.1f, %.1f) world=%d takes %d (HP %d/%d)", p.Name, p.X, p.Y, p.Z, p.World, n, p.HP, p.MaxHPNow())
-		if sess != nil {
-			me := sess.PlayerObjectID()
-			w.sendDamageIndication(sess, me, -n, me, 0)
-			w.sendColoredLocked(sess, fmt.Sprintf(lavaWords, n), castRefusalRGB)
-		}
-		if p.HP <= 0 {
-			p.setDeathCause(CauseLava, "lava") // hardcore.go
-			w.playerDiedLocked(sess, p, now)
-		}
+	}
+}
+
+// lavaStepLocked checks the player's accepted position on movement and on world ticks.
+// Both paths share lavaNext so an entry and a world tick cannot burn twice.
+func (w *World) lavaStepLocked(p *Player, now time.Time) {
+	rule := w.lava
+	fighter := p.arenaStay != nil && !p.arenaStay.observer && p.World == DuelArenaWorld
+	if fighter && !rule.On() {
+		rule = LavaRule{PctMaxHP: 5, Every: lavaEveryDefault}
+	}
+	if !rule.On() || p.HP <= 0 || p.respawnPending() || (!fighter && (p.GM || p.flyingNow(now))) || !w.playerInLavaLocked(p) {
+		p.lavaNext = time.Time{}
+		return
+	}
+	if now.Before(p.lavaNext) {
+		return
+	}
+	sess := w.findSessionByEntityIDLocked(p.ServerID)
+	if sess != nil && sess.StateChannelsHeld() {
+		return // loading a world
+	}
+	p.lavaNext = now.Add(rule.every())
+	n := min(rule.burn(p), p.HP)
+	if n <= 0 {
+		return
+	}
+	p.HP -= n
+	p.StatsDirty = true
+	log.Printf("Lava: %s at (%.1f, %.1f, %.1f) world=%d takes %d (HP %d/%d)", p.Name, p.X, p.Y, p.Z, p.World, n, p.HP, p.MaxHPNow())
+	if sess != nil {
+		me := sess.PlayerObjectID()
+		w.sendDamageIndication(sess, me, -n, me, 0)
+		w.sendColoredLocked(sess, fmt.Sprintf(lavaWords, n), castRefusalRGB)
+	}
+	if p.HP <= 0 {
+		p.setDeathCause(CauseLava, "lava") // hardcore.go
+		w.playerDiedLocked(sess, p, now)
 	}
 }

@@ -83,3 +83,54 @@ func TestLavaBurnsAPlayerInIt(t *testing.T) {
 		t.Fatalf("over it: %d", n)
 	}
 }
+
+func TestLavaOnMovement(t *testing.T) {
+	for _, reenter := range []bool{false, true} {
+		name := "continuous exposure"
+		if reenter {
+			name = "quick reentry"
+		}
+		t.Run(name, func(t *testing.T) {
+			c := newCaster(t)
+			c.w.SetEnv(lavaEnv{})
+			c.w.SetLava(LavaRule{PctMaxHP: 49})
+			c.p.HP, c.p.MaxHP = 1000, 1000
+			c.p.X = 200.25
+			c.w.TickCount = 1 // between environment scans
+			move := func(x float32, elapsed time.Duration) {
+				c.w.ApplyClientUpdate(c.p.ServerID, ClientUpdate{X: x, Y: c.p.Y, Z: c.p.Z, At: c.at(elapsed)})
+			}
+			wantHP := func(want int, when string) {
+				t.Helper()
+				if c.p.HP != want {
+					t.Fatalf("%s: HP %d, want %d", when, c.p.HP, want)
+				}
+			}
+
+			move(199.75, 0)
+			wantHP(510, "on entry")
+			move(199.5, 100*time.Millisecond)
+			wantHP(510, "moving within lava")
+
+			var lastBurn time.Duration
+			if reenter {
+				move(200.25, 200*time.Millisecond)
+				wantHP(510, "on exit")
+				lastBurn = 300 * time.Millisecond
+				move(199.75, lastBurn)
+				wantHP(20, "on reentry")
+			} else {
+				c.w.lavaSystem(c.at(lavaEveryDefault - time.Millisecond))
+				wantHP(510, "before second tick")
+				c.w.lavaSystem(c.at(lavaEveryDefault))
+				wantHP(20, "after second tick")
+				lastBurn = lavaEveryDefault
+			}
+			c.w.lavaSystem(c.at(lastBurn + lavaEveryDefault))
+			wantHP(0, "after third burn")
+			if !c.p.IsDead() {
+				t.Fatal("the third burn did not kill the player")
+			}
+		})
+	}
+}

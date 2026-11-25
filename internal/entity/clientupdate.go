@@ -240,4 +240,7 @@ func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 	w.ctfStepLocked(p, now)
 	// a fall off the Plane of Sky's islands (skyfall.go)
 	w.skyFallStepLocked(p, now)
+	if take && before != [3]float32{p.X, p.Y, p.Z} {
+		w.lavaStepLocked(p, now)
+	}
 }

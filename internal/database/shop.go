@@ -122,16 +122,19 @@ func addCharItem(exec func(string, ...any) (sql.Result, error), serverID uint32,
 // like every change here to a row in the pack or the bank, never to one kept
 // for a larger client (itemlists.go): that is an error, as a row not there is.
 func (s *InventoryStore) SetItemStack(serverID uint32, itemID, stack int) error {
-	return s.execOne(`UPDATE charinventory SET stackleft = ? WHERE itemid = ? AND `+heldOf(serverID),
-		append([]any{stack, itemID}, heldArgsOf(serverID)...)...)
+	return s.execOne(`UPDATE charinventory SET stackleft = ?, remaincharge =
+		CASE WHEN patternid = ? AND stackleft = 2 AND ? = 1 THEN remaincharge % 10 ELSE remaincharge END
+		WHERE itemid = ? AND `+heldOf(serverID), append([]any{stack, DrunkUncleProtection, stack, itemID}, heldArgsOf(serverID)...)...)
 }
 
 // ItemCharges is how many uses a new one of the item holds (itemeffect.charges),
-// 0 for an item without them or one that stacks: a stack takes uses off itself.
+// Ordinary stacks take uses off their quantity. Giblet's two-copy stacks
+// retain each copy's charges.
 func (s *InventoryStore) ItemCharges(patternID int) int {
 	var n int
 	if err := s.db.QueryRow(`SELECT e.charges FROM itemeffect e JOIN itempattern p ON p.patternid = e.patternid
-		WHERE e.patternid = ? AND p.maxstack < 2`, patternID).Scan(&n); err != nil {
+		WHERE e.patternid = ? AND (p.maxstack < 2 OR (p.maxstack = 2 AND ?))`,
+		patternID, isGibletReward(patternID)).Scan(&n); err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			log.Printf("Items: record %d's charges: %v", patternID, err)
 		}

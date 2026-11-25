@@ -2633,7 +2633,7 @@ func writeItem(w *buffer.Writer, e *database.CharInventoryEntry, key int, quick 
 	// Per-instance fields
 	w.Write7BitEncodedInt64(int64(e.StackLeft))
 	w.Write7BitEncodedInt64(int64(e.RemainHP))
-	w.Write7BitEncodedInt64(int64(e.Charges))
+	w.Write7BitEncodedInt64(int64(e.FrontCharges()))
 	w.Write7BitEncodedInt64(int64(wireEquipLoc(e.EquipLoc, capes)))
 	w.Write7BitEncodedInt64(quick)
 	w.WriteUint32(uint32(key)) // key = container position (see doc comment)

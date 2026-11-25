@@ -369,7 +369,16 @@ func (h *NPCWindowHandler) buyBack(sess *session.Session, player *entity.Player,
 		SendColoredChat(sess, buyBackNoTunar, scribeRefusalRGB[0], scribeRefusalRGB[1], scribeRefusalRGB[2])
 		return false
 	}
-	if inv.loreRoom(p, inv.wouldAdd(p.PatternID, n, p.MaxStack)) != n { // all of it or none, what AddItem would drop included
+	if p.GibletStack() {
+		// TakeBuyBack checks the full bank and pack in the transaction.
+		bankMu.Lock()
+		defer bankMu.Unlock()
+	}
+	room := inv.wouldAdd(p.PatternID, n, p.MaxStack)
+	if !p.GibletStack() {
+		room = inv.loreRoom(p, room)
+	}
+	if room != n { // all of it or none, what AddItem would drop included
 		log.Printf("BuyBack: %s has no room for %d %q", player.Name, n, p.ItemName)
 		SendColoredChat(sess, buyBackNoRoom, scribeRefusalRGB[0], scribeRefusalRGB[1], scribeRefusalRGB[2])
 		return false
@@ -382,6 +391,10 @@ func (h *NPCWindowHandler) buyBack(sess *session.Session, player *entity.Player,
 	itemID, err := h.inv.TakeBuyBack(player.CharServerID, e.ID, onto, stack, player.Tunar-e.Price)
 	if errors.Is(err, database.ErrBuyBackGone) {
 		return gone()
+	}
+	if errors.Is(err, database.ErrGibletRewardLimit) {
+		SendErrorMessage(sess, fmt.Sprintf("You can hold only two copies of %s between your inventory and bank.", p.ItemName))
+		return false
 	}
 	if err != nil {
 		log.Printf("BuyBack: %s, entry %d: %v", player.Name, e.ID, err)

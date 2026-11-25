@@ -1,3 +1,4 @@
+import json
 import sqlite3
 import unittest
 
@@ -45,10 +46,10 @@ class ThanksgivingRewardsTest(unittest.TestCase):
         self.assertEqual(self.count("gm_audit"), 6)
         self.assertEqual(run(self.db, apply=True), [])
         rows = self.db.execute("""SELECT p.itemname, p.itemdesc, p.classuse, p.raceuse, e.charges, s.price, s.says,
-                              p.itemicon, e.icon FROM tokenshop s JOIN itempattern p USING (patternid)
+                              p.itemicon, e.icon, p.maxstack, p.trade, p.lore FROM tokenshop s JOIN itempattern p USING (patternid)
                               JOIN itemeffect e USING (patternid) ORDER BY s.sort""")
         self.assertEqual([tuple(row) for row in rows], [
-            (r["name"], r["description"], 32767, 32767, r["charges"], 30, r["says"], 42, 43) for r in PLAN["rewards"]
+            (r["name"], r["description"], 32767, 32767, r["charges"], 30, r["says"], 42, 43, 2, 1, 1) for r in PLAN["rewards"]
         ])
         self.assertEqual(self.db.execute("SELECT active FROM gmseasons").fetchone()[0], 1)
         self.assertEqual(len(run(self.db, revert=True)), 6)
@@ -64,6 +65,30 @@ class ThanksgivingRewardsTest(unittest.TestCase):
         self.assertEqual(self.count("tokenshop"), 0)
         self.assertEqual(self.count("gm_audit"), 0)
         self.assertIsNone(self.db.execute("SELECT 1 FROM itempattern WHERE patternid=1000813").fetchone())
+
+    def test_upgrades_installed_patterns_in_place_with_existing_copies(self):
+        run(self.db, apply=True)
+        with self.db:
+            self.db.execute("UPDATE itempattern SET maxstack=1, trade=0, lore=0, itemdesc='edited' WHERE patternid IN (1000813,1000814)")
+            self.db.execute("INSERT INTO charinventory VALUES (1000814)")
+        self.assertEqual(len(run(self.db)), 2)
+        self.assertEqual(self.count("gm_audit"), 6)
+        self.assertEqual(len(run(self.db, apply=True)), 2)
+        self.assertEqual(run(self.db, apply=True), [])
+        self.assertEqual(self.count("charinventory"), 1)
+        changes = self.db.execute("SELECT tbl, before, after FROM gm_audit WHERE action='update'")
+        for table, before, after in changes:
+            old, new = json.loads(before), json.loads(after)
+            self.assertEqual(table, "itempattern")
+            self.assertEqual(old | {"maxstack": 2, "trade": 1, "lore": 1}, new)
+            self.assertEqual(new["itemdesc"], "edited")
+
+        with self.db:
+            self.db.execute("UPDATE itempattern SET maxstack=1, trade=0, lore=0 WHERE patternid=1000813")
+            self.db.execute("UPDATE itempattern SET maxstack=7 WHERE patternid=1000814")
+        with self.assertRaisesRegex(ValueError, "Existing itempattern"):
+            run(self.db, apply=True)
+        self.assertEqual(self.db.execute("SELECT maxstack FROM itempattern WHERE patternid=1000813").fetchone()[0], 1)
 
     def test_other_shard_is_refused(self):
         with self.db:

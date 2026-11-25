@@ -1,10 +1,14 @@
 package entity
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/eqoa/server/internal/database"
+)
 
 const (
-	drunkUncleProtection = 1000813
-	yellingAtCousins     = 1000814
+	drunkUncleProtection = database.DrunkUncleProtection
+	yellingAtCousins     = database.YellingAtCousins
 )
 
 func isDrunkUncleProtection(spellID int, name string) bool {

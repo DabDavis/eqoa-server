@@ -176,25 +176,50 @@ func (s *InventoryStore) BuyChargedMarkShopItem(stockID int, p TokenShopPurchase
 		return item, 0, err
 	}
 	defer tx.Rollback()
-	err = tx.QueryRow(`SELECT p.maxHP, e.charges FROM tokenshop t
+	pattern := ItemPatternRecord{PatternID: p.PatternID}
+	err = tx.QueryRow(`SELECT p.maxHP, e.charges, p.maxstack FROM tokenshop t
 		JOIN itempattern p ON p.patternid = t.patternid JOIN itemeffect e ON e.patternid = t.patternid
 		WHERE t.id = ? AND t.shop = ? AND t.patternid = ? AND p.itemname = ?
-		AND t.price = ? AND t.price > 0 AND trim(t.token) = ? COLLATE NOCASE AND p.maxstack = 1 AND e.charges > 0
+		AND t.price = ? AND t.price > 0 AND trim(t.token) = ? COLLATE NOCASE AND e.charges > 0
 		AND NOT EXISTS (SELECT 1 FROM npcseason n LEFT JOIN gmseasons g ON g.name = n.season
 			WHERE n.name = lower(trim(t.shop)) AND trim(n.season) <> '' AND coalesce(g.active, 0) = 0)`,
-		stockID, p.Shop, p.PatternID, p.Item, p.Price, HeirloomMarksShopToken).Scan(&item.RemainHP, &item.Charges)
+		stockID, p.Shop, p.PatternID, p.Item, p.Price, HeirloomMarksShopToken).Scan(&item.RemainHP, &item.Charges, &pattern.MaxStack)
 	if errors.Is(err, sql.ErrNoRows) {
 		return item, 0, ErrMarkShopStockChanged
 	}
 	if err != nil {
 		return item, 0, err
 	}
+	if pattern.MaxStack != 1 && !pattern.GibletStack() {
+		return item, 0, ErrMarkShopStockChanged
+	}
+	if isGibletReward(p.PatternID) {
+		n, err := gibletRewardHeld(tx, p.ServerID, p.PatternID)
+		if err != nil {
+			return item, 0, err
+		}
+		if n >= GibletRewardLimit {
+			return item, 0, ErrGibletRewardLimit
+		}
+	}
 	marks, err := spendMarksTx(tx, p.ServerID, p.Price, p.Item, nil, p.At)
 	if err != nil {
 		return item, marks.Marks, err
 	}
 	item.StackLeft, item.EquipLoc, item.Location = 1, -1, LocPack
-	item.ItemID, err = addCharItem(tx.Exec, p.ServerID, p.PatternID, item.StackLeft, item.RemainHP, item.Charges, item.Location)
+	if pattern.GibletStack() {
+		// Below the cap, at most one copy can already be in the pack.
+		err = tx.QueryRow(`SELECT itemid FROM charinventory WHERE serverid = ? AND patternid = ? AND location = 0 LIMIT 1`,
+			p.ServerID, p.PatternID).Scan(&item.ItemID)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return item, 0, err
+		}
+	}
+	if item.ItemID != 0 {
+		err = addGibletCopy(tx, p.ServerID, p.PatternID, LocPack, item.ItemID, item.Charges)
+	} else {
+		item.ItemID, err = addCharItem(tx.Exec, p.ServerID, p.PatternID, 1, item.RemainHP, item.Charges, LocPack)
+	}
 	if err != nil {
 		return item, 0, err
 	}

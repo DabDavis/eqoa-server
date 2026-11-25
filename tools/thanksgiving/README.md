@@ -67,6 +67,8 @@ Load the staged data using the patched Heirloom server. Fire GM trigger **341, T
 
 With the Thanksgiving content already staged and the server built with marks shop support, preview and install the two items with `install_mark_rewards.py`. This works with the season open or closed. It adds two item patterns, two uses and two stock entries in one audited transaction. `--undo` is available before the items enter circulation. Closing Thanksgiving stops sales. Purchased charges remain usable.
 
+Run the installer on the updated Heirloom build to upgrade an existing shop. It updates only the two item patterns. Each reward is No Trade and Lore and stacks to two. Giblet counts copies of that reward in the buyer's pack and bank, including the shared bank when available. A refused purchase costs no marks. Each Drunk uncle protection has three charges and each Yelling at cousins has one.
+
 ```sh
 python3 tools/thanksgiving/install_mark_rewards.py --db /path/to/heirloom-copy.db
 python3 tools/thanksgiving/install_mark_rewards.py --db /path/to/heirloom.db --apply

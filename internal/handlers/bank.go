@@ -149,7 +149,14 @@ func (h *NPCWindowHandler) bankItem(sess *session.Session, id uint32, fromBank b
 		return false
 	}
 	p := &row.Pattern
-	if fromBank && p.Lore != 0 && (dst.held(p.PatternID) > 0 || dst.keptHas(p.PatternID)) {
+	if fromBank && p.GibletStack() {
+		held, err := h.inv.GibletPackCount(player.CharServerID, p.PatternID)
+		if err != nil || held >= database.GibletRewardLimit {
+			SendErrorMessage(sess, fmt.Sprintf("You can carry only two copies of %s.", p.ItemName))
+			return false
+		}
+		n = min(n, database.GibletRewardLimit-held)
+	} else if fromBank && p.Lore != 0 && (dst.held(p.PatternID) > 0 || dst.keptHas(p.PatternID)) {
 		// a Lore item one of the account's characters banked, out to one that
 		// holds one already (itemlist.go's bankShared, petition 2453)
 		log.Printf("BankItem: %s takes out Lore %q, holding one", player.Name, p.ItemName)
@@ -202,6 +209,24 @@ func (h *NPCWindowHandler) bankItem(sess *session.Session, id uint32, fromBank b
 		dstKey, _ = dst.add(rec.itemID, p.PatternID, took, p.MaxStack)
 		w := wireRecord(row)
 		w.StackLeft = took
+		out = &w
+	} else if p.GibletStack() {
+		part := database.GibletBankPart{Count: took}
+		if j := dst.stackOnto(p.PatternID, p.MaxStack); j >= 0 {
+			onto, _ := dst.at(j)
+			part.ItemID = onto.itemID
+		}
+		moved, err := h.inv.MoveGibletCopies(player.CharServerID, row, dstLoc, []database.GibletBankPart{part})
+		if err != nil {
+			log.Printf("BankItem: %s: %v", player.Name, err)
+			return false
+		}
+		src.took(i, took)
+		dstKey, _ = dst.add(moved.ItemID, p.PatternID, took, p.MaxStack)
+		if took == rec.qty {
+			h.carryInstanceAura(rec.itemID, moved.ItemID)
+		}
+		w := wireRecord(moved)
 		out = &w
 	} else {
 		// Part of a stack, or onto a stack already there.
@@ -300,6 +325,19 @@ func (h *NPCWindowHandler) bankDepositUnshown(sess *session.Session, player *ent
 	if len(tops) == 0 && n == rec.qty {
 		// the whole record crosses as it is: the row changes location
 		if err := h.inv.MoveCharItem(player.CharServerID, rec.itemID, database.LocBank); err != nil {
+			log.Printf("BankItem: %s: %v", player.Name, err)
+			return false
+		}
+		inv.took(i, n)
+	} else if p.GibletStack() {
+		var parts []database.GibletBankPart
+		for _, top := range tops {
+			parts = append(parts, database.GibletBankPart{ItemID: top.itemID, Count: top.add})
+		}
+		if left > 0 {
+			parts = append(parts, database.GibletBankPart{Count: left})
+		}
+		if _, err := h.inv.MoveGibletCopies(player.CharServerID, row, database.LocBank, parts); err != nil {
 			log.Printf("BankItem: %s: %v", player.Name, err)
 			return false
 		}

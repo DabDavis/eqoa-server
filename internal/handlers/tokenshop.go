@@ -74,6 +74,8 @@ func factionOfToken(token string) string {
 // tokenShopBoxMark marks a token shop's questions' ids.
 const tokenShopBoxMark = 0x66000000
 
+const gibletLimitLine = "You already have two copies of %s between your inventory and bank. Use up or delete a copy before buying another."
+
 // IsTokenShopBox reports a box a token shop asked.
 func IsTokenShopBox(id uint32) bool { return id&0xFF000000 == tokenShopBoxMark }
 
@@ -319,7 +321,7 @@ func (t *TokenShop) stock(shop string) ([]tokenWare, error) {
 			continue
 		}
 		if strings.EqualFold(strings.TrimSpace(r.Token), database.HeirloomMarksShopToken) {
-			if HeirloomMarksOn() && pat.MaxStack == 1 {
+			if HeirloomMarksOn() && (pat.MaxStack == 1 || pat.GibletStack()) {
 				out = append(out, tokenWare{row: r, pat: *pat, tname: "Heirloom Mark", marks: true})
 			}
 			continue
@@ -510,6 +512,16 @@ func (t *TokenShop) refusal(sess *session.Session, p *entity.Player, w tokenWare
 		if !HeirloomMarksOn() {
 			return tokenShopClosed, nil, 0
 		}
+		if w.pat.GibletStack() {
+			n, err := t.inv.GibletRewardHeld(p.CharServerID, w.pat.PatternID)
+			if err != nil {
+				log.Printf("TokenShop: counting %s for %s: %v", name, p.Name, err)
+				return tokenShopFailed, nil, 0
+			}
+			if n >= database.GibletRewardLimit {
+				return fmt.Sprintf(gibletLimitLine, name), nil, 0
+			}
+		}
 		if have = t.have(sess, p, w); have < w.row.Price {
 			return fmt.Sprintf(tokenShopShort, theItem(name), w.priceWords(w.row.Price), have, w.row.Price-have), nil, have
 		}
@@ -538,7 +550,7 @@ func (t *TokenShop) refusal(sess *session.Session, p *entity.Player, w tokenWare
 	if l == nil {
 		return tokenShopFailed, held, have
 	}
-	if w.pat.Lore != 0 && l.loreHeld(w.pat.PatternID) {
+	if w.pat.Lore != 0 && !(w.marks && w.pat.GibletStack()) && l.loreHeld(w.pat.PatternID) {
 		return fmt.Sprintf(loreLine, name), held, have
 	}
 	short := packShort(l, nil, []database.ItemCount{{PatternID: w.pat.PatternID, Count: 1}},
@@ -598,12 +610,21 @@ func (t *TokenShop) buy(sess *session.Session, p *entity.Player, asked tokenWare
 }
 
 func (t *TokenShop) buyForMarks(sess *session.Session, p *entity.Player, w tokenWare, speaker string) {
+	bankMu.Lock()
+	defer bankMu.Unlock()
+	l := sessionInvList(sess)
+	if l == nil || l.wouldAdd(w.pat.PatternID, 1, w.pat.MaxStack) < 1 {
+		t.say(sess, speaker, fmt.Sprintf(questPackFull, theItem(w.pat.ItemName)))
+		return
+	}
 	item, left, err := t.inv.BuyChargedMarkShopItem(w.row.ID, database.TokenShopPurchase{
 		At: t.now(), ServerID: p.CharServerID, CharName: p.Name, AccountID: sess.AccountID(),
 		Shop: w.row.Shop, PatternID: w.pat.PatternID, Item: w.pat.ItemName, Price: w.row.Price, Token: w.row.Token,
 	})
 	name := strings.TrimSpace(w.pat.ItemName)
 	switch {
+	case errors.Is(err, database.ErrGibletRewardLimit):
+		t.say(sess, speaker, fmt.Sprintf(gibletLimitLine, name))
 	case errors.Is(err, database.ErrMarkShopStockChanged):
 		t.say(sess, speaker, tokenShopChanged)
 	case errors.Is(err, database.ErrNotEnoughMarks):
@@ -613,7 +634,7 @@ func (t *TokenShop) buyForMarks(sess *session.Session, p *entity.Player, w token
 		t.say(sess, speaker, "I could not hand it over. You keep your Heirloom Marks.")
 	default:
 		item.Pattern = w.pat
-		key, _ := sessionInvList(sess).add(item.ItemID, w.pat.PatternID, item.StackLeft, w.pat.MaxStack)
+		key, _ := l.add(item.ItemID, w.pat.PatternID, item.StackLeft, w.pat.MaxStack)
 		out := wireRecord(item)
 		queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(&out, key, readsCapes(sess)))
 		t.say(sess, speaker, fmt.Sprintf(tokenShopBought, theItem(name), reagentWords(w.tname, left)))

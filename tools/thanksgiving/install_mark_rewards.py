@@ -76,8 +76,23 @@ def install(db):
             raise ValueError(f"Missing donor for {reward['name']}")
         donor.update(patternid=pattern, itemname=reward["name"], itemdesc=reward["description"],
                      itemcost=0, equipslot=-1, attacktype=0, weaponproc=0, levelreq=1,
-                     trade=0, rent=1, lore=0, maxstack=1, raceuse=32767, classuse=32767)
-        receipts.append(put(db, "itempattern", item_key, donor))
+                     rent=1, raceuse=32767, classuse=32767, **PLAN["item_flags"])
+        current = get(db, "itempattern", item_key)
+        if current and current["itemname"] == reward["name"]:
+            flags = {k: current[k] for k in PLAN["item_flags"]}
+            original = db.execute(
+                "SELECT 1 FROM gm_audit WHERE via=? AND detail=? AND tbl='itempattern' AND rowkey=? AND action='insert' LIMIT 1",
+                (VIA, DETAIL, as_json(item_key)),
+            ).fetchone()
+            if original and flags == {"trade": 0, "lore": 0, "maxstack": 1}:
+                db.execute("UPDATE itempattern SET maxstack=:maxstack, trade=:trade, lore=:lore WHERE patternid=:patternid",
+                           dict(PLAN["item_flags"], patternid=pattern))
+                updated = get(db, "itempattern", item_key)
+                receipts.append(audit(db, "update", "itempattern", item_key, current, updated))
+            elif not original or flags != PLAN["item_flags"]:
+                raise ValueError(f"Existing itempattern row differs: {item_key}")
+        else:
+            receipts.append(put(db, "itempattern", item_key, donor))
         receipts.append(put(db, "itemeffect", item_key, dict(
             item_key, line=reward["line"], name=reward["name"], icon=effect["icon"],
             breaks="", wear=0, area=0, body=0, target_line="", charges=reward["charges"],
@@ -111,7 +126,7 @@ def undo(db):
             if current is None:
                 continue
             initial = db.execute(
-                """SELECT after FROM gm_audit WHERE via = ? AND detail = ? AND action = 'insert' AND tbl = ? AND rowkey = ?
+                """SELECT after FROM gm_audit WHERE via = ? AND detail = ? AND action IN ('insert','update') AND tbl = ? AND rowkey = ?
                    ORDER BY id DESC LIMIT 1""",
                 (VIA, DETAIL, table, as_json(key)),
             ).fetchone()

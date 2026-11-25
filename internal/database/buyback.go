@@ -88,7 +88,7 @@ func (s *InventoryStore) AddBuyBack(serverID uint32, row *CharInventoryEntry, n,
 	}
 	res, err := tx.Exec(`INSERT INTO charbuyback (serverid, patternid, stack, remainhp, charges, price, how, made)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-		serverID, row.Pattern.PatternID, n, row.RemainHP, row.Charges, price, how, time.Now().UTC().Format(time.RFC3339))
+		serverID, row.Pattern.PatternID, n, row.RemainHP, row.movedCharges(n), price, how, time.Now().UTC().Format(time.RFC3339))
 	if err != nil {
 		return 0, false, err
 	}
@@ -170,6 +170,15 @@ func (s *InventoryStore) TakeBuyBack(serverID uint32, id int64, onto, ontoStack,
 	if err != nil {
 		return 0, err
 	}
+	if isGibletReward(pattern) {
+		held, err := gibletRewardHeld(tx, serverID, pattern)
+		if err != nil {
+			return 0, err
+		}
+		if held+stack > GibletRewardLimit {
+			return 0, ErrGibletRewardLimit
+		}
+	}
 	one := func(res sql.Result, err error) error {
 		if err != nil {
 			return err
@@ -183,7 +192,14 @@ func (s *InventoryStore) TakeBuyBack(serverID uint32, id int64, onto, ontoStack,
 		return 0, err
 	}
 	itemID := onto
-	if onto > 0 {
+	if onto > 0 && isGibletReward(pattern) {
+		if stack != 1 || ontoStack != GibletRewardLimit {
+			return 0, ErrGibletRewardLimit
+		}
+		if err := addGibletCopy(tx, serverID, pattern, LocPack, onto, charges); err != nil {
+			return 0, err
+		}
+	} else if onto > 0 {
 		if err := one(tx.Exec(`UPDATE charinventory SET stackleft = ? WHERE itemid = ? AND serverid = ?`, ontoStack, onto, serverID)); err != nil {
 			return 0, err
 		}

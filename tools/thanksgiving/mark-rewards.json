@@ -5,6 +5,7 @@
   "source": "thanksgiving-2026-marks",
   "token": "currency:heirloom-marks",
   "price": 30,
+  "item_flags": {"maxstack": 2, "trade": 1, "lore": 1},
   "rewards": [
     {
       "patternid": 1000813,

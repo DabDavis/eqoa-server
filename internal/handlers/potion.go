@@ -237,6 +237,32 @@ func (h *EquipHandler) keepTraining(player *entity.Player, item string, at time.
 // Msg003E counts its copy down (VIItemList::UseCharge) and takes the item at 0, so
 // the last one takes the record here too.
 func (h *EquipHandler) spendCharge(sess *session.Session, player *entity.Player, idx int, row *database.CharInventoryEntry) error {
+	if row.Pattern.GibletStack() && row.StackLeft == 2 && row.FrontCharges() == 1 {
+		next, err := h.inventoryStore.FinishGibletCopy(player.CharServerID, *row)
+		if err != nil {
+			return err
+		}
+		l := sessionInvList(sess)
+		if next == 1 {
+			l.took(idx, 1)
+			queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(idx, 0, 1))
+		} else {
+			// Replace the record so the client displays the spare's own charges.
+			l.took(idx, 2)
+			queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(idx, 0, 2))
+			out := wireRecord(*row)
+			out.StackLeft, out.Charges = 1, next
+			key, _ := l.add(row.ItemID, row.Pattern.PatternID, 1, row.Pattern.MaxStack)
+			queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(&out, key, readsCapes(sess)))
+			slots, err := h.inventoryStore.QuickSlotsOf(player.CharServerID)
+			if err != nil {
+				log.Printf("Potion: %s's quick slots: %v", player.Name, err)
+			} else if pos, ok := slots[row.ItemID]; ok {
+				queueReliable(sess, protocol.OpcodePrepareItem, buildPrepareItem(l.index(key), pos))
+			}
+		}
+		return nil
+	}
 	var err error
 	if row.Charges <= 1 {
 		err = h.takeOne(sess, player, idx, row)

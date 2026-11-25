@@ -141,13 +141,18 @@ func personalBank(q sqlRunner, serverID uint32) bool {
 // rows at location 1, or with the account bank its account's (a Hardcore
 // character's own: hcBankSplit).
 func bankCond(p string, serverID uint32) (string, []any) {
+	owners, args := bankOwnerCond(p, serverID)
+	return p + "location = 1 AND " + owners, args
+}
+
+func bankOwnerCond(p string, serverID uint32) (string, []any) {
 	if !AccountBankOn() {
-		return p + "serverid = ? AND " + p + "location = 1", []any{serverID}
+		return p + "serverid = ?", []any{serverID}
 	}
 	if hcBankSplit() {
-		return p + "location = 1 AND " + p + "serverid IN " + bankOwnersHCSplitSQL, []any{serverID, serverID, serverID}
+		return p + "serverid IN " + bankOwnersHCSplitSQL, []any{serverID, serverID, serverID}
 	}
-	return p + "location = 1 AND " + p + "serverid IN " + bankOwnersSQL, []any{serverID, serverID}
+	return p + "serverid IN " + bankOwnersSQL, []any{serverID, serverID}
 }
 
 // heldCond is the SQL condition on a row being one the character holds: in its

@@ -32,19 +32,23 @@ package entity
 //     duelTickLocked, a pet's petTickLocked).
 //   - numberShield: a damage shield's answer to a melee hit on the player or
 //     its pet (playerShieldsLocked, petShieldsLocked, duelAnswerLocked).
-//   - numberProc: whatever a proc does: an effect's proc and its life steal's
-//     heal (playerProcsLocked, procTapLocked), a proc heal (procHealsLocked),
-//     a weapon's proc, its tap's heal, its restore and its damage over time's
-//     ticks (weaponproc.go), a spell proc's hit, heal and ticks
+//   - numberProc: whatever a proc does that hurts: an effect's proc
+//     (playerProcsLocked), a weapon's proc, its tap's hit and its damage over
+//     time's ticks (weaponproc.go), a spell proc's hit and ticks
 //     (workbookmore.go), a defensive proc (shieldAnswers' proc), a worn
-//     item's answer and heal at a hit (wornshield.go), a mark's heal at a
-//     weapon's hit (markheal.go), a pet's template proc and its effects' procs
-//     (petTemplateProcLocked, petProcsLocked), and the same in a duel
-//     (duelprocs.go).
+//     item's answer at a hit (wornshield.go), a pet's template proc and its
+//     effects' procs (petTemplateProcLocked, petProcsLocked), and the same in
+//     a duel (duelprocs.go). What a proc HEALS is a heal's (numberHeal,
+//     below): petition 3022, the owner 2026-11-25, "you can draw proc heals in
+//     green".
 //   - numberHeal: a spell's heal, direct or area, on the player itself,
 //     another player or a pet (landOnPlayerLocked, landOnPetLocked), a spell's
 //     own part for its caster (landOnCasterLocked), a drain's or a life tap's
-//     take (drainLocked), a drunk potion's; a pet's heal on itself or its
+//     take (drainLocked), a drunk potion's; every proc's heal, on its bearer
+//     and the group members it reaches (procHealLocked: a life steal's, a
+//     proc heal's, Crusader's Aura's, a weapon's tap and restore, a spell
+//     proc's share for its bearer, a duel's), a worn item's heal at a hit
+//     (wornshield.go), a mark's heal at a weapon's hit (markheal.go); a pet's heal on itself or its
 //     owner, and its tap's take (tellPetHealLocked, petLandLocked, pettap.go).
 //   - numberHoT: a heal over time's tick (runTickLocked; on a pet or a merc
 //     tellNPCHoTLocked), a spell's HoT stat at the regen tick
@@ -149,12 +153,14 @@ func (f castFigures) kind(heal, tick bool) numberKind {
 	switch {
 	case f == figuresGift:
 		return 0
-	case f == figuresProc && !(heal && tick):
-		// a proc's figure is a proc's, but for the ticks of a heal over time a
-		// proc set going (Fervor's, Tribal Ward's: workbookmore.go), told as a
-		// heal over time's (the GM's petition, 2026-11-20: "Fervor's heal over
-		// time component is healing, but the display numbers are the same color
-		// as damage when they should be green healing")
+	case f == figuresProc && !heal:
+		// a proc's figure that hurts is a proc's; one that heals is a heal's:
+		// the ticks of a heal over time a proc set going (Fervor's, Tribal
+		// Ward's: workbookmore.go) a heal over time's (the GM's petition,
+		// 2026-11-20: "Fervor's heal over time component is healing, but the
+		// display numbers are the same color as damage when they should be
+		// green healing"), its instant heal a heal's (petition 3022; the
+		// owner, 2026-11-25: "you can draw proc heals in green")
 		return numberProc
 	case heal && tick:
 		k = numberHoT

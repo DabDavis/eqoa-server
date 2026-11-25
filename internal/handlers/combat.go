@@ -124,7 +124,7 @@ func swingOf(gw *entity.World, inv *database.InventoryStore, sess *session.Sessi
 	var rows []database.CharInventoryEntry
 	if inv != nil {
 		var err error
-		rows, err = inv.GetCharacterItems(p.CharServerID)
+		rows, err = inv.GetPackItems(p.CharServerID) // the pack alone: every target asks (handsChanged)
 		if err != nil {
 			log.Printf("Attack: inventory for %s: %v", p.Name, err)
 		}

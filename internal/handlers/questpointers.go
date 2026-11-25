@@ -114,6 +114,16 @@ func (q *QuestEngine) pointersLocked(look *factionLook, p *entity.Player, c *que
 	if !NextGiverPointer() || p == nil || c == nil || len(q.cat.successors) == 0 {
 		return nil
 	}
+	// One read of the pack for all of them (questpass.go): each mayTakeLocked
+	// below read it whole again (GetCharacterItems, the account's bank and
+	// every record's columns) for every successor of every finished quest,
+	// every character, every second (syncPointers): a third of the live
+	// Heirloom server's CPU with 66 players and the database's one connection
+	// held from the tick's own writes (a profile, 2026-11-25: petition 2987's
+	// lock-ups). A pass already open for p (a marks pass) is kept.
+	if q.pass == nil {
+		defer q.beginPassLocked(p)()
+	}
 	// the finished quests, the latest first
 	var done []*database.CharQuest
 	for _, cq := range c.quests {
@@ -464,6 +474,7 @@ func (q *QuestEngine) syncPointers() {
 	}
 	q.mu.Lock()
 	defer q.mu.Unlock()
+	defer q.beginSyncLocked()() // one read of the Ascended table for every pass (questpass.go)
 	for id, c := range q.chars {
 		if len(c.pointerIDs) == 0 && !NextGiverPointer() {
 			continue

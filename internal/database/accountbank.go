@@ -82,7 +82,7 @@ const bankOwnersSQL = `(SELECT o.serverid FROM characters o WHERE o.accountid = 
 // stays)"): where world.hardcore is on (SetHardcoreBankCheck), a Hardcore
 // character's bank is its own rows and its own characters.bankTunar, as without
 // the account bank, and the account's bank is its other characters' alone
-// (bankOwnersNonHCSQL); a Hardcore character deleted leaves nothing to it
+// (bankOwnersHCSplitSQL); a Hardcore character deleted leaves nothing to it
 // (keepBankRowsTx).
 var hcBankCheck atomic.Pointer[func() bool]
 
@@ -104,13 +104,21 @@ func hcBankSplit() bool {
 	return f != nil && (*f)()
 }
 
-// hcCharSQL is true for the Hardcore character its ? names.
-const hcCharSQL = `EXISTS (SELECT 1 FROM characters hc WHERE hc.serverid = ? AND COALESCE(hc.hardcore, 0) = 1)`
-
-// bankOwnersNonHCSQL is bankOwnersSQL without the account's Hardcore characters.
-const bankOwnersNonHCSQL = `(SELECT o.serverid FROM characters o WHERE o.accountid = (SELECT a.accountid FROM characters a WHERE a.serverid = ?)
+// bankOwnersHCSplitSQL is the serverids whose bank rows are the bank of the
+// character its three ?s name (its server id, thrice) where the account bank
+// is kept from Hardcore characters: the character alone when it is a Hardcore
+// one, else bankOwnersSQL without the account's Hardcore characters. It is one
+// list for "serverid IN", which SQLite answers from idx_charinventory_serverid;
+// the CASE WHEN <a Hardcore character> THEN serverid = ? ELSE serverid IN ... END it
+// replaces could use no index, so every read of a bank or of a character's
+// held rows (GetCharacterItems: each target, each swing's hands) scanned all of
+// charinventory, 75,714 rows on Heirloom (a profile, 2026-11-25: petition
+// 2987's lock-ups). The same rows: the first part yields the character when it
+// is a Hardcore one, the other two only when it is not.
+const bankOwnersHCSplitSQL = `(SELECT hc.serverid FROM characters hc WHERE hc.serverid = ? AND COALESCE(hc.hardcore, 0) = 1
+	UNION ALL SELECT o.serverid FROM characters o WHERE o.accountid = (SELECT a.accountid FROM characters a WHERE a.serverid = ? AND COALESCE(a.hardcore, 0) = 0)
 		AND COALESCE(o.hardcore, 0) = 0
-	UNION ALL SELECT h.serverid FROM accountbank_holders h WHERE h.accountid = (SELECT a.accountid FROM characters a WHERE a.serverid = ?))`
+	UNION ALL SELECT h.serverid FROM accountbank_holders h WHERE h.accountid = (SELECT a.accountid FROM characters a WHERE a.serverid = ? AND COALESCE(a.hardcore, 0) = 0))`
 
 // personalBank reports a character whose bank is its own: every character
 // without the account bank, a Hardcore one with it (hcBankSplit).
@@ -137,8 +145,7 @@ func bankCond(p string, serverID uint32) (string, []any) {
 		return p + "serverid = ? AND " + p + "location = 1", []any{serverID}
 	}
 	if hcBankSplit() {
-		return p + "location = 1 AND (CASE WHEN " + hcCharSQL + " THEN " + p + "serverid = ? ELSE " + p + "serverid IN " +
-			bankOwnersNonHCSQL + " END)", []any{serverID, serverID, serverID, serverID}
+		return p + "location = 1 AND " + p + "serverid IN " + bankOwnersHCSplitSQL, []any{serverID, serverID, serverID}
 	}
 	return p + "location = 1 AND " + p + "serverid IN " + bankOwnersSQL, []any{serverID, serverID}
 }

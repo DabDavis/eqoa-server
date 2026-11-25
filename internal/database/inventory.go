@@ -34,6 +34,20 @@ type CharInventoryEntry struct {
 func (s *InventoryStore) GetCharacterItems(serverID uint32) ([]CharInventoryEntry, error) {
 	// with the account bank, the pack's rows and the account's bank (accountbank.go)
 	held, args := heldCond("c.", serverID)
+	return s.itemsWhere(serverID, held, args)
+}
+
+// GetPackItems is GetCharacterItems' pack rows alone (location 0: worn and
+// carried), in its order: no bank, so no account bank's rows to read and view.
+// For what reads only the pack and asks often (a swing's hands, at each
+// target: handlers/combat.go's swingOf).
+func (s *InventoryStore) GetPackItems(serverID uint32) ([]CharInventoryEntry, error) {
+	return s.itemsWhere(serverID, `c.serverid = ? AND c.location = 0`, []any{serverID})
+}
+
+// itemsWhere is GetCharacterItems' read of the rows cond (on charinventory c)
+// takes, serverID's view of their records.
+func (s *InventoryStore) itemsWhere(serverID uint32, cond string, args []any) ([]CharInventoryEntry, error) {
 	order := `c.location, c.listnumber`
 	if AccountBankOn() {
 		order += `, c.itemid`
@@ -48,7 +62,7 @@ func (s *InventoryStore) GetCharacterItems(serverID uint32) ([]CharInventoryEntr
 			p.HPMAX, p.POWMAX, p.PoT, p.HoT, p.AC, p.PR, p.DR, p.FR, p.CR, p.LR, p.AR
 		FROM charinventory c
 		JOIN itempattern p ON c.patternid = p.patternid
-		WHERE `+held+`
+		WHERE `+cond+`
 		ORDER BY `+order, args...)
 	if err != nil {
 		return nil, err

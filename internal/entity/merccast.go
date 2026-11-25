@@ -322,7 +322,7 @@ func (ms *mercState) mercBook() []mercSpell {
 				default:
 					continue // a fight's buff
 				}
-			} else if s.Level*mercBuffFloor < ms.kit.Level && mercPlainBuff(s) {
+			} else if s.Level*mercBuffFloor < ms.kit.Level && mercPlainBuff(s) && !mercResistBuff(s) {
 				continue // far beneath it: a level 1 +1 INT at 60 (mercBuffFloor)
 			}
 		}
@@ -354,6 +354,21 @@ func mercPlainBuff(s *CastSpell) bool {
 		}
 	}
 	return len(s.Def.Effects) > 0
+}
+
+// mercResistBuff is whether a buff raises a resist (FR to AR): the floor
+// (mercBuffFloor) is not held to it. A class's resist line may be one spell of
+// a low level that is still the class's at 60 (Heirloom petition 3095: the
+// enchanter's Endure Arcane, level 7, AR 25 + 5% CHA, its only arcane resist
+// buff, was left out of every enchanter merc's book past level 21); a
+// stronger one of its line still takes it out (mercBestBuffs).
+func mercResistBuff(s *CastSpell) bool {
+	for _, e := range s.Def.Effects {
+		if e.Kind == EffectStat && !e.Self && e.Amount > 0 && e.Stat >= StatFR && e.Stat <= StatAR {
+			return true
+		}
+	}
+	return false
 }
 
 // mercBestBuffs is the book with each buff line's best alone (the owner,

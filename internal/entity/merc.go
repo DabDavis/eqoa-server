@@ -196,6 +196,9 @@ type MercLook struct {
 	// WornItems: the copies held in the hands (Player.WornItems): its own
 	// records' (-charmercitem.id), 0 an heirloom it is lent
 	WornItems [AuraSlots]int `json:",omitempty"`
+	// Hidden is the parts of its look its hirer hides (HideHelm: /merc helm
+	// off, petition 2965): shown as nothing worn, their auras too
+	Hidden uint16 `json:",omitempty"`
 }
 
 // mercState is one merc, kept by its owner's id and its slot.
@@ -619,6 +622,10 @@ func (w *World) dressMercLocked(n *NPC, k *MercKit, owner *Player) {
 	n.PrimaryWeapon, n.SecondaryWeapon, n.Shield = int(l.Primary), int(l.Secondary), int(l.Shield)
 	n.PrimaryType, n.SecondaryType = l.PrimaryType, l.SecondaryType
 	n.WornPieces, n.WornMask, n.WornItems = l.WornPieces, l.WornMask, l.WornItems
+	n.HiddenParts = l.Hidden
+	if l.Hidden&HideHelm != 0 {
+		n.Head = 0
+	}
 	n.Class = k.Class
 }
 

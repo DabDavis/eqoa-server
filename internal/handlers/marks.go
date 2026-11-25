@@ -104,6 +104,11 @@ type HeirloomMarks struct {
 	seq     uint32
 	ringAt  map[uint32]time.Time // a ring's last use, by character
 
+	// levels is each camp zone's creature levels (hotzones.go zoneLevels), kept zoneLevelsTTL; its
+	// own lock, never held while the World's is taken
+	levMu  sync.Mutex
+	levels map[int]zoneLevels
+
 	events chan func()
 	inline bool // tests: every event at once, in the caller
 }
@@ -408,7 +413,7 @@ func (m *HeirloomMarks) enabledZones() []database.HotZone {
 	return out
 }
 
-// zonesPart is /marks's end: "Hot zones: Hexbones (+10%), Erudite homeland quests (+10%)."
+// zonesPart is /marks's end: "Hot zones: Hexbones (+10%, levels 8-12), Erudite homeland quests (+10%)."
 func (m *HeirloomMarks) zonesPart() string {
 	on := m.enabledZones()
 	if len(on) == 0 {
@@ -416,7 +421,7 @@ func (m *HeirloomMarks) zonesPart() string {
 	}
 	parts := make([]string, len(on))
 	for i, z := range on {
-		parts[i] = fmt.Sprintf("%s (+%d%%%s)", z.Name, z.BonusPct, open60Part(z))
+		parts[i] = fmt.Sprintf("%s (+%d%%%s%s)", z.Name, z.BonusPct, commaPart(m.zoneLevelsPart(z)), open60Part(z))
 	}
 	return "Hot zones: " + strings.Join(parts, ", ") + "."
 }

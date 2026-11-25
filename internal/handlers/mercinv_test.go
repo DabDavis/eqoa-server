@@ -466,3 +466,61 @@ func TestMercAlchemistStockOverRestartAndDismissal(t *testing.T) {
 		t.Errorf("after a keep restart the World's stock %v, want the 25 kept", st)
 	}
 }
+
+// Petition 2965: /merc helm off hides the helm's look of the merc (it still wears it), at once on its
+// NPC (the channel every client reads), kept in its row so a kit made again (a login, a keep restart's
+// Restore) hides it too; /merc helm alone turns it over, on shows it. A tell's body "helm off" is /merc's.
+func TestMercHelmHidden(t *testing.T) {
+	r, m, db := newMercFixture(t)
+	n := func(v int) *int { return &v }
+	const itHelm = 910010
+	putItem(t, db, database.ItemPatternRecord{PatternID: itHelm, ItemName: "Iron Helm", EquipSlot: 1, LevelReq: 1, AC: n(5), Model: 7})
+	if _, err := db.Exec(`UPDATE itempattern SET rent = 0 WHERE patternid = ?`, itHelm); err != nil {
+		t.Fatal(err)
+	}
+	m.hireWith(r.anna, r.pa, 0, 0, 0, -1)
+	r.pack(db, [2]int{itHelm, 1})
+	m.Command(r.anna, r.pa, "give iron helm")
+	m.Command(r.anna, r.pa, "equip iron helm")
+	merc := func() *entity.NPC {
+		for _, x := range r.gw.NPCs {
+			if x.IsMerc() {
+				return x
+			}
+		}
+		t.Fatal("no merc out")
+		return nil
+	}
+	if merc().Head != 7 {
+		t.Fatalf("the helm is not shown: head %d", merc().Head)
+	}
+	ac := r.mercInfo(1).AC
+	r.drain()
+	m.Command(r.anna, r.pa, "helm off")
+	row, _, _ := db.Merc(r.pa.CharServerID, 1)
+	if merc().Head != 0 || merc().HiddenParts&entity.HideHelm == 0 || !row.HideHelm {
+		t.Fatalf("helm off: head %d, hidden %x, row %v", merc().Head, merc().HiddenParts, row.HideHelm)
+	}
+	if r.mercInfo(1).AC != ac {
+		t.Error("hiding the helm took its armour off")
+	}
+	if got := r.msgs(r.anna); !hasMsg(got, "chat:"+row.Name+"'s helm is hidden. It still wears it.") {
+		t.Errorf("sent %q", got)
+	}
+	// a kit made from the row (a login, Restore) hides it too
+	if k, err := m.kit(row, r.pa.Level); err != nil || k.Look.Hidden&entity.HideHelm == 0 || k.Look.Helm != 7 {
+		t.Fatalf("the row's kit: %+v %v", k.Look, err)
+	}
+	m.Command(r.anna, r.pa, "helm") // turned over: shown
+	if row, _, _ = db.Merc(r.pa.CharServerID, 1); row.HideHelm || merc().Head != 7 || merc().HiddenParts != 0 {
+		t.Fatalf("helm toggled: row %v head %d", row.HideHelm, merc().Head)
+	}
+	m.Command(r.anna, r.pa, "helm off")
+	m.Command(r.anna, r.pa, "helm on")
+	if row, _, _ = db.Merc(r.pa.CharServerID, 1); row.HideHelm || merc().Head != 7 {
+		t.Fatal("helm on did not show it")
+	}
+	if !mercWords("helm off") || !mercWords("1 helm") {
+		t.Error("a tell's helm is not /merc's")
+	}
+}

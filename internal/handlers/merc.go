@@ -111,7 +111,7 @@ const (
 	mercRestLine  = "Your mercenary %s rests for %d more seconds."
 	mercBackLine  = "Your mercenary %s is back at your side."
 	mercKitFailed = "The liaison's ledger is out of order. Try again."
-	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, camp (here until you go 125 off; again breaks it), attack (your target), path, pet, master [name|none] (55+), charm [off], group, revive, dismiss, give [item], inv, equip|unequip|take <item>, aoe|single (a Cocktail alchemist), stock, claim: with no name, every merc out. /familiar dismiss sends a familiar away."
+	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, camp (here until you go 125 off; again breaks it), attack (your target), path, pet, master [name|none] (55+), charm [off], group, revive, dismiss, give [item], inv, equip|unequip|take <item>, aoe|single (a Cocktail alchemist), helm [on|off] (its helm shown or hidden), stock, claim: with no name, every merc out. /familiar dismiss sends a familiar away."
 )
 
 // mercRoles are the liaison's first answers, each role's classes in their
@@ -771,7 +771,10 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 	l.Primary, l.Secondary, l.Shield = p.Primary, p.Secondary, p.Shield
 	l.PrimaryType, l.SecondaryType = p.PrimaryType, p.SecondaryType
 	l.WornPieces, l.WornMask, l.WornItems = p.WornPieces, p.WornMask, p.WornItems // its pieces' auras (entity/pieceaura.go)
-	if row.Class == mercAlchemist && !ownHand {                                   // its own in its hands shown as a player's
+	if row.HideHelm {
+		l.Hidden |= entity.HideHelm // /merc helm off (mercHelm): worn, its look not shown
+	}
+	if row.Class == mercAlchemist && !ownHand { // its own in its hands shown as a player's
 		if bottle := m.potionBottle(); bottle != 0 {
 			// in its second hand, as a player's potion worn in the ranged slot
 			// is shown (character.go's wornLook: slot 18 in the second hand),
@@ -1313,6 +1316,8 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 			return
 		}
 		SendClientMessage(sess, line)
+	case "helm":
+		m.mercHelm(sess, p, rows, slot, words[1:])
 	case "group":
 		if line := m.gw.AskMercGroup(sess); line != "" {
 			SendClientMessage(sess, line)
@@ -1408,7 +1413,7 @@ func (m *Mercs) dismiss(sess *session.Session, p *entity.Player, slot int) {
 var mercVerbs = map[string]bool{"status": true, "dismiss": true, "stance": true, "follow": true, "stay": true, "camp": true, "attack": true,
 	"group": true, "revive": true, "help": true, "path": true, "pet": true, "charm": true, "list": true, "defensive": true,
 	"offensive": true, "menu": true, "master": true, "aoe": true, "single": true, "give": true, "inv": true, "inventory": true, "items": true,
-	"equip": true, "unequip": true, "take": true, "stock": true, "claim": true, "spells": true}
+	"equip": true, "unequip": true, "take": true, "stock": true, "claim": true, "spells": true, "helm": true}
 
 // mercWords reports a tell's body that is /merc's: none, or one of its words
 // first.
@@ -1530,3 +1535,54 @@ func (m *Mercs) Restore(sess *session.Session, p *entity.Player, k entity.KeptMe
 	m.loadStock(p) // its alchemists' stock (mercinv.go)
 	m.gw.RestoreMerc(sess, kit, k, now)
 }
+
+// mercHelm is /merc helm [on|off] (petition 2965, "hide helm from merc"): off hides the helm's look of
+// the merc of the slot (0 every hire), on shows it again, neither turns each over. The helm stays worn,
+// its stats its; only what every client is shown of it is bare (MercLook.Hidden), at once for a merc out
+// (its kit made again) and kept in its row (charmerc.hide_helm) over logouts and restarts.
+func (m *Mercs) mercHelm(sess *session.Session, p *entity.Player, rows []database.MercRow, slot int, args []string) {
+	if m.db == nil {
+		return
+	}
+	want := -1 // -1 turn over, 0 shown, 1 hidden
+	if len(args) > 0 {
+		switch args[0] {
+		case "on", "show", "shown":
+			want = 0
+		case "off", "hide", "hidden":
+			want = 1
+		default:
+			SendErrorMessage(sess, mercHelmUsage)
+			return
+		}
+	}
+	n := 0
+	for _, r := range rows {
+		if slot != 0 && r.Slot != slot {
+			continue
+		}
+		hide := !r.HideHelm
+		if want >= 0 {
+			hide = want == 1
+		}
+		if err := m.db.SetMercHideHelm(p.CharServerID, r.Slot, hide); err != nil {
+			log.Printf("Merc: %s's %q's helm not kept: %v", p.Name, r.Name, err)
+			SendErrorMessage(sess, mercKitFailed)
+			return
+		}
+		m.rekitSlot(p, r.Slot)
+		n++
+		SendClientMessage(sess, fmt.Sprintf(map[bool]string{true: mercHelmHidden, false: mercHelmShown}[hide], r.Name))
+	}
+	if n == 0 {
+		SendErrorMessage(sess, mercHelmNone)
+	}
+}
+
+// /merc helm's lines.
+const (
+	mercHelmUsage  = "/merc [name or 1-3] helm [on|off]: its helm shown or hidden."
+	mercHelmHidden = "%s's helm is hidden. It still wears it."
+	mercHelmShown  = "%s's helm is shown."
+	mercHelmNone   = "You have no mercenary."
+)

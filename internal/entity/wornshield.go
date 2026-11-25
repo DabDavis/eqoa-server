@@ -298,7 +298,7 @@ func (w *World) wornGiveLocked(p *Player, sess *session.Session, s WornShield, n
 		before := p.HP
 		p.HP = min(p.HP+n, top)
 		p.StatsDirty = true
-		w.tellAmountLocked(p, sess, p.ServerID, n, numberHeal) // a worn item's heal at a hit: a heal's, as a proc's heal is (3022)
+		w.dpsWorthLocked(p.HP-before, func() { w.tellAmountLocked(p, sess, p.ServerID, n, numberHeal) }) // a worn item's heal at a hit: a heal's, as a proc's heal is (3022); the meter's (dpsheal.go)
 		log.Printf("Shield: %s's %q heals it for %d (%d/%d)", p.Name, s.Item, n, p.HP, top)
 		// a worn heal is its wearer's hate as any heal is its healer's (the user, 2026-11-07:
 		// "heals should generate hate of the caster of heals or if proc like bpoa the wearer
@@ -307,7 +307,7 @@ func (w *World) wornGiveLocked(p *Player, sess *session.Session, s WornShield, n
 			w.healHateLocked(p, p, n, p.HP-before)
 		}
 	} else if n > 0 {
-		w.tellAmountLocked(p, sess, p.ServerID, n, numberHeal) // full: the figure alone
+		w.dpsWorthLocked(0, func() { w.tellAmountLocked(p, sess, p.ServerID, n, numberHeal) }) // full: the figure alone; the meter's none
 		if !s.Hate {
 			w.healHateLocked(p, p, n, 0) // a fifth of it hate (1967, aggro.go)
 		}

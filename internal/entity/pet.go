@@ -1761,8 +1761,9 @@ func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *sessi
 			switch n := spellAmount(e, caster); {
 			case n > 0:
 				// told whole at full health too (healLocked: petition 2016)
+				was := pet.HP
 				pet.HP = min(pet.HP+n, pet.MaxHP)
-				w.tellAmountLocked(caster, casterSess, pet.ServerID, n, cs.spell.healKind())
+				w.dpsWorthLocked(pet.HP-was, func() { w.tellAmountLocked(caster, casterSess, pet.ServerID, n, cs.spell.healKind()) }) // dpsheal.go
 			case n < 0 && !e.Self && !pet.Dead:
 				// its owner's blast on it (the alchemist's Destroy
 				// Contraption, -20000: until 2026-11-01 a friendly spell's
@@ -1785,7 +1786,9 @@ func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *sessi
 	for _, e := range cs.spell.Def.Effects {
 		if e.Kind == EffectPower && !e.Self && pet.MaxPower > 0 {
 			if n := spellAmount(e, caster); n > 0 && pet.Power < pet.MaxPower {
+				was := pet.Power
 				pet.Power = min(pet.Power+n, pet.MaxPower)
+				w.dpsPowerByLocked(caster, pet.ServerID, pet.Power-was) // the meter's power given (dpsheal.go)
 			}
 		}
 	}
@@ -1903,11 +1906,14 @@ func (w *World) petEffectsLocked(ps *petState, now time.Time) {
 			ae.Rules.Twice, n, pw = false, 2*n, 2*pw
 		}
 		if n > 0 {
+			was := pet.HP
 			pet.HP = min(pet.HP+n, pet.MaxHP)
-			w.tellNPCHoTLocked(pet, ae, n) // hotfigures.go
+			w.dpsWorthLocked(pet.HP-was, func() { w.tellNPCHoTLocked(pet, ae, n) }) // hotfigures.go; the meter's, what it restored (dpsheal.go)
 		}
 		if pw > 0 && pet.MaxPower > 0 && pet.Power < pet.MaxPower {
-			pet.Power = min(pet.Power+pw, pet.MaxPower) // its power over time (charm.go: what its master gives it)
+			was := pet.Power
+			pet.Power = min(pet.Power+pw, pet.MaxPower)              // its power over time (charm.go: what its master gives it)
+			w.dpsPowerLocked(ae.Caster, pet.ServerID, pet.Power-was) // dpsheal.go
 		}
 	}
 	pet.Effects = left

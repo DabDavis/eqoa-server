@@ -79,6 +79,10 @@ type World struct {
 	dpsFight uint32
 	// dpsLive is every damage meter fight under way, the system's to end
 	dpsLive []*dpsFight
+	// dpsWorth is what the heal figures told now count on the damage meter
+	// at most, while dpsWorthOn (dpsheal.go: dpsWorthLocked)
+	dpsWorth   int
+	dpsWorthOn bool
 
 	// Buddy and ignore lists (social.go), in memory only
 	social socialLists
@@ -1363,10 +1367,13 @@ func (w *World) sendGrantXP(sess *session.Session, level, xpInLevel int) {
 // session that asked for its figures' tags (NumberTags) is sent it as one
 // byte more, any other the retail body alone. Damage of a kind is the
 // player's own and counts on the damage meters of its group (dpsmeter.go),
-// whoever asked for tags.
+// whoever asked for tags; a heal of a kind (a positive amount) the same, as its
+// healing, at what it restored (dpsheal.go).
 func (w *World) sendDamageIndication(sess *session.Session, sourceObjectID uint32, amount int, targetObjectID uint32, kind numberKind) {
 	if amount < 0 && kind.tagged() {
 		w.dpsFigureLocked(sess, -amount, kind, targetObjectID)
+	} else if amount > 0 && kind.tagged() {
+		w.dpsHealFigureLocked(sess, amount, kind) // dpsheal.go
 	}
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeDamageIndication)
 	writer := buffer.NewWriter(msg.Span())

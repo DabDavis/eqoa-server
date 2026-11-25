@@ -458,11 +458,16 @@ func (w *World) regenSystem(now time.Time) {
 
 		// HoT and PoT, in a fight or out of one (regen.go); a spell's price
 		// over time may take the last hit point (the Lich form's)
+		hp, power := p.HP, p.Power
 		if p.regenTick() {
 			dead = append(dead, p)
 			continue
 		}
-		w.tellPlayerStatHoTLocked(p) // a spell's HoT stat, its part alone (hotfigures.go)
+		// a spell's HoT stat, its part alone (hotfigures.go), counted on the
+		// meter as far as the tick restored; its PoT stat's power the same
+		// (dpsheal.go)
+		w.dpsWorthLocked(p.HP-hp, func() { w.tellPlayerStatHoTLocked(p) })
+		w.dpsStatPoTLocked(p.Effects, p.ServerID, p.Power-power)
 		w.tellPlayerMealHoTLocked(p) // a meal's and a drink's (hotfigures.go, petition 2688)
 	}
 	for _, p := range dead {

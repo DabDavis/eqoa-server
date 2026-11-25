@@ -68,8 +68,13 @@ func (w *World) npcRegenSystem(now time.Time) {
 			continue
 		}
 		if npc.Owner != 0 {
-			npc.petRegen()              // a pet, as a player (the file's doc)
-			w.tellPetStatHoTLocked(npc) // a spell's HoT stat, its part alone (hotfigures.go)
+			hp, power := npc.HP, npc.Power
+			npc.petRegen() // a pet, as a player (the file's doc)
+			// a spell's HoT stat, its part alone (hotfigures.go), counted on
+			// the meter as far as the tick restored; its PoT stat's power the
+			// same (dpsheal.go)
+			w.dpsWorthLocked(npc.HP-hp, func() { w.tellPetStatHoTLocked(npc) })
+			w.dpsStatPoTLocked(npc.Effects, npc.ServerID, npc.Power-power)
 			continue
 		}
 		if npc.CurrentEnemy != 0 {

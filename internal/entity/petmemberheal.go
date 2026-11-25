@@ -173,9 +173,11 @@ func (w *World) petMemberHealLocked(ps *petState, c *petCast, n int) {
 		}
 		p.HP += n
 		p.StatsDirty = true
+		w.dpsAddLocked(ps.owner, dpsHeal, n, true, dpsMeterNow()) // its owner's healing, its pet's share (dpsheal.go)
 		if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
 			if id := w.objectIDForEntityLocked(sess, pet.ServerID); id != 0 {
-				w.sendDamageIndication(sess, id, worth, sess.PlayerObjectID(), numberHeal.byPet())
+				// told to the one healed: counted above
+				w.dpsWorthLocked(0, func() { w.sendDamageIndication(sess, id, worth, sess.PlayerObjectID(), numberHeal.byPet()) })
 			}
 		}
 		log.Printf("Pet: %s's %q heals %s with %q for %d (HP %d/%d)", ps.owner.Name, pet.Name, p.Name, c.spell.Name, n, p.HP, top)
@@ -197,8 +199,9 @@ func (w *World) petMemberHealLocked(ps *petState, c *petCast, n int) {
 			return
 		}
 		t.HP += n
+		w.dpsAddLocked(ps.owner, dpsHeal, n, true, dpsMeterNow()) // dpsheal.go
 		if t == pet {
-			w.tellPetHealLocked(ps, worth)
+			w.dpsWorthLocked(0, func() { w.tellPetHealLocked(ps, worth) }) // counted above
 		}
 		if t.isMerc() {
 			syncMercBody(t.merc)

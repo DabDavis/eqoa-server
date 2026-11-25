@@ -209,7 +209,7 @@ func procDebuffedMore(ae *ActiveEffect, npc *NPC, bearer EntityID, now time.Time
 // with the lock held.
 func (w *World) procHealLocked(caster *Player, casterSess *session.Session, t *Player, n int) {
 	if n > 0 && !t.IsDead() && t.HP >= t.MaxHPNow() {
-		w.tellAmountLocked(caster, casterSess, t.ServerID, n, numberHeal)
+		w.dpsWorthLocked(0, func() { w.tellAmountLocked(caster, casterSess, t.ServerID, n, numberHeal) }) // the meter's: nothing restored (dpsheal.go)
 		return
 	}
 	w.healLocked(caster, casterSess, t, n, numberHeal)

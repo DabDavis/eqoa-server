@@ -3,6 +3,7 @@ package entity
 import (
 	"encoding/binary"
 	"log"
+	"slices"
 	"sort"
 	"time"
 	"unicode/utf8"
@@ -71,6 +72,10 @@ import (
 // receiver's own always among them, with the count of all and their whole.
 // Nothing is kept over a restart but the client's answer (keep.go): a fight on
 // then ends there, and the next figure starts another.
+//
+// Layout 2 (since 2026-11-25, Heirloom petition 3030) adds each line's healing,
+// what its heals restored, and the power it gave others (dpsheal.go), counted on
+// the same fight: neither starts a fight nor lengthens one.
 
 // DPSMeterLinesMost is the most lines a message carries: a raid's top, the
 // receiver's own taking the last place when it is not among them. With names of
@@ -99,8 +104,17 @@ const dpsMeterEvery = time.Second
 // dpsMeterTicks is how often the system looks: half a second.
 const dpsMeterTicks = 5
 
-// dpsMeterLayout is OpcodeDPSMeterData's layout, the one the offer names.
+// dpsMeterLayout is OpcodeDPSMeterData's first layout, damage alone: every
+// client that asked before 2026-11-25 reads it.
 const dpsMeterLayout = 1
+
+// DPSMeterLayoutNewest is the newest layout the server writes, the one its
+// offer names: 2, layout 1 with each line's healing and power given beside its
+// damage (Heirloom petition 3030, the owner's "build both": "DPS meter should
+// have options to include healing per second, and if possible power provided
+// per second"). A client answers the layout it reads (at most this one; 1
+// from every vanilla before it) and is sent that one.
+const DPSMeterLayoutNewest = 2
 
 // dpsNameBytes is the most bytes of a name sent, as a roster's (writeName8).
 const dpsNameBytes = 23
@@ -110,12 +124,17 @@ var dpsMeterNow = time.Now
 
 // dpsLine is one maker's damage in a fight: its name and class as they were
 // when it first counted (it may leave the world before the fight ends), its
-// damage and its pet's share of it.
+// damage and its pet's share of it; and (layout 2) its healing, what its heals
+// restored (healPet its pet's and merc's share of it), and the power it gave
+// others (dpsheal.go).
 type dpsLine struct {
-	name   string
-	class  int
-	damage int64
-	pet    int64
+	name    string
+	class   int
+	damage  int64
+	pet     int64
+	heal    int64
+	healPet int64
+	power   int64
 }
 
 // dpsFight is one fight of a group (a raid group's too) or of a player alone:
@@ -137,6 +156,9 @@ type dpsFight struct {
 // sent), and what it was last sent of its view (due: send at the next pass, just
 // asked).
 type dpsMeter struct {
+	// layout: the data's layout the client answered (1, damage alone; 2,
+	// healing and power too: DPSMeterLayoutNewest)
+	layout  uint8
 	view    *dpsFight
 	shown   uint32
 	dropped uint32
@@ -145,25 +167,49 @@ type dpsMeter struct {
 	due     bool
 }
 
-// SetDPSMeter makes sess's player's client be sent the meter (on) or stop (off,
-// its fight forgotten); on, a fight under way goes out at the next pass. False
-// when sess has no player.
+// SetDPSMeter makes sess's player's client be sent the meter (on), in layout 1,
+// or stop (off): SetDPSMeterLayout's 1 or 0.
 func (w *World) SetDPSMeter(sess *session.Session, on bool) bool {
+	layout := uint8(0)
+	if on {
+		layout = dpsMeterLayout
+	}
+	return w.SetDPSMeterLayout(sess, layout)
+}
+
+// SetDPSMeterLayout makes sess's player's client be sent the meter in layout
+// (1 damage alone, 2 healing and power too; one past the newest is the
+// newest), or stop (0, its fight forgotten); on, a fight under way goes out at
+// the next pass. False when sess has no player.
+func (w *World) SetDPSMeterLayout(sess *session.Session, layout uint8) bool {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
 	if p == nil {
 		return false
 	}
+	layout = min(layout, DPSMeterLayoutNewest)
 	switch {
-	case !on:
+	case layout == 0:
 		p.dps = nil
 	case p.dps == nil:
-		p.dps = &dpsMeter{}
+		p.dps = &dpsMeter{layout: layout}
 	default:
-		p.dps.due = true
+		p.dps.layout = layout
+		p.dps.sent, p.dps.due = "", true
 	}
 	return true
+}
+
+// DPSMeterLayout is the layout sess's player's client is sent the meter in, 0
+// when it asked for none.
+func (w *World) DPSMeterLayout(sess *session.Session) uint8 {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	if p := w.sessionPlayerLocked(sess); p != nil && p.dps != nil {
+		return max(p.dps.layout, dpsMeterLayout)
+	}
+	return 0
 }
 
 // DPSMeter is whether sess's player's client asked for a damage meter.
@@ -263,11 +309,34 @@ func (w *World) friendlyFigureLocked(sess *session.Session, p *Player, target ui
 // had. Every member's meter is shown that fight. Must be called with the lock
 // held.
 func (w *World) dpsCountLocked(maker *Player, n int, byPet bool, now time.Time) {
+	w.dpsAddLocked(maker, dpsDamage, n, byPet, now)
+}
+
+// dpsWhat is which of a line's figures a count adds to.
+type dpsWhat uint8
+
+const (
+	dpsDamage dpsWhat = iota
+	dpsHeal
+	dpsPower
+)
+
+// dpsAddLocked counts n of maker's what (byPet: its pet's or merc's) at now on
+// the fight of maker's group as it is (alone, maker's own). Damage starts a
+// fight when none is under way and is what its length runs to; healing and
+// power count only on a fight under way, and neither starts one nor lengthens
+// it: a heal out of a fight (a top-up, a long buff's heal over time) is no
+// fight, and a fight's length is its damage's. Must be called with the lock
+// held.
+func (w *World) dpsAddLocked(maker *Player, what dpsWhat, n int, byPet bool, now time.Time) {
 	if maker == nil || n <= 0 {
 		return
 	}
 	at := w.dpsScopeLocked(maker)
 	f := *at
+	if what != dpsDamage && (f == nil || !f.live) {
+		return
+	}
 	if f == nil || !f.live {
 		if w.dpsFight == 0 {
 			// numbers from the clock's milliseconds: a restarted process's
@@ -292,6 +361,17 @@ func (w *World) dpsCountLocked(maker *Player, n int, byPet bool, now time.Time) 
 	if l == nil {
 		l = &dpsLine{name: maker.Name, class: maker.Class}
 		f.lines[maker.ServerID] = l
+	}
+	switch what {
+	case dpsHeal:
+		l.heal += int64(n)
+		if byPet {
+			l.healPet += int64(n)
+		}
+		return
+	case dpsPower:
+		l.power += int64(n)
+		return
 	}
 	l.damage += int64(n)
 	if byPet {
@@ -372,21 +452,43 @@ func dpsName(s string) string {
 	return s[:end]
 }
 
-// encodeDPSMeter is OpcodeDPSMeterData's body (past its opcode) for a fight of
-// number fight, over or not, length long, of rows in their order: the first
-// DPSMeterLinesMost, the receiver's own (flag 1) in the last place when it is
-// not among them, its place among all of them said (0 for none).
+// encodeDPSMeter is OpcodeDPSMeterData's body (past its opcode) in layout 1
+// (encodeDPSMeterLayout's).
 func encodeDPSMeter(fight uint32, over bool, length time.Duration, rows []dpsRow) []byte {
-	var total int64
+	return encodeDPSMeterLayout(dpsMeterLayout, fight, over, length, rows)
+}
+
+// encodeDPSMeterLayout is OpcodeDPSMeterData's body (past its opcode) in layout
+// (1, or 2) for a fight of number fight, over or not, length long, of rows in
+// their order (the most damage first). Layout 1: the first DPSMeterLinesMost,
+// the receiver's own (flag 1) in the last place when it is not among them, its
+// place among all of them said (0 for none). Layout 2: the same header, then the
+// healing and the power of all lines and the receiver's own places by each, and
+// the lines sent are those with the best place by any of the three (so a raid's
+// top healers and power givers are among them whatever their damage), still in
+// the order of damage, the receiver's own always among them; each line its
+// healing, its pet's share of it and its power after its pet's damage.
+func encodeDPSMeterLayout(layout uint8, fight uint32, over bool, length time.Duration, rows []dpsRow) []byte {
+	var total, heal, power int64
 	mine := -1
 	for i, r := range rows {
 		total += r.line.damage
+		heal += r.line.heal
+		power += r.line.power
 		if r.flags&1 != 0 && mine < 0 {
 			mine = i
 		}
 	}
 	shown := rows
-	if len(shown) > DPSMeterLinesMost {
+	healPlace, powerPlace := 0, 0
+	if layout >= 2 {
+		var keep []int
+		keep, healPlace, powerPlace = dpsBestRows(rows, mine)
+		shown = make([]dpsRow, len(keep))
+		for k, i := range keep {
+			shown[k] = rows[i]
+		}
+	} else if len(shown) > DPSMeterLinesMost {
 		shown = append([]dpsRow(nil), rows[:DPSMeterLinesMost]...)
 		if mine >= DPSMeterLinesMost {
 			shown[DPSMeterLinesMost-1] = rows[mine]
@@ -397,23 +499,79 @@ func encodeDPSMeter(fight uint32, over bool, length time.Duration, rows []dpsRow
 	if over {
 		state = 1
 	}
-	out := []byte{dpsMeterLayout}
+	out := []byte{max(layout, dpsMeterLayout)}
 	out = binary.LittleEndian.AppendUint32(out, fight)
 	out = append(out, state)
 	out = binary.LittleEndian.AppendUint32(out, clamp(length.Milliseconds()))
 	out = binary.LittleEndian.AppendUint32(out, clamp(total))
 	out = binary.LittleEndian.AppendUint16(out, uint16(min(len(rows), 0xFFFF)))
 	out = binary.LittleEndian.AppendUint16(out, uint16(min(mine+1, 0xFFFF)))
+	if layout >= 2 {
+		out = binary.LittleEndian.AppendUint32(out, clamp(heal))
+		out = binary.LittleEndian.AppendUint32(out, clamp(power))
+		out = binary.LittleEndian.AppendUint16(out, uint16(min(healPlace, 0xFFFF)))
+		out = binary.LittleEndian.AppendUint16(out, uint16(min(powerPlace, 0xFFFF)))
+	}
 	out = append(out, byte(len(shown)))
 	for _, r := range shown {
 		name := dpsName(r.line.name)
 		out = append(out, r.flags, byte(max(0, min(r.line.class, 255))))
 		out = binary.LittleEndian.AppendUint32(out, clamp(r.line.damage))
 		out = binary.LittleEndian.AppendUint32(out, clamp(r.line.pet))
+		if layout >= 2 {
+			out = binary.LittleEndian.AppendUint32(out, clamp(r.line.heal))
+			out = binary.LittleEndian.AppendUint32(out, clamp(r.line.healPet))
+			out = binary.LittleEndian.AppendUint32(out, clamp(r.line.power))
+		}
 		out = append(out, byte(len(name)))
 		out = append(out, name...)
 	}
 	return out
+}
+
+// dpsBestRows is which of rows (in the order of damage) layout 2 sends, in that
+// order: all of them when they fit, else the DPSMeterLinesMost with the best
+// place by damage, healing or power (a line's best of its three; a tie by its
+// place by damage), the receiver's own (mine, -1 for none) among them in place
+// of the last; and the receiver's own places by healing and by power (1 the
+// most; 0 for none), its rows ranked by each as by damage (the most first, then
+// as rows are).
+func dpsBestRows(rows []dpsRow, mine int) (keep []int, healPlace, powerPlace int) {
+	n := len(rows)
+	healRank, powerRank := dpsRanks(rows, func(l *dpsLine) int64 { return l.heal }), dpsRanks(rows, func(l *dpsLine) int64 { return l.power })
+	if mine >= 0 {
+		healPlace, powerPlace = healRank[mine]+1, powerRank[mine]+1
+	}
+	keep = make([]int, n)
+	for i := range keep {
+		keep[i] = i
+	}
+	if n <= DPSMeterLinesMost {
+		return keep, healPlace, powerPlace
+	}
+	best := func(i int) int { return min(i, healRank[i], powerRank[i]) }
+	sort.SliceStable(keep, func(a, b int) bool { return best(keep[a]) < best(keep[b]) })
+	keep = keep[:DPSMeterLinesMost]
+	if mine >= 0 && !slices.Contains(keep, mine) {
+		keep[DPSMeterLinesMost-1] = mine
+	}
+	sort.Ints(keep)
+	return keep, healPlace, powerPlace
+}
+
+// dpsRanks is each row's place (0 the first) by of: the most first, a tie in
+// the rows' own order.
+func dpsRanks(rows []dpsRow, of func(*dpsLine) int64) []int {
+	order := make([]int, len(rows))
+	for i := range order {
+		order[i] = i
+	}
+	sort.SliceStable(order, func(a, b int) bool { return of(&rows[order[a]].line) > of(&rows[order[b]].line) })
+	rank := make([]int, len(rows))
+	for place, i := range order {
+		rank[i] = place
+	}
+	return rank
 }
 
 // dpsMeterSystem ends the fights gone quiet, DPSMeterIdle after the last figure
@@ -470,7 +628,7 @@ func (w *World) dpsMeterSystem(now time.Time) {
 			// another group, or none: the view of the last fight ends, told
 			// once more as it stands, over, when it was being told
 			if old := m.view; old != nil && old.live && m.shown == old.number {
-				send(s, m, encodeDPSMeter(old.number, true, old.last.Sub(old.start), w.dpsRowsLocked(p, old)))
+				send(s, m, encodeDPSMeterLayout(m.layout, old.number, true, old.last.Sub(old.start), w.dpsRowsLocked(p, old)))
 			}
 			m.view, m.shown, m.sent, m.due = f, 0, "", true
 		}
@@ -478,7 +636,7 @@ func (w *World) dpsMeterSystem(now time.Time) {
 			return true
 		}
 		over := ending[f]
-		body := encodeDPSMeter(f.number, over, f.last.Sub(f.start), w.dpsRowsLocked(p, f))
+		body := encodeDPSMeterLayout(m.layout, f.number, over, f.last.Sub(f.start), w.dpsRowsLocked(p, f))
 		switch {
 		case over:
 			log.Printf("DPSMeter: %s's fight %d over (%d ms)", p.Name, f.number, f.last.Sub(f.start).Milliseconds())

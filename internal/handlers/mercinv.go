@@ -54,7 +54,8 @@ import (
 // own item fills (and the slots that item's wear takes off) its item's, so
 // what it wears adds to its stats, AC and swing, and shows on its channel,
 // through the player's own gear and look (wornGear, wornLook). What it
-// carries it uses up: potions and draughts (an alchemist's), meals.
+// carries it uses up: potions and draughts (an alchemist's), meals and
+// grocers' drinks (every merc's: entity/mercmeal.go, petition 3061).
 //
 // Never lost: a record goes from the pack to the merc, and back, in one
 // transaction each (database/mercitems.go). A hire that ends (a dismissal,
@@ -181,6 +182,8 @@ func (m *Mercs) mercOwnItems(row database.MercRow, level int) (worn []database.C
 			if isRation(&p) {
 				c.HoT = 0 // a player's ration's (entity.RationRestore)
 			}
+		} else if ok {
+			c.Drink, c.PoT = true, food.Amount // a grocer's drink, its power a tick (entity/mercmeal.go)
 		}
 		carried = append(carried, c)
 	}

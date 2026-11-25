@@ -513,8 +513,10 @@ func (w *World) mercCastTurnLocked(ms *mercState, t *NPC, now time.Time) bool {
 		return true
 	}
 	// an alchemist's draught for its power, its Master Class's buff and heal
-	// potions (mercselfpotion.go), its meal out of a fight (mercbrew.go)
-	if w.mercDrinkTurnLocked(ms, now) || w.mercSelfPotionTurnLocked(ms, now) || w.mercEatTurnLocked(ms, now) {
+	// potions (mercselfpotion.go), a grocer's drink it carries (mercmeal.go),
+	// its meal out of a fight (mercbrew.go)
+	if w.mercDrinkTurnLocked(ms, now) || w.mercSelfPotionTurnLocked(ms, now) || w.mercGrocerDrinkTurnLocked(ms, now) ||
+		w.mercEatTurnLocked(ms, now) {
 		return true
 	}
 	if w.mercSummonTurnLocked(ms, now) { // its pet, when it has none out (mercpet.go)

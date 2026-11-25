@@ -25,8 +25,9 @@ import (
 // it) and the experience debt, nothing else. The training points a level gives
 // are made up from the row's level at the next login (handlers/character.go:
 // TopUpTrainingBonus), so they need no write here, and writing them would race
-// the trainer's own (handlers/training.go takes the points spent off the row's
-// count). Mastery points are not written either: a mastery bought writes them
+// the trainer's own (handlers/training.go writes the game's points with the
+// stat columns it raises: a write here of points read before a spend, landing
+// after it, would hand the spend back). Mastery points are not written either: a mastery bought writes them
 // with the rank in one transaction (classmastery.go), and a write here of
 // figures read before the purchase could land after it; they stay the
 // logout's, as before. The place is still the logout's (its guards against a

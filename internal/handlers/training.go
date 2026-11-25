@@ -121,7 +121,13 @@ func (h *TrainingHandler) HandleUpdateTrainingPoints(sess *session.Session, msg 
 			record.TPWisdom += int(wisAdd)
 			record.TPIntel += int(intAdd)
 			record.TPCharisma += int(chaAdd)
-			record.UnusedTP -= total
+			// the points as the game holds them, not the row's less those
+			// spent: a level's points are the game's until the logout (the
+			// progress save writes the level alone, entity/progresssave.go),
+			// so the row's count was the create screen's and the spend took
+			// it below 0 (Symphony, Live, 2026-11-25: -18 of 20 at level 7,
+			// 38 spent, the game's 0 of 38)
+			record.UnusedTP, record.TotalTP = player.UnusedTP, player.TotalTP
 			record.CurrentHP = player.MaxHP
 			record.CurrentPower = player.MaxPower
 			if err := h.charStore.Update(record); err != nil {

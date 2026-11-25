@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 )
@@ -161,4 +162,65 @@ func zigzagAt(b []byte) int64 {
 		}
 	}
 	return int64(u>>1) ^ -int64(u&1)
+}
+
+// The row a training spend writes keeps the game's points: a character made
+// with the create screen's 20 spent and levelled to 7 in one session holds 18
+// unspent of 38 in the game while its row still says 0 of 20 (a level's points
+// are written at the logout, entity/progresssave.go). Spending them took them
+// off the row's 0: -18 of 20 with 38 spent (Symphony, Live, 2026-11-25). The
+// row now holds what the game does, never below 0, and its unspent and spent
+// points add up to its total.
+func TestTrainingRowKeepsTheGamesPoints(t *testing.T) {
+	db, err := database.NewSQLite(t.TempDir() + "/train.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	store := database.NewSQLiteCharacterStore(db)
+	rec := &database.CharacterRecord{CharName: "Symphonytest", AccountID: 1, Level: 7, TClass: 5,
+		TPAgility: 20, UnusedTP: 0, TotalTP: 20}
+	if err := store.Create(rec); err != nil {
+		t.Fatal(err)
+	}
+	c := newChatWorld(t)
+	sess, p := c.join(int(rec.ServerID), "Symphonytest", 25000, 15000, 0)
+	p.CharServerID = rec.ServerID
+	p.Class, p.Level = 5, 7
+	p.BaseStr, p.BaseSta, p.BaseAgi, p.BaseDex, p.BaseWis, p.BaseInt, p.BaseCha = 60, 75, 100, 65, 55, 55, 65
+	p.UnusedTP, p.TotalTP = 18, 38
+	p.RecalcStats(true)
+	h := NewTrainingHandler(c.sm, store)
+	h.SetGameWorld(c.gw)
+	train := func(adds [7]int64) {
+		t.Helper()
+		var b []byte
+		for _, a := range adds {
+			b = appendZigzag(b, a)
+		}
+		msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeUpdateTrainingPoints)
+		msg.SetData(b)
+		if err := h.HandleUpdateTrainingPoints(sess, msg); err != nil {
+			t.Fatal(err)
+		}
+	}
+	check := func(when string, agi, unused, total int) {
+		t.Helper()
+		r, err := store.GetByServerID(rec.ServerID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if r.TPAgility != agi || r.UnusedTP != unused || r.TotalTP != total {
+			t.Errorf("%s: row AGI %d, %d of %d unspent; want %d, %d of %d", when, r.TPAgility, r.UnusedTP, r.TotalTP, agi, unused, total)
+		}
+		if p.UnusedTP != unused || p.TotalTP != total {
+			t.Errorf("%s: game %d of %d unspent; want %d of %d", when, p.UnusedTP, p.TotalTP, unused, total)
+		}
+	}
+	train([7]int64{0, 0, 9})
+	check("AGI +9", 29, 9, 38)
+	train([7]int64{0, 0, 9})
+	check("AGI +9 again", 38, 0, 38)
+	train([7]int64{0, 0, 1}) // none left: refused, nothing written
+	check("AGI +1 with none left", 38, 0, 38)
 }

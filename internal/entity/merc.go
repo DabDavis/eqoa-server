@@ -1169,11 +1169,14 @@ func (w *World) mercEffectsLocked(ms *mercState, now time.Time) {
 		}
 		ae.NextTick = ae.NextTick.Add(effectTick)
 		if ae.HPTick > 0 {
+			was := n.HP
 			n.HP = min(n.HP+ae.HPTick, n.MaxHP)
-			w.tellNPCHoTLocked(n, ae, ae.HPTick) // hotfigures.go
+			w.dpsWorthLocked(n.HP-was, func() { w.tellNPCHoTLocked(n, ae, ae.HPTick) }) // hotfigures.go; the meter's (dpsheal.go)
 		}
 		if ae.PowerTick > 0 && n.Power < n.MaxPower {
+			was := n.Power
 			n.Power = min(n.Power+ae.PowerTick, n.MaxPower)
+			w.dpsPowerLocked(ae.Caster, n.ServerID, n.Power-was) // dpsheal.go
 		}
 	}
 	for i := len(left); i < len(n.Effects); i++ {

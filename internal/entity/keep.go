@@ -72,6 +72,9 @@ type KeptPlayer struct {
 	// DPSMeter: its client draws a damage meter (dpsmeter.go); its fight ends
 	// at the restart
 	DPSMeter bool `json:"dps_meter,omitempty"`
+	// DPSMeterLayout: the layout it asked for (0 read as 1: a keep file of
+	// before layout 2)
+	DPSMeterLayout uint8 `json:"dps_meter_layout,omitempty"`
 	// StatFigures: its client's stat window was open, sent the offence and
 	// defence figures (statfigures.go)
 	StatFigures bool `json:"stat_figures,omitempty"`
@@ -177,6 +180,9 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 	k.RecordWindow = p.RecordWindow
 	k.Jumps = p.Jumps
 	k.DPSMeter = p.dps != nil
+	if p.dps != nil {
+		k.DPSMeterLayout = p.dps.layout
+	}
 	k.ProfanityOff, k.ProfanityMedium = p.ProfanityFilterOff, p.ProfanityFilterMedium
 	k.LFG, k.GroupChatHidden = p.LFG, p.GroupChatHidden
 	if p.pvp.on {
@@ -235,7 +241,7 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	p.RaidRoster, p.raidRosterSent, p.RaidRosterGroups, p.RaidRosterKinds = k.RaidRoster, "", k.RaidRosterGroups, k.RaidRosterKinds
 	p.RaidWindows, p.raidStateSent = k.RaidWindows, "" // the state again at the next pass (raidrules.go)
 	if k.DPSMeter {
-		p.dps = &dpsMeter{} // the next figure starts its fight (dpsmeter.go)
+		p.dps = &dpsMeter{layout: max(k.DPSMeterLayout, dpsMeterLayout)} // the next figure starts its fight (dpsmeter.go)
 	}
 	p.GM, p.HideGMTag, p.SubGM = k.GM, k.HideGMTag, k.SubGM
 	p.DuelWindow = k.DuelWindow

@@ -416,7 +416,7 @@ func (w *World) familiarActLocked(fs *familiarState, sess *session.Session, now 
 	w.broadcastNPCCastLocked(n, o.ServerID, 0, fx)
 	if sess != nil {
 		if fid := w.objectIDForEntityLocked(sess, n.ServerID); fid != 0 {
-			w.sendDamageIndication(sess, fid, d.Heal, sess.PlayerObjectID(), numberHeal.byPet()) // whole: what it was worth (cast.go's healLocked, petition 2016)
+			w.dpsWorthLocked(heal, func() { w.sendDamageIndication(sess, fid, d.Heal, sess.PlayerObjectID(), numberHeal.byPet()) }) // whole: what it was worth (cast.go's healLocked, petition 2016); the meter's (dpsheal.go)
 		}
 	}
 	log.Printf("Familiar: %s's %q heals it for %d (HP %d/%d)", o.Name, n.Name, heal, o.HP, top)

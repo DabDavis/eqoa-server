@@ -1728,6 +1728,7 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 			}
 			w.healLocked(caster, casterSess, t, n, cs.spell.healKind())
 		case EffectPower:
+			was := t.Power
 			if e.Set { // the workbook's power set to a figure (spelljson.go)
 				t.Power = min(max(e.Amount, 0), t.MaxPowerNow())
 				t.StatsDirty = true
@@ -1735,6 +1736,7 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 				t.Power = min(t.Power+n, t.MaxPowerNow())
 				t.StatsDirty = true
 			}
+			w.dpsPowerByLocked(caster, t.ServerID, t.Power-was) // the meter's power given (dpsheal.go)
 		case EffectPowerCap:
 			// lasting no time, the ceiling is a price paid now (powercap.go);
 			// one that lasts holds the power down as it goes on
@@ -1795,15 +1797,22 @@ func (w *World) healLocked(caster *Player, casterSess *session.Session, t *Playe
 	}
 	top := t.MaxHPNow()
 	if t.HP >= top {
-		w.tellAmountLocked(caster, casterSess, t.ServerID, n, kind)
-		w.healHateLocked(caster, t, n, 0) // a full target: a fifth of it is hate still (1967, aggro.go)
+		w.dpsWorthLocked(0, func() { w.tellAmountLocked(caster, casterSess, t.ServerID, n, kind) }) // the meter's: nothing restored (dpsheal.go)
+		w.healHateLocked(caster, t, n, 0)                                                           // a full target: a fifth of it is hate still (1967, aggro.go)
 		return
 	}
 	before := t.HP
 	t.HP = min(t.HP+n, top)
 	t.StatsDirty = true
-	w.tellAmountLocked(caster, casterSess, t.ServerID, n, kind)
-	w.healHateLocked(caster, t, n, t.HP-before) // aggro.go
+	filled := t.HP - before
+	if owner, merc := w.dpsMercBodyLocked(caster); merc && kind.tagged() {
+		// a merc's heal: its owner's healing, its merc's share, wherever it
+		// landed (told as the merc's to its owner alone: dpsheal.go)
+		w.dpsAddLocked(owner, dpsHeal, filled, true, dpsMeterNow())
+		filled = 0
+	}
+	w.dpsWorthLocked(filled, func() { w.tellAmountLocked(caster, casterSess, t.ServerID, n, kind) }) // the meter's: what it restored (dpsheal.go)
+	w.healHateLocked(caster, t, n, t.HP-before)                                                      // aggro.go
 	if t.ServerID == caster.ServerID {
 		w.healAggroLocked(caster) // a creature it is green to comes now (aggro.go)
 	}
@@ -1941,8 +1950,10 @@ func (w *World) runTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 		w.healLocked(caster, w.findSessionByEntityIDLocked(caster.ServerID), t, ae.HPTick, kind)
 	}
 	if ae.PowerTick > 0 && t.Power < t.MaxPowerNow() {
+		was := t.Power
 		t.Power = min(t.Power+ae.PowerTick, t.MaxPowerNow())
 		t.StatsDirty = true
+		w.dpsPowerLocked(ae.Caster, t.ServerID, t.Power-was) // the meter's power given (dpsheal.go)
 	}
 }
 

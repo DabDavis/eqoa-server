@@ -925,13 +925,16 @@ const (
 	// group did how much damage in the fight and how fast (entity/dpsmeter.go,
 	// handlers/dpsmeter.go; the owner, 2026-11-10: "lets add dps meters, will
 	// work solo, group, raid"). Server to client once the player is in the
-	// world: a u8, 1, OpcodeDPSMeterData's layout. A PS2 ignores it (CLIENT's
+	// world: a u8, the newest OpcodeDPSMeterData layout it writes (2 since
+	// 2026-11-25; 1 before: every vanilla reads any). A PS2 ignores it (CLIENT's
 	// dispatcher has no case above 0x1402 and no default) and never answers.
 	OpcodeDPSMeterOffer GameOpcode = 0x7E3A
 
 	// OpcodeDPSMeterAnswer is a client's answer to OpcodeDPSMeterOffer, client
-	// to server, at once and whenever it changes: a u8, 1 to be sent the meter
-	// (OpcodeDPSMeterData), 0 to stop.
+	// to server, at once and whenever it changes: a u8, the layout of
+	// OpcodeDPSMeterData to be sent (1 damage alone, 2 healing and power too; one
+	// past the newest is the newest; every vanilla before 2026-11-25 answers 1),
+	// 0 to stop.
 	OpcodeDPSMeterAnswer GameOpcode = 0x7E3B
 
 	// OpcodeDPSMeterData is the meter, server to a client that answered 1: at
@@ -950,6 +953,18 @@ const (
 	// u32 its damage (its pet's included), u32 its pet's share of that, and its
 	// name (a u8 byte count and UTF-8, at most 23 bytes). Every member of the
 	// group in the world has a line, none of damage too.
+	//
+	// Layout 2 (Heirloom petition 3030: "DPS meter should have options to
+	// include healing per second, and if possible power provided per second";
+	// entity/dpsheal.go) is layout 1 with, after the u16 own place, u32 the
+	// healing of all its lines, u32 their power given, u16 the receiver's own
+	// place by healing and u16 by power (1 the most); and in each line, after its
+	// pet's damage, u32 its healing (what its heals restored: no overhealing;
+	// its pet's and merc's included), u32 its pet's and merc's share of that and
+	// u32 the power it gave others. Its lines are those with the best place by
+	// any of damage, healing and power (all of them when they fit), in the order
+	// of damage. Healing and power count only in a fight under way, which only
+	// damage starts and lengthens.
 	OpcodeDPSMeterData GameOpcode = 0x7E3C
 
 	// OpcodeDPSMeterReset is a client's reset, client to server: a u8, 1. The

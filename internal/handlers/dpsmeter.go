@@ -19,8 +19,11 @@ import (
 // (OpcodeDPSMeterReset). A PS2 ignores the offer, as it ignores
 // OpcodeNumberTagsOffer, and is sent nothing.
 
-// dpsMeterLayout is the data's layout the offer names: entity/dpsmeter.go's.
-const dpsMeterLayout = 1
+// dpsMeterLayout is the data's layout the offer names: entity/dpsmeter.go's
+// newest (2, healing and power beside damage: entity/dpsheal.go). A client
+// answers the layout it reads; every vanilla before 2026-11-25 answers 1 whatever
+// is offered.
+const dpsMeterLayout = entity.DPSMeterLayoutNewest
 
 // buildDPSMeterOffer is OpcodeDPSMeterOffer from the server: a u8, the layout.
 func buildDPSMeterOffer() []byte {
@@ -51,21 +54,29 @@ func (h *DPSMeterHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeDPSMeterReset, h.HandleDPSMeterReset)
 }
 
-// HandleDPSMeter makes the client's answer its player's: a u8, nonzero to be
-// sent the meter, 0 to stop (a wider answer is read by its first byte, so a
-// u32's 1 and 0 say the same). Nothing is answered.
+// HandleDPSMeter makes the client's answer its player's: a u8, the layout to be
+// sent the meter in (1, damage alone; 2, healing and power too; past the newest,
+// the newest), 0 to stop (a wider answer is read by its first byte, so a u32's 1
+// and 0 say the same). Nothing is answered.
 func (h *DPSMeterHandler) HandleDPSMeter(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 1 || h.world == nil {
 		log.Printf("DPSMeter: short (%d bytes) from %s", len(data), sess.RemoteAddr())
 		return nil
 	}
-	on := qolAnswerFor(sess, data[0] != 0)
-	if !h.world.SetDPSMeter(sess, on) {
+	layout := data[0]
+	if !qolAnswerFor(sess, layout != 0) {
+		layout = 0
+	}
+	if !h.world.SetDPSMeterLayout(sess, layout) {
 		log.Printf("DPSMeter: %s has no player in the world", sess.RemoteAddr())
 		return nil
 	}
-	log.Printf("DPSMeter: %s %s", sess.RemoteAddr(), map[bool]string{true: "draws a meter", false: "stopped"}[on])
+	if layout == 0 {
+		log.Printf("DPSMeter: %s stopped", sess.RemoteAddr())
+	} else {
+		log.Printf("DPSMeter: %s draws a meter (layout %d)", sess.RemoteAddr(), min(layout, entity.DPSMeterLayoutNewest))
+	}
 	return nil
 }
 

@@ -176,7 +176,7 @@ func (w *World) tellPlayerMealHoTLocked(p *Player) {
 		return
 	}
 	if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
-		w.sendDamageIndication(sess, sess.PlayerObjectID(), n, sess.PlayerObjectID(), numberHoT)
+		w.dpsWorthLocked(0, func() { w.sendDamageIndication(sess, sess.PlayerObjectID(), n, sess.PlayerObjectID(), numberHoT) }) // food is no healer's (dpsheal.go)
 	}
 }
 

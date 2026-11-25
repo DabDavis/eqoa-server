@@ -941,8 +941,10 @@ func (w *World) restoreProcLocked(sess *session.Session, p *Player, wp *WeaponPr
 	for _, t := range to {
 		w.procHealLocked(p, sess, t, n)
 		if wp.Power > 0 && t.Power < t.MaxPowerNow() {
+			was := t.Power
 			t.Power = min(t.Power+wp.Power, t.MaxPowerNow())
 			t.StatsDirty = true
+			w.dpsPowerLocked(p.ServerID, t.ServerID, t.Power-was) // the meter's power given, the wielder's own none (dpsheal.go)
 		}
 	}
 	log.Printf("Proc: %s's %q restores %d hit points and %d power to %d", p.Name, wp.Item, n, wp.Power, len(to))

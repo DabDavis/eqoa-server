@@ -265,8 +265,10 @@ func (w *World) landOnCasterLocked(cs *castState, caster *Player, sess *session.
 				w.shareOnLocked(cs, caster, m, shared, now)
 			}
 			if sharedPower > 0 {
+				was := m.Power
 				m.Power = min(m.Power+sharedPower, m.MaxPowerNow())
 				m.StatsDirty = true
+				w.dpsPowerLocked(caster.ServerID, m.ServerID, m.Power-was) // the meter's power given (dpsheal.go)
 			}
 		}
 		// the group's mercs take it as its players do (petition 1909:
@@ -404,7 +406,9 @@ func (w *World) shareOnMercLocked(cs *castState, caster *Player, m *NPC, mods St
 		}
 	}
 	if power > 0 && m.MaxPower > 0 {
+		was := m.Power
 		m.Power = min(m.Power+power, m.MaxPower)
+		w.dpsPowerLocked(caster.ServerID, m.ServerID, m.Power-was) // the meter's power given (dpsheal.go)
 	}
 }
 
@@ -430,8 +434,10 @@ func (w *World) drainLocked(cs *castState, caster *Player, sess *session.Session
 		log.Printf("Cast: %s's %q takes %d hit points for %s", caster.Name, cs.spell.Name, n, drainName(e.Drain))
 	case EffectPower:
 		for _, p := range w.drainersLocked(cs, caster, e.Drain) {
+			was := p.Power
 			p.Power = min(p.Power+n, p.MaxPowerNow())
 			p.StatsDirty = true
+			w.dpsPowerLocked(caster.ServerID, p.ServerID, p.Power-was) // the meter's power given, its caster's own none (dpsheal.go)
 		}
 	case EffectStat:
 		if cs.spell.Def.Duration > 0 {
@@ -498,8 +504,9 @@ func (w *World) drainToPetLocked(caster *Player, sess *session.Session, r float3
 		!w.inSightLocked(pet.World, caster.X, caster.Y, caster.Z, pet.X, pet.Y, pet.Z) {
 		return
 	}
+	was := pet.HP
 	pet.HP = min(pet.HP+n, pet.MaxHP)
-	w.tellAmountLocked(caster, sess, pet.ServerID, n, kind)
+	w.dpsWorthLocked(pet.HP-was, func() { w.tellAmountLocked(caster, sess, pet.ServerID, n, kind) }) // dpsheal.go
 }
 
 func drainName(to DrainTo) string {

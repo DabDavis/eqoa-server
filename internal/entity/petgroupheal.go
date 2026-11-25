@@ -128,18 +128,19 @@ func (w *World) petGroupHealLocked(ps *petState, spell *CastSpell, n int) {
 			p.HP += h
 			p.StatsDirty = true
 			healed, total = healed+1, total+h
+			w.dpsAddLocked(ps.owner, dpsHeal, h, true, dpsMeterNow()) // its owner's healing, its pet's share (dpsheal.go)
 		}
 		// told whole, a full one too: what the heal was worth (cast.go's
-		// healLocked, petition 2016)
+		// healLocked, petition 2016); told to the one healed, so counted above
 		if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
 			if id := w.objectIDForEntityLocked(sess, pet.ServerID); id != 0 {
-				w.sendDamageIndication(sess, id, n, sess.PlayerObjectID(), numberHeal.byPet())
+				w.dpsWorthLocked(0, func() { w.sendDamageIndication(sess, id, n, sess.PlayerObjectID(), numberHeal.byPet()) })
 			}
 		}
 	}
 	for _, t := range side.pets {
 		if t == pet {
-			w.tellPetHealLocked(ps, n) // whole, as a player's (above)
+			w.dpsWorthLocked(0, func() { w.tellPetHealLocked(ps, n) }) // whole, as a player's (above); counted below
 		} else if !w.npcSeesLocked(pet, t.World, t.X, t.Y, t.Z) {
 			continue // out of its sight (sight.go)
 		}
@@ -149,6 +150,7 @@ func (w *World) petGroupHealLocked(ps *petState, spell *CastSpell, n int) {
 		}
 		t.HP += h
 		healed, total = healed+1, total+h
+		w.dpsAddLocked(ps.owner, dpsHeal, h, true, dpsMeterNow()) // dpsheal.go
 		if t.isMerc() {
 			syncMercBody(t.merc)
 		}

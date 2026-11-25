@@ -115,6 +115,15 @@ func (w *World) heroCallLandLocked(cs *castState, caster *Player, casterSess *se
 		if w.tooLowLocked(caster, casterSess, m, &cs.spell) { // workbook.go: below its lowest level
 			continue
 		}
+		if why, ok := w.instanceJoinCheckLocked(m, caster, false, w.dungeonNowLocked()); !ok {
+			// a caster in a dungeon instance calls only those its instance holds
+			// (dungeonsummon.go; petition 2972): both told, the member not asked
+			if casterSess != nil {
+				w.sendColoredLocked(casterSess, why, dungeonColour)
+			}
+			w.sendColoredLocked(s, why, dungeonColour)
+			continue
+		}
 		w.calls.due = append(w.calls.due, HeroCall{Caster: caster.ServerID, Member: m.ServerID, CasterName: caster.Name,
 			MemberName: m.Name, Sess: s, CasterSess: casterSess, World: caster.World, Spell: cs.spell.Name, Ring: len(names) + 1})
 		names = append(names, m.Name)
@@ -165,7 +174,7 @@ func (w *World) HeroCallBring(caster, member EntityID, sess *session.Session, ri
 		return false, true
 	}
 	at := GateSpot{World: c.World, X: c.X, Y: c.Y, Z: c.Z, Place: c.Name + "'s side"}
-	w.gates.due = append(w.gates.due, GateTravel{Sess: sess, P: m, To: at, Ring: ring, Spell: spell})
+	w.gates.due = append(w.gates.due, GateTravel{Sess: sess, P: m, To: at, Ring: ring, Spell: spell, Via: c.ServerID})
 	log.Printf("Call: %s accepts %q: to %s at (%.1f, %.1f, %.1f) world %d", m.Name, spell, at.Place, at.X, at.Y, at.Z, at.World)
 	return true, false
 }

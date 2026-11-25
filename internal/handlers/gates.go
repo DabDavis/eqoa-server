@@ -45,6 +45,17 @@ func (h *CharacterHandler) travelPlayer(t entity.GateTravel) {
 		log.Printf("Gate: %q's landing for %s is no place to stand (%v); it stays", t.Spell, t.P.Name, err)
 		return
 	}
+	if t.Via != 0 {
+		// a summon into a dungeon instance: its player joins the summoner's
+		// instance by the door's rules, or stays (entity/dungeonsummon.go;
+		// petition 2972: it landed in none and was sent out)
+		if why, ok := gw.JoinInstanceOf(t.P.ServerID, t.Via, false); !ok {
+			portalRefuse(t.Sess, why)
+			portalRefuse(gw.FindSessionByEntityID(t.Via), why)
+			log.Printf("Gate: %q leaves %s behind: %s", t.Spell, t.P.Name, why)
+			return
+		}
+	}
 	// the world and the place set under the lock, standing still, as a
 	// respawn's are (the same move)
 	place := gw.PlaceRespawn

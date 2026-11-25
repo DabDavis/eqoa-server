@@ -385,6 +385,15 @@ func (g *Portal) call(sess *session.Session, caller *entity.Player, portal entit
 		portalRefuse(sess, fmt.Sprintf(portalNoWorld, t.Name))
 		return
 	}
+	if why, ok := g.joinCheck(portal, t.ServerID); !ok {
+		// a portal in a dungeon instance takes its player into its owner's
+		// instance by the door's rules (petition 2972: it took them into none,
+		// and the dungeon put them out): refused here, before the call
+		portalRefuse(sess, why)
+		portalRefuse(ts, why)
+		log.Printf("Portal: %s's call to %s refused: %s", caller.Name, t.Name, why)
+		return
+	}
 	c := &portalCall{portal: portal, caller: caller.ServerID, callerName: caller.Name, target: t.ServerID, targetName: t.Name,
 		asked: now, until: now.Add(PortalCallWait)}
 	g.mu.Lock()
@@ -430,6 +439,12 @@ func (g *Portal) come(cs, ts *session.Session, c *portalCall) {
 		portalRefuse(cs, fmt.Sprintf(portalNoCome, c.targetName))
 		return
 	}
+	if why, ok := g.joinCheck(c.portal, c.target); !ok {
+		log.Printf("Portal: %s's call to %s refused as answered: %s", c.callerName, c.targetName, why)
+		portalRefuse(ts, why)
+		portalRefuse(cs, why)
+		return
+	}
 	if !g.gw.PortalBring(c.portal, c.target, ts) {
 		portalRefuse(ts, portalYouDead)
 		portalRefuse(cs, fmt.Sprintf(portalNoCome, c.targetName))
@@ -437,6 +452,17 @@ func (g *Portal) come(cs, ts *session.Session, c *portalCall) {
 	}
 	portalTell(ts, portalThrough)
 	portalTell(cs, fmt.Sprintf(portalAnswered, c.targetName))
+}
+
+// joinCheck is whether the portal may bring the player into its owner's dungeon
+// instance (entity/dungeonsummon.go: the door's rules), and why not. A portal
+// outside the dungeons always may.
+func (g *Portal) joinCheck(portal, target entity.EntityID) (string, bool) {
+	owner, ok := g.gw.PortalOwner(portal)
+	if !ok {
+		return "", true // closed: the caller's own check says so
+	}
+	return g.gw.InstanceJoinCheck(target, owner, false)
 }
 
 // Answer is HandleDialogueOption's question for a portal's box. It reports

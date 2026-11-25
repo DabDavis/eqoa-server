@@ -147,6 +147,9 @@ type GateTravel struct {
 	Spell     string
 	Facing    float32
 	HasFacing bool
+	// Via is the player a summon brings its traveller to (a Summoning Portal's owner, a Call of the Hero's caster):
+	// the traveller joins Via's dungeon instance as it lands (World.JoinInstanceOf, dungeonsummon.go); 0 for none
+	Via EntityID
 }
 
 // TravelFunc lands a player a gate sends (handlers' teleport, Return Home's

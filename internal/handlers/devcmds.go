@@ -359,6 +359,13 @@ func (h *ChatHandler) gotoPlayerCommand(sess *session.Session, player *entity.Pl
 		h.gmReply(sess, "That is you.")
 		return
 	}
+	if CanLoadWorld(sess, t.World) {
+		// into the player's dungeon instance, if it stands in one (entity/dungeonsummon.go)
+		if why, ok := h.gameWorld.JoinInstanceOf(player.ServerID, t.ServerID, true); !ok {
+			h.gmReply(sess, why)
+			return
+		}
+	}
 	if !h.teleportTo(sess, sess, player, t.X, t.Y, t.Z, player.Facing, t.World) {
 		return
 	}
@@ -387,6 +394,14 @@ func (h *ChatHandler) summonCommand(sess *session.Session, player *entity.Player
 	if ts == nil {
 		h.gmReply(sess, fmt.Sprintf("%s has no session.", t.Name))
 		return
+	}
+	if CanLoadWorld(ts, player.World) {
+		// into the GM's dungeon instance, if it stands in one (entity/dungeonsummon.go; petition 2972: a summon
+		// into world 14 in no instance was put out again)
+		if why, ok := h.gameWorld.JoinInstanceOf(t.ServerID, player.ServerID, true); !ok {
+			h.gmReply(sess, why)
+			return
+		}
 	}
 	if !h.teleportTo(sess, ts, t, player.X, player.Y, player.Z, t.Facing, player.World) {
 		return

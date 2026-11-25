@@ -74,6 +74,10 @@ const dungeonsCheckEvery = time.Second
 // sent out, and how long a player the server just moved is left alone.
 const dungeonsGrace = 5 * time.Second
 
+// dungeonsLoadMost is how long a player's world load (session.WorldLoadUnderway) keeps the stray check off it: a
+// load that never ends stops counting then.
+const dungeonsLoadMost = time.Minute
+
 // DefaultDungeonCloseAfter is how long an instance no one stands in stays open.
 const DefaultDungeonCloseAfter = 30 * time.Minute
 
@@ -680,6 +684,13 @@ func (w *World) dungeonsSystem(now time.Time) {
 			continue
 		}
 		if now.Sub(w.dungeons.movedAt[p.ServerID]) < dungeonsGrace {
+			continue
+		}
+		if s := w.findSessionByEntityIDLocked(p.ServerID); s != nil && s.WorldLoadUnderway(time.Now(), dungeonsLoadMost) {
+			// still loading the world it was sent to: a way out sent now lands in the middle of that load (petition
+			// 2972: the eject's world change came while the client reported world 14 still), so its grace starts
+			// once it stands here
+			delete(w.dungeons.badAt, p.ServerID)
 			continue
 		}
 		in := w.dungeons.insts[p.Instance]

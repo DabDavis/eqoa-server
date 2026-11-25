@@ -46,13 +46,12 @@ import (
 // allowed and that refused names are logged.
 
 // petRenameMin and petRenameMax are a pet's or a merc's name's length in
-// letters: a character's (isValidName's 3 to 15; branch name-len-15 names
-// them CharNameMin and CharNameMax: once it merges these are those).
+// letters: a character's (CharNameMin and CharNameMax, isValidName's).
 // validCharName is asked after them, so a character's rules hold here
 // whatever they become.
 const (
-	petRenameMin = 3
-	petRenameMax = 15
+	petRenameMin = CharNameMin
+	petRenameMax = CharNameMax
 )
 
 // petStaffNames are names no pet or merc takes besides a character's
@@ -64,12 +63,17 @@ var petStaffNames = map[string]bool{
 	"developer": true, "dev": true, "sony": true, "soe": true, "verant": true, "daybreak": true,
 }
 
-// The rename's lines.
+// The rename's lines that name the length: a character's name's
+// (CharNameMin to CharNameMax).
+var (
+	mercRenameUsage = fmt.Sprintf("/merc [name or 1-3] rename <new name>: one word of %d to %d letters, as a character's name.", CharNameMin, CharNameMax)
+	petRenameUsage  = fmt.Sprintf("/pet rename <new name>: names the pet you summoned, one word of %d to %d letters, as a character's name.", CharNameMin, CharNameMax)
+	renameLength    = fmt.Sprintf("%%q is not a name: %d to %d letters.", CharNameMin, CharNameMax)
+)
+
+// The rename's other lines.
 const (
-	mercRenameUsage   = "/merc [name or 1-3] rename <new name>: one word of 3 to 15 letters, as a character's name."
-	petRenameUsage    = "/pet rename <new name>: names the pet you summoned, one word of 3 to 15 letters, as a character's name."
 	renameNotWord     = "%q is not a name: one word of letters only."
-	renameLength      = "%q is not a name: 3 to 15 letters."
 	renameFiltered    = "That name is not allowed. Refused names are logged for the GMs."
 	renameNotName     = "%q is not a name a character may have, nor a pet or a mercenary."
 	renameCharacter   = "%s is a character's name: choose another."

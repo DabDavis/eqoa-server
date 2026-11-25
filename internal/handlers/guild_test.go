@@ -160,6 +160,27 @@ func TestGuildLifecycle(t *testing.T) {
 		t.Errorf("promotion: rank %d", f.p["Bob"].GuildRank)
 	}
 	f.take("Ann")
+	// Twice more makes him an elder, then a master beside Ann (petition 2976: CLIENT's
+	// CanPromote lets a master promote anyone below master); a third is refused (546).
+	run("Ann", guildCmd(guildCmdPromote, zzb(bobID)))
+	run("Ann", guildCmd(guildCmdPromote, zzb(bobID)))
+	if f.p["Bob"].GuildRank != entity.GuildRankLeader || f.p["Ann"].GuildRank != entity.GuildRankLeader {
+		t.Errorf("master's promotion: Bob %d, Ann %d", f.p["Bob"].GuildRank, f.p["Ann"].GuildRank)
+	}
+	f.take("Ann")
+	run("Ann", guildCmd(guildCmdPromote, zzb(bobID)))
+	r = open(t, lastOf(f.take("Ann"), protocol.OpcodeGuildCommandFailed), protocol.OpcodeGuildCommandFailed)
+	if cmd, why := r.u8(), r.u8(); cmd != guildCmdPromote || why != guildFailNotAllowed {
+		t.Errorf("promoting a master: %d %d", cmd, why)
+	}
+	// Back to an officer for the rest: Ann cannot demote a fellow master, so Bob steps
+	// himself down through the world.
+	if _, _, err := f.world.SetGuildRank(f.p["Ann"], uint32(bobID), -1); err != entity.ErrNotQualified {
+		t.Errorf("a master demoting a master: %v", err)
+	}
+	f.world.GuildByID(f.p["Bob"].GuildID).Members[uint32(bobID)].Rank = 1
+	f.p["Bob"].GuildRank = 1
+	f.take("Bob")
 	// Bob, an officer, may invite; he invites Cam, who refuses (busy).
 	run("Bob", guildCmd(guildCmdInvite, str8b("Cam"), wideb("Zion")))
 	f.take("Cam")

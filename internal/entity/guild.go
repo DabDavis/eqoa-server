@@ -26,8 +26,11 @@ import (
 
 // Guild ranks, as 0x0468/3 carries them (VIGuildMember's zigzag rank): 0 is a
 // member, the lowest ("\"Member\" is the lowest rank and cannot be demoted",
-// word 745), up to 3, the leader. The reference server's 250-member roster in the
-// captures has 221 at 0, 21 at 1, 5 at 2 and 3 at 3.
+// word 745), up to 3, the leader. CLIENT names them by sRankWords (0x00CE9530):
+// 0 Member (541), 1 Officer (540), 2 Elder (539), 3 Master (538). The reference
+// server's 250-member roster in the captures has 221 at 0, 21 at 1, 5 at 2 and 3 at
+// 3: a guild may have several masters, as CLIENT's CanPromote lets a master make an
+// elder one (SetGuildRank; petition 2976).
 const (
 	GuildRankMember = 0
 	GuildRankLeader = 3
@@ -109,9 +112,7 @@ func (w *World) keepGuildLocked(writes *[]guildWrite, g *Guild, ended bool) {
 		return
 	}
 	row := database.GuildRow{ID: g.ID, Name: g.Name, Charter: g.Charter}
-	if lead := w.leaderLocked(g); lead != nil {
-		row.Leader = lead.ID
-	} else if h := highest(g); h != nil {
+	if h := highest(g); h != nil { // a master, the lowest id among several
 		row.Leader = h.ID
 	}
 	ids := make([]uint32, 0, len(g.Members))
@@ -315,8 +316,12 @@ func highest(g *Guild) *GuildMember {
 }
 
 // SetGuildRank moves member id one rank up (delta 1) or down (-1): by actor,
-// who must outrank both where the member is and where it would go. The
-// leader's rank is not given away here.
+// who must outrank where the member is, and where it would go, as CLIENT's
+// CanPromote and CanDemote (0x00BEE8B8, 0x00BEE980) ask: a promotion needs two
+// ranks above the member, or a master over anyone below master, so a master
+// may make an elder a master beside it (the reference server's guilds had
+// several; petition 2976: "unable as a master to promote above elder"). A
+// demotion needs a rank above the member, so masters never demote each other.
 func (w *World) SetGuildRank(actor *Player, id uint32, delta int) (*Guild, *GuildMember, error) {
 	var writes []guildWrite
 	defer writeGuilds(&writes)
@@ -337,7 +342,9 @@ func (w *World) SetGuildRank(actor *Player, id uint32, delta int) (*Guild, *Guil
 		return g, m, ErrNotQualified
 	case to < GuildRankMember:
 		return g, m, ErrLowestRank
-	case to >= a.Rank || to >= GuildRankLeader:
+	case to > GuildRankLeader:
+		return g, m, ErrNotQualified
+	case to >= a.Rank && !(delta > 0 && a.Rank == GuildRankLeader):
 		return g, m, ErrNotQualified
 	}
 	m.Rank = to

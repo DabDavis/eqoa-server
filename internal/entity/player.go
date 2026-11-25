@@ -344,8 +344,10 @@ type Player struct {
 	// GroupEffects: the player's client draws its group members' effects beside their
 	// bars and asked for them (groupeffects.go, opcodes 0x7EC0 and 0x7EC1);
 	// groupEffectsSent is the body it was last sent, so only a change goes out, and
-	// groupEffectsDue sends the next one whatever it is (just asked).
+	// groupEffectsDue sends the next one whatever it is (just asked); GroupEffectsV2: it
+	// answered 2, and each icon's time left and name go with it (petition 2962).
 	GroupEffects     bool
+	GroupEffectsV2   bool
 	groupEffectsSent string
 	groupEffectsDue  bool
 

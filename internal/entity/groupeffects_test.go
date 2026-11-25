@@ -170,3 +170,100 @@ func TestGroupEffectsOthersByTheirIDsAndMercs(t *testing.T) {
 		t.Fatalf("the merc dead: %x, want one set of the asker alone", got)
 	}
 }
+
+// fxEffect is one effect of a version 2 set: its icon, ms left and name.
+type fxEffect struct {
+	icon uint32
+	left uint32
+	name string
+}
+
+// fxSet2 is a version 2 body of one member: its id, then each effect's u32 icon, u32 ms
+// left and name (a u8 byte count and UTF-8).
+func fxSet2(id uint32, fx ...fxEffect) []byte {
+	out := binary.LittleEndian.AppendUint32([]byte{1}, id)
+	out = append(out, byte(len(fx)))
+	for _, e := range fx {
+		out = binary.LittleEndian.AppendUint32(out, e.icon)
+		out = binary.LittleEndian.AppendUint32(out, e.left)
+		out = append(out, byte(len(e.name)))
+		out = append(out, e.name...)
+	}
+	return out
+}
+
+// Version 2 (petition 2962, Graga: "the buff icons of group members should reveal the
+// buff when mouse hovering and have timers like the new buff timers"): each icon with its
+// time left and name, a slot with no end the server keeps as 0; sent again only when an
+// effect goes on, runs out or is cast again, never for its time running down; an answer
+// past the newest reads as the newest; and a client that answered 1 is sent icons alone,
+// byte for byte as before (the control).
+func TestGroupEffectsVersion2NamesAndTimes(t *testing.T) {
+	aw := newAssistWorld(t)
+	now := time.Unix(1_800_000_000, 0)
+	aw.group()
+	courage := &ActiveEffect{SpellID: 11, Name: "Courage", Icon: 0xA1B2C3D4, Until: now.Add(30 * time.Minute)}
+	aw.b.Effects = append(aw.b.Effects, courage,
+		&ActiveEffect{SpellID: 14, Name: "Breeze", Icon: 0x0BADF00D, Until: now.Add(time.Hour)})
+	aw.b.Buffs = []BuffSlot{{Icon: 0x99, Name: "Marked"}} // a GM's #effect: no end the server keeps
+	if !aw.w.SetGroupEffectsVersion(aw.asker, 2) {
+		t.Fatal("the asker has a player")
+	}
+	aw.fxPass(now)
+	oneFxSet(t, aw.asker, fxSet2(aLeader,
+		fxEffect{0xA1B2C3D4, 1_800_000, "Courage"}, fxEffect{0x0BADF00D, 3_600_000, "Breeze"}, fxEffect{0x99, 0, "Marked"}),
+		"version 2: names and times")
+
+	// later, the same effects with less time left: nothing goes out
+	aw.fxPass(now.Add(10 * time.Second))
+	if got := fxSets(aw.asker); len(got) != 0 {
+		t.Fatalf("unchanged but for the time left, sent again: %x", got)
+	}
+	// Courage cast again: the new time
+	courage.Until = now.Add(40 * time.Minute)
+	aw.fxPass(now.Add(10 * time.Second))
+	oneFxSet(t, aw.asker, fxSet2(aLeader,
+		fxEffect{0xA1B2C3D4, 2_390_000, "Courage"}, fxEffect{0x0BADF00D, 3_590_000, "Breeze"}, fxEffect{0x99, 0, "Marked"}),
+		"Courage cast again")
+
+	// an answer past the newest reads as the newest
+	aw.w.SetGroupEffectsVersion(aw.asker, 7)
+	aw.fxPass(now)
+	if got := fxSets(aw.asker); len(got) != 1 || len(got[0]) == len(fxSet(fxMember{aLeader, []uint32{1, 2, 3}})) {
+		t.Fatalf("answered 7: %x, want one version 2 set", got)
+	}
+
+	// the control: answered 1, the icons alone
+	aw.w.SetGroupEffectsVersion(aw.asker, 1)
+	aw.fxPass(now)
+	oneFxSet(t, aw.asker, fxSet(fxMember{aLeader, []uint32{0xA1B2C3D4, 0x0BADF00D, 0x99}}), "version 1: icons alone")
+	if aw.a.GroupEffectsV2 {
+		t.Fatal("answered 1, still version 2")
+	}
+}
+
+// A merc's effects in version 2: each with its time left, a were form's (past a year) with
+// none shown (0), as the buff window shows it.
+func TestGroupEffectsVersion2Merc(t *testing.T) {
+	aw := newAssistWorld(t)
+	now := time.Unix(1_800_000_000, 0)
+	aw.group()
+	merc := &NPC{ServerID: 2101, Name: "Hired Blade", Owner: aw.b.ServerID, merc: &mercState{}, HP: 50, MaxHP: 50}
+	aw.w.NPCs[merc.ServerID] = merc
+	aw.w.groups[7].Members = append(aw.w.groups[7].Members, merc.ServerID)
+	merc.Effects = []*ActiveEffect{
+		{SpellID: 21, Name: "Ward", Icon: 0x77, Until: now.Add(time.Minute)},
+		{SpellID: 22, Name: "Wolf Form", Icon: 0x78, Until: now.Add(2 * noEndShown)},
+	}
+	aw.w.SetGroupEffectsVersion(aw.leader, 2)
+	aw.fxPass(now)
+	got := fxSets(aw.leader)
+	if len(got) != 1 || got[0][0] != 2 {
+		t.Fatalf("the leader asked: %x, want one set of two members", got)
+	}
+	id := aw.w.groupIDSeenByLocked(aw.leader, merc.ServerID)
+	want := fxSet2(id, fxEffect{0x77, 60_000, "Ward"}, fxEffect{0x78, 0, "Wolf Form"})[1:]
+	if !bytes.HasSuffix(got[0], want) {
+		t.Fatalf("the merc: %x, want it to end %x", got[0], want)
+	}
+}

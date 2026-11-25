@@ -728,7 +728,11 @@ func (r *CMRank) unmetQuests(k CMKnows) []string {
 }
 
 // CMList is the window's list for the session's player: every rank its
-// class and race are offered, owned and known flags its own.
+// class and race are offered, and every rank it owns whether or not they are
+// (a GM's race change keeps the old race's master class: Heirloom petition
+// 3023, an Erudite made a Gnoll who kept Scholar; its ranks still count,
+// refreshCMLocked, and are listed so the window shows them), owned and known
+// flags its own.
 func (w *World) CMList(sess *session.Session, k CMKnows) []CMEntry {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
@@ -738,10 +742,10 @@ func (w *World) CMList(sess *session.Session, k CMKnows) []CMEntry {
 	}
 	var out []CMEntry
 	for _, r := range w.cms.order {
-		if !r.offered(p) {
+		_, owned := p.CMs[r.ID]
+		if !r.offered(p) && !owned {
 			continue
 		}
-		_, owned := p.CMs[r.ID]
 		out = append(out, CMEntry{ID: r.ID, Parent: r.Parent, Category: r.Category, Cost: r.Cost,
 			Owned: owned, Known: !owned && w.cmBlockLocked(p, r, k) == "", Name: r.Name})
 	}

@@ -33,6 +33,23 @@ func cooldownsSent(s *session.Session) map[int]int64 {
 	return out
 }
 
+// cooldownSeqSent is every 0x00CD sent to s in order, by display index: the lockouts in ms.
+func cooldownSeqSent(s *session.Session) map[int][]int64 {
+	out := map[int][]int64{}
+	for _, m := range s.Queue().GetPending() {
+		d := m.Data()
+		if len(d) < 8 || protocol.GameOpcode(binary.LittleEndian.Uint16(d)) != protocol.OpcodeCooldownTimer {
+			continue
+		}
+		v, n := binary.Uvarint(d[7:])
+		if n <= 0 {
+			continue
+		}
+		out[int(d[2])] = append(out[int(d[2])], int64(v>>1)^-int64(v&1))
+	}
+	return out
+}
+
 // Mr. Moogie readies a player's abilities (petition 1444: "reset all of their ability cool downs. This
 // cannot be used on players in PvP, in duels and can only be used on a player once every 10 minutes"):
 // his box offers it, and picked, every lockout running ends, each badge told 0x00CD with 0, and he says so;
@@ -55,8 +72,8 @@ func TestMrMoogieReadiesAbilities(t *testing.T) {
 	if err := f.ih.HandleDialogueOption(anna, incoming(protocol.OpcodeDialogueBoxOption, append(u32b(boxID(got)), 2))); err != nil {
 		t.Fatal(err)
 	}
-	if told := cooldownsSent(anna); len(told) != 2 || told[3] != 0 || told[5] != 0 {
-		t.Errorf("the badges told: %v, want 3 and 5 at 0", told)
+	if told := cooldownSeqSent(anna); len(told) != 2 || fmt.Sprint(told[3]) != "[1 0]" || fmt.Sprint(told[5]) != "[1 0]" {
+		t.Errorf("the badges told: %v, want 3 and 5 each 1 ms then 0 (petitions 3083, 3103)", told)
 	}
 	rows, _ := f.w.SavedLockouts(pa.ServerID, now)
 	if len(rows) != 1 || rows[0].SpellID != entity.MoogieResetID || rows[0].Until.Sub(now) < 9*time.Minute {

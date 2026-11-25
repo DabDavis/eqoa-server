@@ -85,7 +85,7 @@ const (
 
 // MoogieReset ends every lockout of sess's player's abilities still running (cast.go: each spell's and
 // art's, and the arts' shared cooldown) as their time running out ends them: each one's badge told 0x00CD
-// with 0, as castSystem tells a lockout over. Not its pet's, nor anyone else's; not its items' cooldowns.
+// of 1 ms and then 0 (sendLockoutCleared), once a display index. Not its pet's, nor anyone else's; not its items' cooldowns.
 // Once in MoogieResetEvery a character (its own lockout, MoogieResetID): within it nothing is ended and
 // wait is what is left of it. It returns the player's name and how many lockouts it ended; ok false
 // with no living player, or within its ten minutes. The PvP flag and a duel are MoogieBusy's, asked
@@ -102,6 +102,7 @@ func (w *World) MoogieReset(sess *session.Session, now time.Time) (name string, 
 			return p.Name, 0, l.until.Sub(now), false
 		}
 	}
+	told := map[int]bool{}
 	for _, l := range p.Lockouts {
 		if l.spellID == MoogieResetID {
 			continue // its own, over: another below
@@ -109,7 +110,10 @@ func (w *World) MoogieReset(sess *session.Session, now time.Time) (name string, 
 		if now.Before(l.until) {
 			n++
 		}
-		sendCooldown(sess, l.displayIndex, 0) // a badge of no ability (-1) is sent nothing
+		if !told[l.displayIndex] { // a badge of no ability (-1) is sent nothing
+			told[l.displayIndex] = true
+			sendLockoutCleared(sess, l.displayIndex)
+		}
 	}
 	if now.Before(p.artReady) {
 		n++
@@ -118,6 +122,17 @@ func (w *World) MoogieReset(sess *session.Session, now time.Time) (name string, 
 	p.Lockouts = append(p.Lockouts[:0], castLockout{spellID: MoogieResetID, displayIndex: -1, until: now.Add(MoogieResetEvery)})
 	log.Printf("Moogie: %s's ability lockouts reset (%d running); again from %s", p.Name, n, now.Add(MoogieResetEvery).UTC().Format("15:04:05"))
 	return p.Name, n, 0, true
+}
+
+// sendLockoutCleared tells an ability's lockout over before its time (Mr. Moogie's reset): 0x00CD of
+// 1 ms and then of 0. The 0 alone is what CLIENT reads as the lockout's end, but vanilla passes over an
+// end that comes with more than a second of the lockout it keeps still to run (Heirloom petition 3012:
+// the old lockout's end following a new cast), and so kept every badge and sweep after a reset
+// (petitions 3083, 3103). The 1 ms lockout first is one of no time, so the 0 after it is its own end to
+// every client; CLIENT's badge of 1 ms is gone at its next frame either way.
+func sendLockoutCleared(sess *session.Session, displayIndex int) {
+	sendCooldown(sess, displayIndex, time.Millisecond)
+	sendCooldown(sess, displayIndex, 0)
 }
 
 // MoogieHeal brings sess's player's hit points and power to their most. It returns the player's

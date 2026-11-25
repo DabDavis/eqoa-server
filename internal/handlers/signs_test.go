@@ -437,3 +437,43 @@ func TestBoardsAndTownSignsOfferTheWayBack(t *testing.T) {
 		t.Errorf("the sign's yes: at %.0f, invisible %v", tw.p.X, tw.p.Invisible())
 	}
 }
+
+// A sign whose name has an npctalk tree plays it in place of its words (the
+// Isle of Dread's sign post, petitions 3109/3110/3122): node 1's question with
+// its answers and Exit, an answer playing its node with the sign's name before
+// its lines. The controls: a sign of another name says its words, and a board
+// given a tree keeps its words.
+func TestASignWithATalkTreePlaysIt(t *testing.T) {
+	tw := newTalkWorld(t, 24646, 3311)
+	signRows(tw.h, database.SignText{NPCID: 702, Kind: database.SignKindRoad, Text: "North: Halas"},
+		database.SignText{NPCID: 703, Kind: database.SignKindBoard, Text: "Welcome to Graumord."})
+	tree := map[int]database.TalkNode{
+		1: {Says: []string{"Which of the isle's terrors would you hear of?"}, Choices: []database.TalkChoice{{Text: "Festering Jack", Next: 2}}},
+		2: {Says: []string{"When the swarm stills, look away."}},
+	}
+	tw.h.SetTalkTrees(func() (map[string]map[int]database.TalkNode, error) {
+		return map[string]map[int]database.TalkNode{"graumord signpost": tree, "graumord announcements": tree}, nil
+	})
+	iod := tw.add(1, &entity.NPC{ServerID: 701, Name: "Graumord signpost", ModelID: SignBody, SpawnX: 24646, SpawnY: 54.1, SpawnZ: 3312})
+	road := tw.add(2, &entity.NPC{ServerID: 702, Name: "signpost", ModelID: SignBody, SpawnX: 24647, SpawnY: 54.1, SpawnZ: 3312})
+	board := tw.add(3, &entity.NPC{ServerID: 703, Name: "Graumord Announcements", ModelID: SignBody, SpawnX: 24645, SpawnY: 54.1, SpawnZ: 3312})
+
+	tw.talk(iod)
+	h := heardTalk(tw.s)
+	if len(h.boxes) != 0 || h.question != "Which of the isle's terrors would you hear of?" ||
+		!slices.Equal(h.answers, []string{"Festering Jack", "Exit"}) || h.box&0xFF000000 != talkBoxMark {
+		t.Fatalf("the sign's tree: %+v", h)
+	}
+	tw.pick(h.box, 0)
+	if h = heardTalk(tw.s); !slices.Equal(h.boxes, []string{"Graumord signpost: When the swarm stills, look away."}) || h.box != 0 {
+		t.Fatalf("the answer: %+v", h)
+	}
+	tw.talk(road)
+	if m := questMsgs(tw.s); len(m) != 1 || m[0] != "box:North: Halas" {
+		t.Errorf("the control, a sign of no tree: %q", m)
+	}
+	tw.talk(board)
+	if m := questMsgs(tw.s); len(m) < 1 || m[0] != "box:Welcome to Graumord." {
+		t.Errorf("the control, a board keeps its words: %q", m)
+	}
+}

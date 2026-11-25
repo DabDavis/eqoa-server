@@ -26,7 +26,9 @@ import (
 // boon at the Freeport Announcement, and other city announcements"). Nothing
 // else answers a sign: never a quest (it gives none, and no step is done at
 // it), unless its row is of kind quest (SignKindQuest: petition 2418, the Wage
-// Cage's question), the town dialog, a shop or a route.
+// Cage's question), the town dialog, a shop or a route. A sign (not a board)
+// whose name has an npctalk tree plays the tree in place of its words
+// (npctalk.go: the Isle of Dread's sign post, petitions 3109/3110/3122).
 
 // SignBody is the body every sign post and announcement board stands on
 // (CHAR.ESF's 0x6A82352C).
@@ -113,6 +115,13 @@ func (h *InteractHandler) signSay(sess *session.Session, player *entity.Player, 
 	// working hard enough?"); with none there it says its words. Every other
 	// sign gives no quest.
 	if row, ok := signRow(npc, rows); ok && row.Kind == database.SignKindQuest && Quests().Talk(sess, player, npc) {
+		return true
+	}
+	// a sign whose name has an npctalk tree (node 1) plays it in place of its
+	// words (the owner, 2026-11-25, petitions 3109/3110/3122: the Isle of
+	// Dread's sign post with a selection for each raid's foe and the isle's
+	// news); a board keeps its boon, which follows its words alone
+	if !IsBoard(npc, rows) && h.talkTree(sess, player, npc) {
 		return true
 	}
 	forgetDialogs(player)

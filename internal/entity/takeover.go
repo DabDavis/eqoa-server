@@ -176,7 +176,7 @@ func (w *World) handedOverLocked(p *Player) {
 	p.ProfanityFilterOff, p.ProfanityFilterMedium = false, false
 	p.PowerBars, p.powerBarsSent, p.powerBarsDue = false, "", false
 	p.PetEffects, p.petEffectsSent, p.petEffectsDue = false, "", false
-	p.GroupEffects, p.groupEffectsSent, p.groupEffectsDue = false, "", false
+	p.GroupEffects, p.GroupEffectsV2, p.groupEffectsSent, p.groupEffectsDue = false, false, "", false
 	p.BuffWindow, p.buffWindowSent, p.buffWindowDue = false, "", false
 	p.StatFigures, p.statFiguresSent, p.statFiguresDue = false, "", false
 	p.RaidRoster, p.raidRosterSent, p.RaidRosterGroups, p.RaidRosterKinds = false, "", false, false

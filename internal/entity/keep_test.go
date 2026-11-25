@@ -229,3 +229,27 @@ func TestKeptPlayerTargetLockoutsOffers(t *testing.T) {
 		t.Fatal("a dead character kept as alive")
 	}
 }
+
+// The group effects' version its client asked for is kept over a restart (petition 2962):
+// a client that answered 2 is sent names and times again, one that answered 1 icons alone
+// (the control), and both their set at once.
+func TestKeptPlayerGroupEffectsVersion(t *testing.T) {
+	now := time.Now()
+	for _, v := range []uint32{2, 1} {
+		old := newKeepRig(t, "a gnoll pup", false)
+		if !old.w.SetGroupEffectsVersion(old.sess, v) {
+			t.Fatal("no player")
+		}
+		kp, ok := old.w.KeepPlayer(old.sess, now)
+		if !ok || !kp.GroupEffects || kp.GroupEffectsV2 != (v == 2) {
+			t.Fatalf("version %d kept %v v2 %v", v, kp.GroupEffects, kp.GroupEffectsV2)
+		}
+		r, sess := through(t, old, "a gnoll pup")
+		if !r.w.RestoreKeptPlayer(sess, kp, now.Add(5*time.Second)) {
+			t.Fatal("no player")
+		}
+		if !r.p.GroupEffects || r.p.GroupEffectsV2 != (v == 2) || !r.p.groupEffectsDue {
+			t.Fatalf("version %d restored: on %v v2 %v due %v", v, r.p.GroupEffects, r.p.GroupEffectsV2, r.p.groupEffectsDue)
+		}
+	}
+}

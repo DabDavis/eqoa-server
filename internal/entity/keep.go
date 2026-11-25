@@ -36,8 +36,10 @@ type KeptPlayer struct {
 	PowerBars    bool          `json:"power_bars,omitempty"`
 	PetEffects   bool          `json:"pet_effects,omitempty"`
 	GroupEffects bool          `json:"group_effects,omitempty"`
-	BuffWindow   bool          `json:"buff_window,omitempty"`
-	RaidRoster   bool          `json:"raid_roster,omitempty"`
+	// GroupEffectsV2: its client asked for version 2, names and times (groupeffects.go)
+	GroupEffectsV2 bool `json:"group_effects_v2,omitempty"`
+	BuffWindow     bool `json:"buff_window,omitempty"`
+	RaidRoster     bool `json:"raid_roster,omitempty"`
 	// RaidRosterGroups: its roster carries group numbers (raidsubgroups.go)
 	RaidRosterGroups bool `json:"raid_roster_groups,omitempty"`
 	// RaidRosterKinds: its roster carries each record's kind (raidroster.go)
@@ -165,7 +167,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 		Place: [3]float32{p.X, p.Y, p.Z}, World: p.World, PetEffects: p.PetEffects}
 	k.BuffWindow = p.BuffWindow
 	k.StatFigures = p.StatFigures
-	k.GroupEffects = p.GroupEffects
+	k.GroupEffects, k.GroupEffectsV2 = p.GroupEffects, p.GroupEffectsV2
 	k.RaceLabels = p.RaceLabels
 	k.WeatherDraws = p.WeatherDraws
 	k.RecordWindow = p.RecordWindow
@@ -223,7 +225,7 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	// its offence and defence figures again (statfigures.go)
 	p.StatFigures, p.statFiguresSent, p.statFiguresDue = k.StatFigures, "", k.StatFigures
 	// its members' icons again (groupeffects.go)
-	p.GroupEffects, p.groupEffectsSent, p.groupEffectsDue = k.GroupEffects, "", k.GroupEffects
+	p.GroupEffects, p.GroupEffectsV2, p.groupEffectsSent, p.groupEffectsDue = k.GroupEffects, k.GroupEffectsV2, "", k.GroupEffects
 	p.RaidRoster, p.raidRosterSent, p.RaidRosterGroups, p.RaidRosterKinds = k.RaidRoster, "", k.RaidRosterGroups, k.RaidRosterKinds
 	p.RaidWindows, p.raidStateSent = k.RaidWindows, "" // the state again at the next pass (raidrules.go)
 	if k.DPSMeter {

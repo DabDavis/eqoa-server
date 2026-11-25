@@ -144,6 +144,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.petEffectsSystem(now) // the pet's effects, to the clients that draw them (peteffects.go)
 	// the members' effects, to the clients that draw them (groupeffects.go)
 	w.groupEffectsSystem(now)
+	w.npcDebuffsSystem(now) // the player's effects on creatures, under their plates (npcdebuffs.go)
 	w.buffWindowSystem(now) // the buff window's set, to the clients that draw it (buffwindow.go)
 	w.dpsMeterSystem(now)   // the damage meters' fights, to the clients that draw them (dpsmeter.go)
 	w.statFiguresSystem()   // the offence and defence figures, to the stat windows open (statfigures.go)

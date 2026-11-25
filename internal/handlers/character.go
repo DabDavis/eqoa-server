@@ -1036,6 +1036,9 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// and the group members' effects (groupeffects.go): a client that draws
 	// them beside its group's bars asks for them, a PS2 ignores it
 	SendGroupEffectsOffer(sess)
+	// and the player's harmful effects on creatures (npcdebuffs.go, petition 2997): a
+	// client that draws them under the creatures' plates asks for them, a PS2 ignores it
+	SendNPCDebuffsOffer(sess)
 	// and the buff window (buffwindow.go, petition 1761): a client that draws its own
 	// asks for the set, a PS2 ignores it and keeps channel 0x43's window
 	SendBuffWindowOffer(sess)

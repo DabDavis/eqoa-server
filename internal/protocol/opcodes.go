@@ -1883,6 +1883,10 @@ func (op GameOpcode) String() string {
 		return "GroupEffects"
 	case OpcodeGroupEffectsData:
 		return "GroupEffectsData"
+	case OpcodeNPCDebuffs:
+		return "NPCDebuffs"
+	case OpcodeNPCDebuffsData:
+		return "NPCDebuffsData"
 	case OpcodeReadyCheckOffer:
 		return "ReadyCheckOffer"
 	case OpcodeReadyCheckAnswer:

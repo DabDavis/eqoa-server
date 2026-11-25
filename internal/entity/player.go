@@ -351,6 +351,14 @@ type Player struct {
 	groupEffectsSent string
 	groupEffectsDue  bool
 
+	// NPCDebuffs: the player's client draws the harmful effects it has on creatures under
+	// their name plates and asked for them (npcdebuffs.go, opcodes 0x7EC2 and 0x7EC3);
+	// npcDebuffsSent is what made the set it was last sent (each effect's icon, whose, name
+	// and end, not its time left), npcDebuffsDue sends the next whatever it is (just asked).
+	NPCDebuffs     bool
+	npcDebuffsSent string
+	npcDebuffsDue  bool
+
 	// BuffWindow: the player's client draws its own buff window and asked for its set
 	// (buffwindow.go, opcodes 0x7E57-0x7E59); buffWindowSent is what made the set it was
 	// last sent, buffWindowDue sends the next whatever it is (just asked).

@@ -97,6 +97,8 @@ type KeptPlayer struct {
 	Familiar *KeptFamiliar `json:"familiar,omitempty"`
 	// GMModes: its GM modes, Safe Mode and the rest (keepgm.go), nil none
 	GMModes *KeptGMModes `json:"gm_modes,omitempty"`
+	// NPCDebuffs: its client draws its effects on creatures under their plates (npcdebuffs.go)
+	NPCDebuffs bool `json:"npc_debuffs,omitempty"`
 }
 
 // KeptLockout is a spell's lockout and what is left of it.
@@ -168,6 +170,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 	k.BuffWindow = p.BuffWindow
 	k.StatFigures = p.StatFigures
 	k.GroupEffects, k.GroupEffectsV2 = p.GroupEffects, p.GroupEffectsV2
+	k.NPCDebuffs = p.NPCDebuffs
 	k.RaceLabels = p.RaceLabels
 	k.WeatherDraws = p.WeatherDraws
 	k.RecordWindow = p.RecordWindow
@@ -226,6 +229,8 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	p.StatFigures, p.statFiguresSent, p.statFiguresDue = k.StatFigures, "", k.StatFigures
 	// its members' icons again (groupeffects.go)
 	p.GroupEffects, p.GroupEffectsV2, p.groupEffectsSent, p.groupEffectsDue = k.GroupEffects, k.GroupEffectsV2, "", k.GroupEffects
+	// its effects on creatures again (npcdebuffs.go)
+	p.NPCDebuffs, p.npcDebuffsSent, p.npcDebuffsDue = k.NPCDebuffs, "", k.NPCDebuffs
 	p.RaidRoster, p.raidRosterSent, p.RaidRosterGroups, p.RaidRosterKinds = k.RaidRoster, "", k.RaidRosterGroups, k.RaidRosterKinds
 	p.RaidWindows, p.raidStateSent = k.RaidWindows, "" // the state again at the next pass (raidrules.go)
 	if k.DPSMeter {

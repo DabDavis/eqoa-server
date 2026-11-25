@@ -68,6 +68,9 @@ type NPC struct {
 	WornMask   uint16
 	// WornItems: the copies a mercenary holds (MercLook's), none for others
 	WornItems [AuraSlots]int
+	// HiddenParts: the parts of a mercenary's look its hirer hides (MercLook's
+	// Hidden: /merc helm off), their auras too; none for others
+	HiddenParts uint16
 	// kit is what its row holds in the hands and on the arm, of which
 	// PrimaryWeapon, SecondaryWeapon and Shield carry what this spawn's roll
 	// gave it (heldgear.go)

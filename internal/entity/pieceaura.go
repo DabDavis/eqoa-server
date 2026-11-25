@@ -454,7 +454,7 @@ func (w *World) NPCPieceAurasOf(n *NPC) *PieceAuras {
 	if k, ok := n.MercAuraKey(); ok {
 		own, own2 = w.charAuras(k), w.charSecondAuras(k)
 	}
-	return w.pieceAuras(&n.WornPieces, &n.WornItems, n.WornMask, 0, own, own2)
+	return w.pieceAuras(&n.WornPieces, &n.WornItems, n.WornMask, n.HiddenParts, own, own2)
 }
 
 // MercAuraKey is a mercenary's key in charaura: its owner's character and its

@@ -35,7 +35,9 @@ import (
 // and 10 spells"), ten ids comma-separated, 0 an empty slot; empty none set, its
 // whole book cast as before. hide_helm is its hirer's /merc helm off (1: its
 // helm worn and kept, its look shown bare-headed to every client; 0, the
-// default, shown: petition 2965). A merc on standby (out of a
+// default, shown: petition 2965). hide_look is its hirer's /merc look off (1:
+// every armour piece's look hidden, the helm's too, their auras with them,
+// all still worn; 0, the default, shown: petition 2965's follow-up). A merc on standby (out of a
 // full group for a player: entity/mercbench.go) keeps its row as it is.
 const charMercSchema = `
 	CREATE TABLE IF NOT EXISTS charmerc (
@@ -60,6 +62,7 @@ const charMercSchema = `
 		master      TEXT NOT NULL DEFAULT '',
 		spell_slots TEXT NOT NULL DEFAULT '',
 		hide_helm   INTEGER NOT NULL DEFAULT 0,
+		hide_look   INTEGER NOT NULL DEFAULT 0,
 		PRIMARY KEY (serverid, slot)
 	);`
 
@@ -102,7 +105,7 @@ func (db *SQLiteDB) ensureMercs() error {
 		for _, col := range []struct{ name, def string }{{"path", "INTEGER NOT NULL DEFAULT -1"}, {"pet", "TEXT NOT NULL DEFAULT ''"},
 			{"offensive", "INTEGER NOT NULL DEFAULT 0"}, {"spells_off", "TEXT NOT NULL DEFAULT ''"}, {"aoe", "INTEGER NOT NULL DEFAULT 0"},
 			{"master", "TEXT NOT NULL DEFAULT ''"}, {"spell_slots", "TEXT NOT NULL DEFAULT ''"},
-			{"hide_helm", "INTEGER NOT NULL DEFAULT 0"}} {
+			{"hide_helm", "INTEGER NOT NULL DEFAULT 0"}, {"hide_look", "INTEGER NOT NULL DEFAULT 0"}} {
 			if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('charmerc') WHERE name = ?`, col.name).Scan(&n); err != nil {
 				return fmt.Errorf("charmerc: %w", err)
 			}
@@ -171,18 +174,19 @@ type MercRow struct {
 	Master                                 string    // its Master Class (cmcatalog's mastery), "" none
 	SpellSlots                             []int     // its ten spell slots by spell id (0 empty), nil none set
 	HideHelm                               bool      // /merc helm off: its helm's look hidden (petition 2965)
+	HideLook                               bool      // /merc look off: every armour piece's look hidden, the helm's too
 	DeadUntil                              time.Time // zero: alive
 	Hired                                  time.Time
 }
 
-const mercCols = `serverid, slot, name, class, race, sex, face, hair_color, hair_length, hair_style, stance, dead_until, hired, path, pet, offensive, spells_off, aoe, master, spell_slots, hide_helm`
+const mercCols = `serverid, slot, name, class, race, sex, face, hair_color, hair_length, hair_style, stance, dead_until, hired, path, pet, offensive, spells_off, aoe, master, spell_slots, hide_helm, hide_look`
 
 // scanMerc reads a row of mercCols.
 func scanMerc(sc interface{ Scan(...any) error }) (MercRow, error) {
 	var r MercRow
 	var dead, hired, off, slots string
 	if err := sc.Scan(&r.ServerID, &r.Slot, &r.Name, &r.Class, &r.Race, &r.Sex, &r.Face, &r.HairColor, &r.HairLength, &r.HairStyle,
-		&r.Stance, &dead, &hired, &r.Path, &r.Pet, &r.Offensive, &off, &r.AoE, &r.Master, &slots, &r.HideHelm); err != nil {
+		&r.Stance, &dead, &hired, &r.Path, &r.Pet, &r.Offensive, &off, &r.AoE, &r.Master, &slots, &r.HideHelm, &r.HideLook); err != nil {
 		return MercRow{}, err
 	}
 	r.SpellsOff = parseSpellIDs(off)
@@ -276,9 +280,9 @@ func (db *SQLiteDB) SetMerc(r MercRow) error {
 	if !r.Hired.IsZero() {
 		hired = r.Hired.UTC().Format(time.RFC3339)
 	}
-	_, err := db.Exec(`INSERT OR REPLACE INTO charmerc (`+mercCols+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.ServerID,
+	_, err := db.Exec(`INSERT OR REPLACE INTO charmerc (`+mercCols+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.ServerID,
 		max(r.Slot, 1), r.Name, r.Class, r.Race, r.Sex, r.Face, r.HairColor, r.HairLength, r.HairStyle, r.Stance, dead, hired, r.Path, r.Pet,
-		r.Offensive, joinSpellIDs(r.SpellsOff), r.AoE, r.Master, joinMercSpellSlots(r.SpellSlots), r.HideHelm)
+		r.Offensive, joinSpellIDs(r.SpellsOff), r.AoE, r.Master, joinMercSpellSlots(r.SpellSlots), r.HideHelm, r.HideLook)
 	return err
 }
 
@@ -392,6 +396,13 @@ func (db *SQLiteDB) SetMercAoE(serverID uint32, slot int, on bool) error {
 // its helm's look (petition 2965), false shows it.
 func (db *SQLiteDB) SetMercHideHelm(serverID uint32, slot int, hide bool) error {
 	_, err := db.Exec(`UPDATE charmerc SET hide_helm = ? WHERE serverid = ? AND slot = ?`, hide, serverID, max(slot, 1))
+	return err
+}
+
+// SetMercHideLook keeps the character's merc's /merc look: hide true hides
+// every armour piece's look (petition 2965's follow-up), false shows them.
+func (db *SQLiteDB) SetMercHideLook(serverID uint32, slot int, hide bool) error {
+	_, err := db.Exec(`UPDATE charmerc SET hide_look = ? WHERE serverid = ? AND slot = ?`, hide, serverID, max(slot, 1))
 	return err
 }
 

@@ -701,6 +701,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	NewDyePickerHandler(gameWorld).RegisterHandlers(r) // the dyers' colour picker (dyepicker.go)
 	// A damage meter (0x7E3B, 0x7E3D; dpsmeter.go): a client that draws one
 	NewDPSMeterHandler(gameWorld).RegisterHandlers(r)
+	// The real offence and defence figures (0x7E84; statfigures.go): a client
+	// whose stat window is open
+	NewStatFiguresHandler(gameWorld).RegisterHandlers(r)
 	// The worn looks a character hides (0x7E6D; hidelook.go)
 	NewHideLookHandler(charHandler).RegisterHandlers(r)
 	// A monster's name and level in the details box (0x7E4D; mobinfo.go): a

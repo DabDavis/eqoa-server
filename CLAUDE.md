@@ -400,7 +400,7 @@ The PS2 CLIENT (and its decomp) and packet captures are the source of truth, not
   members' effects as tiny icons on their bars (0x7EC0/0x7EC1, `entity/groupeffects.go`), number colours,
   DPS meter (0x7E3B/0x7E3C), raid windows (0x7E42/0x7E44), more answers per dialog box (0x7E71; CLIENT's `Msg0034`
   overruns past six), the dye picker, quest marks and tracker, NPC tints and glows, weather timelines
-  (0x7E93/0x7E94). **Reserve a new 0x7Exx in `opcodes.go` before using it.** A keep restart keeps what a session asked
+  (0x7E93/0x7E94), the stat window's real offence and defence figures (0x7E84/0x7E85, `entity/statfigures.go`). **Reserve a new 0x7Exx in `opcodes.go` before using it.** A keep restart keeps what a session asked
   for; a takeover's new client asks again.
 - **Never sent by a real server**: `0x0728`, `0x002E`. Character list counts and fields are ZIGZAG. 0x07D1 is
   int32 -1 (the expansion mask).

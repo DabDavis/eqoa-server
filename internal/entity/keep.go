@@ -70,6 +70,9 @@ type KeptPlayer struct {
 	// DPSMeter: its client draws a damage meter (dpsmeter.go); its fight ends
 	// at the restart
 	DPSMeter bool `json:"dps_meter,omitempty"`
+	// StatFigures: its client's stat window was open, sent the offence and
+	// defence figures (statfigures.go)
+	StatFigures bool `json:"stat_figures,omitempty"`
 	// ProfanityOff: the player turned the profanity filter off (0x0045,
 	// /filter, or its client's setting: handlers/profanity.go)
 	ProfanityOff bool `json:"profanity_off,omitempty"`
@@ -161,6 +164,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 		Target: p.TargetObjectID, PowerBars: p.PowerBars, RaidRoster: p.RaidRoster, RaidRosterGroups: p.RaidRosterGroups, RaidRosterKinds: p.RaidRosterKinds, RaidWindows: p.RaidWindows, DuelWindow: p.DuelWindow, GM: p.GM, HideGMTag: p.HideGMTag, SubGM: p.SubGM, Flying: p.Flying, Noclip: p.Noclip,
 		Place: [3]float32{p.X, p.Y, p.Z}, World: p.World, PetEffects: p.PetEffects}
 	k.BuffWindow = p.BuffWindow
+	k.StatFigures = p.StatFigures
 	k.GroupEffects = p.GroupEffects
 	k.RaceLabels = p.RaceLabels
 	k.WeatherDraws = p.WeatherDraws
@@ -216,6 +220,8 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	p.LFG, p.GroupChatHidden = k.LFG, k.GroupChatHidden
 	p.PetEffects, p.petEffectsSent, p.petEffectsDue = k.PetEffects, "", k.PetEffects // its pet's set again once the pet is back
 	p.BuffWindow, p.buffWindowSent, p.buffWindowDue = k.BuffWindow, "", k.BuffWindow // its buff window's set again (buffwindow.go)
+	// its offence and defence figures again (statfigures.go)
+	p.StatFigures, p.statFiguresSent, p.statFiguresDue = k.StatFigures, "", k.StatFigures
 	// its members' icons again (groupeffects.go)
 	p.GroupEffects, p.groupEffectsSent, p.groupEffectsDue = k.GroupEffects, "", k.GroupEffects
 	p.RaidRoster, p.raidRosterSent, p.RaidRosterGroups, p.RaidRosterKinds = k.RaidRoster, "", k.RaidRosterGroups, k.RaidRosterKinds

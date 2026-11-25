@@ -152,8 +152,9 @@ func vanillaUIBits(sess *session.Session) uint32 {
 
 // stopKeptQoL ends, at a keep restart's resume into world.vanilla_ui, what the
 // client had asked for before it: others' power, the pet's effects, the buff
-// window, the meter, the number tags and the monster's details. (The quest
-// marks, tracker and head marks are not resumed: keep.go.)
+// window, the meter, the offence and defence figures, the number tags and the
+// monster's details. (The quest marks, tracker and head marks are not resumed:
+// keep.go.)
 func stopKeptQoL(w *entity.World, sess *session.Session) {
 	if QoLOnFor(sess) {
 		return
@@ -163,6 +164,7 @@ func stopKeptQoL(w *entity.World, sess *session.Session) {
 		w.SetPetEffects(sess, false)
 		w.SetBuffWindow(sess, false)
 		w.SetDPSMeter(sess, false)
+		w.SetStatFigures(sess, false) // statfigures.go
 	}
 	sess.SetNumberTagsLayout(0)
 	sess.SetMobInfo(false)

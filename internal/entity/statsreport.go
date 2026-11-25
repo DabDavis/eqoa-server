@@ -103,15 +103,14 @@ func (w *World) playerStatsLocked(p *Player, now time.Time) []string {
 		p.StatNow(StatAC), p.Gear.AC, p.Mods.AC, p.CMEffects[cmSlotAC], p.StatNow(StatFR), p.StatNow(StatCR), p.StatNow(StatLR),
 		p.StatNow(StatAR), p.StatNow(StatPR), p.StatNow(StatDR), p.StatNow(StatWis), wisResist(p.StatNow(StatWis))))
 
-	foe := &NPC{Level: p.Level}
-	floor, low, high := playerMeleeRoll(p, foe)
-	if p.Gear.WeaponSlot == 18 { // a ranged weapon's arrow: DEX its top, WIS its bottom (offence.go)
-		floor, low, high = playerRangedRoll(p, foe)
+	// the figures a stat window is sent too (statfigures.go)
+	ranged, low, high, floor, lo, hi := playerFigures(p)
+	if ranged {
 		out = append(out, fmt.Sprintf("Melee: %s; on a level %d creature %d-%d an arrow, never under %d, x%.2f a shot's arrow",
-			meleeWeaponWords(p), p.Level, max(low, floor), max(high, floor), floor, rangedShare))
+			meleeWeaponWords(p), p.Level, low, high, floor, rangedShare))
 	} else {
 		out = append(out, fmt.Sprintf("Melee: %s; on a level %d creature %d-%d a hit, never under %d",
-			meleeWeaponWords(p), p.Level, max(low, floor), max(high, floor), floor))
+			meleeWeaponWords(p), p.Level, low, high, floor))
 	}
 	if line := weaponProcWords(p); line != "" {
 		out = append(out, line)
@@ -131,7 +130,6 @@ func (w *World) playerStatsLocked(p *Player, now time.Time) []string {
 		out = append(out, "Swing: worked out from the worn gear when a fight begins")
 	}
 	r := creatureRoll(p.Level)
-	lo, hi := hitRangeOn(r, p)
 	out = append(out, fmt.Sprintf("Defence: a level %d creature hits for %d-%d (AC %d x %.4f and AGI %d x %.3f off its top, a %s's %+.1f)",
 		p.Level, lo, hi, p.StatNow(StatAC), r.ACSlope, p.StatNow(StatAgi), agiSlope[a], archNames[a], archOffset[a]))
 	out = append(out, fmt.Sprintf("Off/def mod by the old fitted formulas (no roll uses them): OFF %d, DEF %d", p.OffMod, p.DefMod))

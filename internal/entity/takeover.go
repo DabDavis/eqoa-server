@@ -178,6 +178,7 @@ func (w *World) handedOverLocked(p *Player) {
 	p.PetEffects, p.petEffectsSent, p.petEffectsDue = false, "", false
 	p.GroupEffects, p.groupEffectsSent, p.groupEffectsDue = false, "", false
 	p.BuffWindow, p.buffWindowSent, p.buffWindowDue = false, "", false
+	p.StatFigures, p.statFiguresSent, p.statFiguresDue = false, "", false
 	p.RaidRoster, p.raidRosterSent, p.RaidRosterGroups, p.RaidRosterKinds = false, "", false, false
 	p.dps = nil                             // its meter too (dpsmeter.go)
 	delete(w.invites, p.ServerID)           // the new client has no box up

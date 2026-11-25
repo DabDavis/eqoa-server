@@ -25,6 +25,7 @@ var qolOffers = []protocol.GameOpcode{
 	protocol.OpcodeNumberTagsOffer, protocol.OpcodeDPSMeterOffer, protocol.OpcodeMobInfoOffer,
 	protocol.OpcodeConLevelOffer, protocol.OpcodeQuestMarkers, protocol.OpcodeQuestProgress,
 	protocol.OpcodeQuestHeadMarksOffer, protocol.OpcodeGroupEffects,
+	protocol.OpcodeStatFigures, // its stat caps the game's (QoLStatCaps): no Stat Window
 }
 
 // worldEntryOps is what a world entry (two 0x0014s, as a client sends) queues,

@@ -87,6 +87,9 @@ type Player struct {
 	// PetDyes: its pets' dyes by body, [area 1, area 2] each 0xRRGGBBAA (0
 	// none; petdyes.go, table petdyes), drawn by a client that asked for them
 	PetDyes map[uint32]PetDye
+	// PetNames: the names it gave its summoned pets, by summoning spell
+	// (petrename.go, table petnames), every summoning of that spell's pet
+	PetNames map[int]string
 	// CapeStyle is the worn cape's style (its record's model, 1-255; 0 none
 	// worn) and CapeColor its colour (0xRRGGBBAA, 0 the art's own): an equip
 	// slot of this server's own, told only to the clients that draw capes

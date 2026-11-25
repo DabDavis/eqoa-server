@@ -910,6 +910,7 @@ func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *databa
 	h.loadDyes(player, record.ServerID)
 	// and its pets' dyes, the Pet Groomers' (petgroomer.go)
 	h.loadPetDyes(record.ServerID)
+	h.loadPetNames(record.ServerID) // petrename.go: before a keep restart's pet is summoned again
 	// and the hit points and power it left the world with, and what its HoT
 	// and PoT gave back while it was away, within the maxima its gear gives
 	// it now (entity/linkdead.go): until 2026-10-31 every login filled them

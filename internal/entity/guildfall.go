@@ -1,10 +1,13 @@
 package entity
 
-import "log"
+import (
+	"log"
+	"sort"
+)
 
 // guildfall.go: a Hardcore guild master's fall hands the lead on (the owner,
 // 2026-11-18, petition 2384: "Pass the lead on death"). A guild has one master
-// (GuildRankLeader), and its lead passed only when the master left the guild or
+// (GuildRankLeader; since petition 2976 it may have several), and its lead passed only when the master left the guild or
 // its character was deleted; a fallen Hardcore character stays on its roster
 // but can never log in again, so its guild was left with a master who could not
 // act. Now the fall passes the lead to the highest-ranked member still playing
@@ -60,11 +63,21 @@ func (w *World) FallenGuildLeads(fallen []uint32) int {
 	}
 	n := 0
 	for _, g := range w.guilds {
-		lead := w.leaderLocked(g)
-		if lead == nil || !w.guildFallen[lead.ID] {
-			continue
+		// each fallen master (a guild may have several), lowest id first
+		var fallenLeads []*GuildMember
+		for _, m := range g.Members {
+			if m.Rank == GuildRankLeader && w.guildFallen[m.ID] {
+				fallenLeads = append(fallenLeads, m)
+			}
 		}
-		if _, ok := w.handFallenLeadLocked(g, lead); ok {
+		sort.Slice(fallenLeads, func(i, j int) bool { return fallenLeads[i].ID < fallenLeads[j].ID })
+		changed := false
+		for _, lead := range fallenLeads {
+			if _, ok := w.handFallenLeadLocked(g, lead); ok {
+				changed = true
+			}
+		}
+		if changed {
 			w.keepGuildLocked(&writes, g, false)
 			n++
 		}

@@ -427,8 +427,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 			interactHandler.tokenShop.links = chatHandler.links
 			interactHandler.tokenShop.chars = charStore // a standing spent is kept at once
 		}
-		interactHandler.bugBoard = NewBugBoard(charStore.DB()) // the Bug Finder Leaderboard (bugboard.go)
-		memorialDB.Store(charStore.DB())                       // the Memorial of the Fallen, the Hardcore Leaderboard (memorial.go)
+		interactHandler.bugBoard = NewBugBoard(charStore.DB())   // the Bug Finder Leaderboard (bugboard.go)
+		interactHandler.ideaBoard = NewIdeaBoard(charStore.DB()) // the Idea Contributors board (ideaboard.go)
+		memorialDB.Store(charStore.DB())                         // the Memorial of the Fallen, the Hardcore Leaderboard (memorial.go)
 		equipHandler.training = charStore
 		interactHandler.binds = charStore
 		// the stables' ledgers (coachledger.go)

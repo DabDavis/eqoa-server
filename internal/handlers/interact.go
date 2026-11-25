@@ -130,6 +130,8 @@ type InteractHandler struct {
 	heroes *Heroes
 	// bugBoard is the Bug Finder Leaderboard's talk (bugboard.go); nil: the board says it cannot be read
 	bugBoard *BugBoard
+	// ideaBoard is the Idea Contributors board's talk (ideaboard.go); nil: the board says it cannot be read
+	ideaBoard *IdeaBoard
 }
 
 // SetDialogLines gives the handler npcdialog's reader (database.NPCDialog).
@@ -408,6 +410,10 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.bugBoard.Talk(sess, player, npc) {
+		return nil
+	}
+	// The Idea Contributors board (ideaboard.go): the players whose feature requests were adopted.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.ideaBoard.Talk(sess, player, npc) {
 		return nil
 	}
 

@@ -155,6 +155,9 @@ var snapshotRules = map[string]snapshotRule{
 	"tokenshop_purchases": {allow: []string{"token"},
 		why: "the token shops' purchases: who bought which item for how many of an item (token: its name, no secret), " +
 			"kept whole as heroes_purchases is"},
+	"petitionadopted": {
+		why: "the features petitions asked for that the game took up (ideaboard.go, the Idea Contributors board): a " +
+			"petition's number, the feature's name, when and which GM; no player's words (the petitions are cleared)"},
 	"campfix_reports": {clear: true,
 		why: "a player's camp report (handlers/campfix.go): the account and the character that sent it, its own note, " +
 			"and the GMs' review of it"},
@@ -220,6 +223,7 @@ var snapshotRules = map[string]snapshotRule{
 	"grocer_stock":                {allow: []string{"key"}, why: "tools/stock_grocers.py's log"},
 	"heirloom_epics_log":          {allow: []string{"rowkey"}, why: "tools/heirloom_epics.py's log"},
 	"jib_lane2_1122_log":          {allow: []string{"rowkey"}, why: "tools/jib_lane2_20261122.py's log"},
+	"ideaboard_1125_log":          {allow: []string{"rowkey"}, why: "tools/ideaboard_20261125.py's log"},
 	"merchant_stock":              {allow: []string{"key"}, why: "tools/stock_merchants.py's log"},
 	"petition_fix_log":            {allow: []string{"rowkey"}, why: "the petition fixes' log, written on the live server (rowkey: the content row a fix changed; petition: a number, the petitions are cleared)"},
 	"pod_seed_meta":               {allow: []string{"key"}, why: "tools/seed_pod.py's facts"},

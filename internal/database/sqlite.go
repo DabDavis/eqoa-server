@@ -818,6 +818,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensurePetitions(); err != nil { // petitions.go
 		return err
 	}
+	if err := db.ensurePetitionAdopted(); err != nil { // ideaboard.go: the features petitions asked for that were adopted
+		return err
+	}
 	if err := db.ensureTransfers(); err != nil { // transfers.go
 		return err
 	}

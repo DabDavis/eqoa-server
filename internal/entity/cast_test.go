@@ -533,3 +533,38 @@ func TestRecoveryLeftWords(t *testing.T) {
 		}
 	}
 }
+
+// An older lockout a newer one of the same spell on the same ability replaced
+// goes without its 0x00CD 0: CLIENT keeps one lockout an ability (Msg00CD sets
+// it by display index), so the old end would free the button while the new one
+// runs. The newer one's end is told, once; another ability's end still is.
+func TestAReplacedLockoutEndsSilently(t *testing.T) {
+	c := newCaster(t)
+	c.p.Lockouts = []castLockout{
+		{spellID: 700, displayIndex: 3, until: c.at(1 * time.Second)}, // replaced
+		{spellID: 800, displayIndex: 5, until: c.at(1 * time.Second)}, // its own
+		{spellID: 700, displayIndex: 3, until: c.at(10 * time.Second)},
+	}
+	c.sent()
+	c.tick(2 * time.Second)
+	if got := cooldownsOf(c.sent()); len(got) != 1 || got[5] != 0 {
+		t.Fatalf("at 2 s 0x00CD %v, want ability 5 freed alone", got)
+	}
+	if len(c.p.Lockouts) != 1 || c.p.Lockouts[0].spellID != 700 {
+		t.Fatalf("lockouts left %+v, want the newer one", c.p.Lockouts)
+	}
+	c.tick(11 * time.Second)
+	if got := c.sent(); len(got) != 1 || cooldownsOf(got)[3] != 0 {
+		t.Fatalf("at 11 s sent %d, 0x00CD %v; want ability 3 freed once", len(got), cooldownsOf(got))
+	}
+
+	// two of the same spell over in one tick: told once
+	c.p.Lockouts = []castLockout{
+		{spellID: 700, displayIndex: 3, until: c.at(12 * time.Second)},
+		{spellID: 700, displayIndex: 3, until: c.at(13 * time.Second)},
+	}
+	c.tick(14 * time.Second)
+	if got := c.sent(); len(got) != 1 {
+		t.Fatalf("two ends in a tick sent %d messages, want one 0x00CD", len(got))
+	}
+}

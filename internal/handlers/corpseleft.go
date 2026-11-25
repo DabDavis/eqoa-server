@@ -37,6 +37,7 @@ func (h *NPCWindowHandler) moveCorpseLocked(ls *lootState, m entity.CorpseLeft) 
 		if open == from {
 			delete(ls.open, s)
 			delete(ls.since, s)
+			delete(ls.keys, s)
 			queueReliable(s, protocol.OpcodeClientCloseLoot, closeLootPayload())
 		}
 	}

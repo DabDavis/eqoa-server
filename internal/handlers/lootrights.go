@@ -140,6 +140,7 @@ func (h *NPCWindowHandler) heldByOtherLocked(ls *lootState, sess *session.Sessio
 		log.Printf("Loot: %s's window on %q let go of (no longer looting)", name, npc.Name)
 		delete(ls.open, s)
 		delete(ls.since, s)
+		delete(ls.keys, s)
 		if holder != nil {
 			queueReliable(s, protocol.OpcodeClientCloseLoot, closeLootPayload())
 		}

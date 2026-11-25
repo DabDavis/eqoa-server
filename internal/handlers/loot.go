@@ -30,9 +30,12 @@ import (
 //     0x0018, the corpse as a VIItemList (buildLoot), each record keyed by
 //     its position. A client not in play answers 0x0016 at once
 //     (LootNoWindow).
-//   - 0x0019 {u32 key, u32 count} (LootOne 0x00BCAB?? → SendLoot(25, ...)):
-//     that record into the inventory, answered as the game answers it: 0x0019
-//     {u8 slot, zigzag} (Msg0019, the record moved in place, the window and its
+//   - 0x0019 {u32 key, u32 count} (LootOne 0x00BCB038 → SendLoot(25,
+//     m_corpse.GetSlotId(i), ...): the row's KEY, as 0x0018 gave it, never
+//     renumbered; windowSlotLocked): that record into the inventory, answered
+//     as the game answers it: 0x0019 {u8 POSITION, zigzag} (Msg0019's
+//     VIItemList::Get/Took index the rows; Took moves the rest up, keys and
+//     all), the record moved in place, the window and its
 //     selection left as they are) when that leaves the client's corpse and
 //     inventory as the server's (lootInPlaceLocked); else 0x003B and the corpse
 //     sent again (0x0016, then 0x0018 while anything is left). CLIENT's 0x0018
@@ -73,8 +76,11 @@ type lootState struct {
 	mu      sync.Mutex
 	corpses map[entity.EntityID]*corpse
 	open    map[*session.Session]entity.EntityID
-	since   map[*session.Session]time.Time  // each open window's last opening or take (lootrights.go)
-	drops   map[entity.EntityID]*questDrops // loot steps' drops (questloot.go)
+	since   map[*session.Session]time.Time // each open window's last opening or take (lootrights.go)
+	// keys are the record keys each open window holds, in its order (sentLocked,
+	// windowSlotLocked): what a take's key means on that client
+	keys  map[*session.Session][]uint32
+	drops map[entity.EntityID]*questDrops // loot steps' drops (questloot.go)
 	// pending is the deaths (time.Time, by NPC) whose kill the quests have not
 	// worked yet: their loot steps' drops still to come (questloot.go). A
 	// sync.Map: marked under the World's lock, never the loot's
@@ -90,7 +96,7 @@ type lootState struct {
 func (h *NPCWindowHandler) loots() *lootState {
 	h.lootOnce.Do(func() {
 		h.loot = &lootState{corpses: map[entity.EntityID]*corpse{}, open: map[*session.Session]entity.EntityID{},
-			since: map[*session.Session]time.Time{},
+			since: map[*session.Session]time.Time{}, keys: map[*session.Session][]uint32{},
 			drops: map[entity.EntityID]*questDrops{}, rolls: map[int]*lootRoll{}}
 	})
 	return h.loot
@@ -163,6 +169,7 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 	h.giveCorpseCoins(sess, npc, c.tunar)
 	c.tunar = 0
 	view := ls.viewLocked(npc.ServerID, c, h.charOf(sess))
+	ls.sentLocked(sess, view)
 	SendLoot(sess, view)
 	h.raidOpenedLocked(sess, ls, npc, c)
 	if h.refreshCorpse != nil {
@@ -448,6 +455,7 @@ func (h *NPCWindowHandler) corpseGoneLocked(ls *lootState, id entity.EntityID) {
 		if open == id {
 			delete(ls.open, s)
 			delete(ls.since, s)
+			delete(ls.keys, s)
 			queueReliable(s, protocol.OpcodeClientCloseLoot, closeLootPayload())
 		}
 	}
@@ -489,6 +497,7 @@ func (h *NPCWindowHandler) resendCorpse(sess *session.Session, ls *lootState, c 
 	if len(view) == 0 {
 		delete(ls.open, sess) // the 0x0016 above closed CLIENT's window: nothing to send again later
 		delete(ls.since, sess)
+		delete(ls.keys, sess)
 		if now := h.lootClock(); open && ls.pendingLocked(id, c, now) {
 			// the kill's quest drops still to come: the corpse lies on for them
 			// (emptyLocked), for its looter to open again, but no window is kept
@@ -506,6 +515,7 @@ func (h *NPCWindowHandler) resendCorpse(sess *session.Session, ls *lootState, c 
 	if open {
 		ls.since[sess] = h.lootClock() // a take: still looting (lootrights.go)
 	}
+	ls.sentLocked(sess, view)
 	SendLoot(sess, view)
 	h.masterListLocked(sess, c) // after every 0x0018 to its master looter (raidloot.go)
 }
@@ -563,6 +573,7 @@ func (h *NPCWindowHandler) closeLoot(sess *session.Session) {
 	id, open := ls.open[sess]
 	delete(ls.open, sess)
 	delete(ls.since, sess)
+	delete(ls.keys, sess)
 	queueReliable(sess, protocol.OpcodeClientCloseLoot, closeLootPayload())
 	if c := ls.corpses[id]; open && c != nil {
 		h.servedHoldersLocked(c, nil, 0, nil) // the kill's characters that need no copy (lootshare.go)
@@ -575,8 +586,45 @@ func (h *NPCWindowHandler) closeLoot(sess *session.Session) {
 	ls.mu.Unlock()
 }
 
+// sentLocked is a 0x0018 of view to sess: the window CLIENT then holds keys
+// its records 0, 1, 2... (buildLoot's), at most maxCorpseItems of them.
+func (ls *lootState) sentLocked(sess *session.Session, view []database.CharInventoryEntry) {
+	keys := make([]uint32, min(len(view), maxCorpseItems))
+	for i := range keys {
+		keys[i] = uint32(i)
+	}
+	ls.keys[sess] = keys
+}
+
+// windowSlotLocked is the position in sess's window of the record a take's key
+// names, or -1. CLIENT's LootOne sends a row's key, not its row
+// (m_corpse.GetSlotId(i), the record's m_invIndex as 0x0018 gave it), and a
+// 0x0019 answered in place moves the rows under it down without renumbering a
+// key (VIItemList::Took), so after one such take key and row part.
+func (ls *lootState) windowSlotLocked(sess *session.Session, key uint32) int {
+	keys, held := ls.keys[sess]
+	if !held { // no 0x0018 on record (a window from before a restart): it was sent keyed by position
+		return int(key)
+	}
+	for i, k := range keys {
+		if k == key {
+			return i
+		}
+	}
+	return -1
+}
+
+// tookFromWindowLocked is a 0x0019 answered in place that left nothing of the
+// record at position i: CLIENT's Took drops that row and the rows after it move
+// up, keeping their keys.
+func (ls *lootState) tookFromWindowLocked(sess *session.Session, i int) {
+	if keys := ls.keys[sess]; i >= 0 && i < len(keys) {
+		ls.keys[sess] = append(keys[:i], keys[i+1:]...)
+	}
+}
+
 // HandleLootItem is 0x0019 {u32 key, u32 count} (SendLoot): the record with
-// that key into the inventory, as many as it holds.
+// that key (windowSlotLocked) into the inventory, as many as it holds.
 func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.Message) error {
 	r := buffer.NewReader(msg.Data())
 	key, e1 := r.ReadUint32()
@@ -597,7 +645,7 @@ func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.M
 	}
 	id, char := ls.open[sess], player.CharServerID
 	view := ls.viewLocked(id, c, char)
-	i := int(key)
+	i := ls.windowSlotLocked(sess, key)
 	if i < 0 || i >= len(view) || n == 0 {
 		h.resendCorpse(sess, ls, c)
 		return nil
@@ -635,6 +683,9 @@ func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.M
 				h.lootInPlaceLocked(sess, ls, id, c, char, before, i, took, out, k)
 			if inPlace {
 				queueReliable(sess, protocol.OpcodeClientLoot, lootTookPayload(i, took))
+				if took == rec.StackLeft {
+					ls.tookFromWindowLocked(sess, i) // Msg0019's Took, as the client's list moves
+				}
 			} else {
 				queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, k, readsCapes(sess)))
 			}
@@ -906,6 +957,7 @@ func (h *NPCWindowHandler) openCorpse(sess *session.Session, ls *lootState) (*co
 	if c == nil || player == nil || inv == nil {
 		delete(ls.open, sess)
 		delete(ls.since, sess)
+		delete(ls.keys, sess)
 		return nil, nil, nil
 	}
 	return c, player, inv

@@ -323,7 +323,9 @@ func TestATakeIsAnsweredInPlace(t *testing.T) {
 		return f.sent()
 	}
 	for want := 1; want <= 2; want++ {
-		got := take(1, 1)
+		// row 1 each time, by its key as CLIENT's LootOne sends it (GetSlotId):
+		// key 1, then key 2, which Took moved up to row 1
+		got := take(uint32(want), 1)
 		if len(got) == 0 || opOf(got[0]) != protocol.OpcodeClientLoot {
 			t.Fatalf("take %d: sent %s, want 0x0019 first", want, ops(got))
 		}
@@ -346,6 +348,63 @@ func TestATakeIsAnsweredInPlace(t *testing.T) {
 	}
 	if len(f.cleared) != 1 || len(f.rows()) != 3 {
 		t.Fatalf("emptied: cleared %v, %d rows", f.cleared, len(f.rows()))
+	}
+}
+
+// A take's key is the record's key as the client holds it (LootOne sends
+// m_corpse.GetSlotId(i)), not its row: after key 1 of A, B, C is taken in place
+// the client holds A (key 0) and C (key 2) in rows 0 and 1, and key 2 is C,
+// answered 0x0019 for row 1. A key the window no longer holds takes nothing.
+func TestATakeAfterAnInPlaceTakeIsByKey(t *testing.T) {
+	f := newCorpseFixture(t, 0)
+	names := []string{"Axe of A", "Bow of B", "Club of C"}
+	for i, name := range names {
+		pat := f.pattern(name, 100, 1, 100, 12)
+		if _, err := f.db.Exec(`INSERT INTO npcitem (npcid, stackleft, remainHP, patternid, listnumber)
+			VALUES (?, 1, 100, ?, ?)`, corpseNPCID, pat, i); err != nil {
+			t.Fatal(err)
+		}
+	}
+	f.h.OpenCorpse(f.sess, f.npc)
+	f.sent()
+	take := func(key uint32) [][]byte {
+		f.send(protocol.OpcodeClientLoot, func(w *buffer.Writer) { w.WriteUint32(key); w.WriteUint32(1) })
+		return f.sent()
+	}
+	held := func() map[string]bool {
+		m := map[string]bool{}
+		for _, r := range f.rows() {
+			m[r.Pattern.ItemName] = true
+		}
+		return m
+	}
+	for _, step := range []struct {
+		key  uint32
+		row  byte
+		name string
+	}{{1, 1, "Bow of B"}, {2, 1, "Club of C"}} {
+		got := take(step.key)
+		if len(got) == 0 || opOf(got[0]) != protocol.OpcodeClientLoot || got[0][2] != step.row {
+			t.Fatalf("key %d: sent %s, want 0x0019 for row %d", step.key, ops(got), step.row)
+		}
+		if !held()[step.name] {
+			t.Fatalf("key %d: the pack holds %v, want %q in it", step.key, held(), step.name)
+		}
+	}
+	if h := held(); len(h) != 2 || h["Axe of A"] {
+		t.Fatalf("after keys 1 and 2: the pack holds %v, want B and C", h)
+	}
+	// key 1 again (a client counting rows): no longer in the window, nothing taken
+	got := take(1)
+	if len(f.rows()) != 2 {
+		t.Fatalf("a stale key took %v", held())
+	}
+	if opOf(got[len(got)-1]) != protocol.OpcodeLoot {
+		t.Fatalf("a stale key: sent %s, want the corpse resent", ops(got))
+	}
+	// resent, the window is keyed 0.. again: key 0 is A
+	if got = take(0); !held()["Axe of A"] {
+		t.Fatalf("key 0 after the resend: sent %s, pack %v", ops(got), held())
 	}
 }
 

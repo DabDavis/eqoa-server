@@ -130,6 +130,13 @@ func (m *Mercs) menuChoices(p *entity.Player, slot int, info entity.MercInfo) (k
 			add("master", "Master: "+held) // mercmaster.go
 		}
 	}
+	if m.db != nil && len(m.wereForms(p.CharServerID)) > 0 {
+		held := "none"
+		if row, ok, _ := m.db.Merc(p.CharServerID, slot); ok && row.Were != "" {
+			held = row.Were
+		}
+		add("were", "Were form: "+held) // mercwere.go
+	}
 	add("items", "Items")
 	add("dismiss", "Dismiss")
 	return keys, answers
@@ -166,6 +173,10 @@ func (m *Mercs) menuAnswer(sess *session.Session, p *entity.Player, a mercAsk, n
 		SendErrorMessage(sess, mercNoneOut(a.slot, nil))
 		return
 	}
+	if a.stage == mercStageWere {
+		m.wereAnswer(sess, p, a, n) // mercwere.go
+		return
+	}
 	if a.stage == mercStageMaster || a.stage == mercStageMasterList {
 		m.masterAnswer(sess, p, a, info, n) // mercmaster.go
 		return
@@ -189,6 +200,8 @@ func (m *Mercs) menuAnswer(sess *session.Session, p *entity.Player, a mercAsk, n
 			m.menuItems(sess, p, a.slot)
 		case "master":
 			m.menuMaster(sess, p, a.slot, info) // mercmaster.go
+		case "were":
+			m.menuWere(sess, p, a.slot, info) // mercwere.go
 		case "advice":
 			line := mercAdvice[info.Class]
 			if healer {

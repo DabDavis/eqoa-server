@@ -289,7 +289,7 @@ Each system's file is its long form; its tests document the edge cases. `world.<
 | Genie's Lamp, Fang of the Wolf, Summoning Portal, Barrel of Monkeys, Rock of Freeport | `handlers/genie.go`, `wolffang.go`, `summonportal.go`, `monkeybarrel.go`, `rockfreeport.go` |
 | Safe mode, hiding others' mercenaries, the welcome guide (daily box, /tutorial: the guide's pages and the Commands/features topics, one 0x0034 window at a time, CLIENT's Close the exit; the topics' words all in `welcometopics.go`) | `handlers/safemode.go`, `hidemercs.go`, `welcome.go`, `welcometopics.go` |
 | The Teleporter | `handlers/teleporter.go`, `world.teleporter` |
-| Mercenaries; `/merc camp` (holds until its owner goes 125 off; kept over a keep restart) | `entity/merc*.go`, `entity/merccamp.go`, `handlers/merc.go`, `world.mercs` |
+| Mercenaries; `/merc camp` (holds until its owner goes 125 off; kept over a keep restart); food and drink given, shown, and a low-power line (`entity/mercmeal.go`); `/merc were` (a were form its owner's book holds: `mercwere.go`) | `entity/merc*.go`, `entity/merccamp.go`, `handlers/merc.go`, `world.mercs` |
 | Players name their mercs and summoned pets (`/merc [name or 1-3] rename <name>`, `/pet rename <name>`; a character's name rules + the name filter + names the world holds; a pet's kept by spell in `petnames`; every ask in `petnamelog`, the filter's catches as outcome `filtered` and `PetRename: FILTERED` log lines) | `handlers/petrename.go`, `entity/petrename.go`, `database/petnames.go` |
 | Testing Heroes faction | `entity/heroes.go`, `handlers/heroes.go`, `world.testing_heroes` |
 | Hazards, no-roam areas, teleport orbs | `entity/hazards.go`, `noroam.go`, `orbs.go` (tables of the same names) |

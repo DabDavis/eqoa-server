@@ -168,6 +168,9 @@ type MercKit struct {
 	// RacialPets are the summonings its race's racial abilities put in its
 	// book (the gnome's Invention): its pet only when its book has no other
 	RacialPets []int
+	// Were is the were form its hirer gave it (/merc were: mercwere.go), one
+	// its hirer's own book holds, nil none
+	Were *CastSpell
 }
 
 // MercCarried is one record a merc carries to use (MercKit.Carried): its
@@ -295,6 +298,9 @@ type mercState struct {
 	// lowPowerAt when
 	lowPowerSaid bool
 	lowPowerAt   time.Time
+	// wereTried is the were form it last tried to take and could not show
+	// (mercwere.go), so the log says so once
+	wereTried int
 }
 
 // mercNoCollideID is a merc's entry on its owner's non-collide list (0x1003:
@@ -533,6 +539,8 @@ type MercInfo struct {
 	AoE bool
 	// Master is its Master Class (MercKit.Master), "" none
 	Master string
+	// Were is the were form it takes (MercKit.Were's name), "" none
+	Were string
 }
 
 // MercInfosOf is the session's player's mercs out, by slot.
@@ -545,6 +553,9 @@ func (w *World) MercInfosOf(sess *session.Session) []MercInfo {
 		info := MercInfo{Slot: ms.slot, Name: n.Name, Class: ms.kit.Class, Race: ms.kit.Race, Sex: ms.kit.Sex, Level: n.Level, HP: n.HP,
 			MaxHP: n.MaxHP, Power: n.Power, MaxPower: n.MaxPower, Stance: ms.stance, Stay: ms.stay, Camp: ms.camp != nil, Grouped: w.mercInOwnGroupLocked(ms), Offensive: ms.kit.Offensive,
 			AC: ms.body.StatNow(StatAC), Worn: ms.kit.Worn, AoE: ms.kit.AoE, Master: ms.kit.Master}
+		if ms.kit.Were != nil {
+			info.Were = ms.kit.Were.Name
+		}
 		if t := w.NPCs[ms.target]; t != nil {
 			info.Target = t.Name
 		}
@@ -1110,6 +1121,7 @@ func (w *World) mercSystem(now time.Time) {
 		w.mercLevelLocked(ms, sess)
 		syncMercBody(ms)
 		w.mercBrewLocked(ms, now) // an alchemist's potions into its owner's stock (mercbrew.go)
+		w.mercWereLocked(ms, now) // its were form on it (mercwere.go)
 		if sess != nil {
 			w.mercTellLocked(ms, sess)
 		}

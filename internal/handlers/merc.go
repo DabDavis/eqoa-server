@@ -114,7 +114,7 @@ const (
 	mercRestLine  = "Your mercenary %s rests for %d more seconds."
 	mercBackLine  = "Your mercenary %s is back at your side."
 	mercKitFailed = "The liaison's ledger is out of order. Try again."
-	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, camp (here until you go 125 off; again breaks it), attack (your target), path, pet, master [name|none] (55+), charm [off], group, revive, dismiss, give [item], inv, equip|unequip|take <item>, aoe|single (a Cocktail alchemist), helm|look [on|off] (its helm, or all its armour's look, shown or hidden), stock, claim, rename <new name> (3 to 15 letters, as a character's name): with no name, every merc out. /pet rename <new name> names your summoned pet. /familiar dismiss sends a familiar away."
+	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, camp (here until you go 125 off; again breaks it), attack (your target), path, pet, master [name|none] (55+), were [form|none] (a were form your book holds), charm [off], group, revive, dismiss, give [item], inv, equip|unequip|take <item>, aoe|single (a Cocktail alchemist), helm|look [on|off] (its helm, or all its armour's look, shown or hidden), stock, claim, rename <new name> (3 to 15 letters, as a character's name): with no name, every merc out. /pet rename <new name> names your summoned pet. /familiar dismiss sends a familiar away."
 )
 
 // mercRoles are the liaison's first answers, each role's classes in their
@@ -166,6 +166,7 @@ const (
 	mercStageStock      // the alchemists' stock, a page
 	mercStageMaster     // its Master Class's kinds (mercmaster.go)
 	mercStageMasterList // a kind's Master Classes, a page
+	mercStageWere       // its were form (mercwere.go)
 )
 
 // mercAsk is a liaison's open question: its box, its stage, what was chosen
@@ -444,7 +445,8 @@ func (m *Mercs) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 			m.askRaces(sess, p, a)
 		}
 	case mercStageMenu, mercStageSpells, mercStageStance, mercStageDismiss, mercStagePet, mercStageMore,
-		mercStageItems, mercStageInv, mercStageItem, mercStageGive, mercStageStock, mercStageMaster, mercStageMasterList:
+		mercStageItems, mercStageInv, mercStageItem, mercStageGive, mercStageStock, mercStageMaster, mercStageMasterList,
+		mercStageWere:
 		m.menuAnswer(sess, p, a, n) // its own menu (mercmenu.go)
 	case mercStagePath:
 		if n >= len(archivistPathLines[a.class]) {
@@ -812,7 +814,8 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 	k.PetPick = mercPetPick(row.Class, row.Pet)            // the pet kind its hirer picked (mercpetkind.go)
 	k.PetUsual = row.Pet == "" && len(k.PetPick) > 0       // its class's usual kind, no pick of its hirer's
 	if err == nil {
-		m.mercMasterKit(row, &k) // its race's pets, its Master Class (mercmaster.go)
+		m.mercMasterKit(row, &k)      // its race's pets, its Master Class (mercmaster.go)
+		k.Were = m.mercWereSpell(row) // its were form, while its hirer's book holds it (mercwere.go)
 	}
 	return k, err
 }
@@ -1310,6 +1313,8 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 		if slot = m.oneSlot(sess, rows, slot, "master"); slot > 0 {
 			m.master(sess, p, slot, strings.Join(words[1:], " ")) // mercmaster.go
 		}
+	case "were":
+		m.were(sess, p, rows, slot, strings.Join(words[1:], " ")) // mercwere.go
 	case "pet":
 		if slot = m.oneSlot(sess, rows, slot, "pet"); slot > 0 {
 			m.pet(sess, p, slot, strings.Join(words[1:], " ")) // mercpetkind.go
@@ -1426,7 +1431,7 @@ var mercVerbs = map[string]bool{"status": true, "dismiss": true, "stance": true,
 	"group": true, "revive": true, "help": true, "path": true, "pet": true, "charm": true, "list": true, "defensive": true,
 	"offensive": true, "menu": true, "master": true, "aoe": true, "single": true, "give": true, "inv": true, "inventory": true, "items": true,
 	"equip": true, "unequip": true, "take": true, "stock": true, "claim": true, "spells": true, "helm": true, "look": true,
-	"rename": true}
+	"rename": true, "were": true}
 
 // mercWords reports a tell's body that is /merc's: none, or one of its words
 // first, or second after a slot's number, or "rename" second after a merc's
@@ -1491,6 +1496,9 @@ func (m *Mercs) status(sess *session.Session, p *entity.Player, rows []database.
 				info.HP, info.MaxHP, info.Power, info.MaxPower, entity.MercStanceNames[info.Stance])
 			if info.Master != "" {
 				line += ", Master Class " + info.Master
+			}
+			if info.Were != "" {
+				line += ", in " + info.Were // mercwere.go
 			}
 			if mode := entity.MercModeName(info.Class, info.Offensive); mode != "" {
 				line += ", " + mode

@@ -157,6 +157,9 @@ func (h *SupportHandler) handleBugReportOffer(sess *session.Session, msg *protoc
 		// and, on a shard with the game's own UI, which of its additions are off
 		// (vanillaui.go)
 		SendVanillaUI(sess)
+		// and what it cannot read off its NPCs: the spell merchants, for the
+		// minimap's colours (npcroles.go)
+		SendNpcRoles(sess)
 	}
 	// the login's line on reporting, F3's, now (once a session)
 	if on && reportNotice.Load() && sess.CharacterInWorld() && sess.TakeReportNotice() {

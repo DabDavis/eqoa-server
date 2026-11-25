@@ -213,7 +213,12 @@ type mercState struct {
 	// world: its stats and figures (the file's doc); its id is the NPC's
 	body *Player
 	kit  MercKit
-	role mercRole
+	// dyes is its owner's dyes as it shows them (mercdyes.go), made again
+	// when its owner's or its hidden parts change (dyesOf, dyesHid)
+	dyes, dyesOf Dyes
+	dyesHid      uint16
+	dyesMade     bool
+	role         mercRole
 	// life tells this hire's casts from an earlier one's (merccast.go)
 	life   uint64
 	stance MercStance

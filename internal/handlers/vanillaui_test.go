@@ -24,7 +24,7 @@ var qolOffers = []protocol.GameOpcode{
 	protocol.OpcodePowerBars, protocol.OpcodePetEffects, protocol.OpcodeBuffWindow,
 	protocol.OpcodeNumberTagsOffer, protocol.OpcodeDPSMeterOffer, protocol.OpcodeMobInfoOffer,
 	protocol.OpcodeConLevelOffer, protocol.OpcodeQuestMarkers, protocol.OpcodeQuestProgress,
-	protocol.OpcodeQuestHeadMarksOffer, protocol.OpcodeGroupEffects,
+	protocol.OpcodeQuestHeadMarksOffer, protocol.OpcodeGroupEffects, protocol.OpcodeNPCDebuffs,
 	protocol.OpcodeStatFigures, // its stat caps the game's (QoLStatCaps): no Stat Window
 }
 

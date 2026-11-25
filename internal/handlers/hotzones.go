@@ -5,6 +5,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
@@ -26,6 +27,9 @@ import (
 //   - #hotzone level60 <id> on|off opens a camp zone to level 60s (column level60): a 60 not reliving
 //     earns kill marks for its creatures, which it earns nowhere else; off by default, so a camp is
 //     below 60s' alone until a GM says otherwise (jibrish, 2026-11-23). It lasts while the zone is on.
+//   - Each camp zone's creatures' levels (the lowest and highest of the attackable creatures spawned
+//     within its radius, zoneLevels: petition 2963, to delevel to a zone) are shown wherever players
+//     see it: the herald's lines and answers, /marks's list, #hotzone's. A quest zone shows none.
 //   - A zone with announce 1 turned on tells every player on the shard one line.
 //   - The Hot Zone Herald (any NPC of the name, in Freeport by Dabrish) lists the zones on, each its
 //     name, bonus and note, then "Report anything wrong you find with /bug.", and asks which to go
@@ -86,6 +90,9 @@ func (m *HeirloomMarks) heraldTalk(sess *session.Session, p *entity.Player, npc 
 	answers := make([]string, len(on))
 	for i, z := range on {
 		line := fmt.Sprintf("%s: +%d%% Heirloom Marks.", z.Name, z.BonusPct)
+		if lv := m.zoneLevelsPart(z); lv != "" {
+			line = fmt.Sprintf("%s: creatures of %s, +%d%% Heirloom Marks.", z.Name, lv, z.BonusPct)
+		}
 		if open60Part(z) != "" {
 			line += " Level 60s earn here too."
 		}
@@ -94,6 +101,9 @@ func (m *HeirloomMarks) heraldTalk(sess *session.Session, p *entity.Player, npc 
 		}
 		marksSay(sess, HotZoneHeraldName, line)
 		answers[i] = z.Name
+		if lv := m.zoneLevelsShort(z); lv != "" {
+			answers[i] = z.Name + " (" + lv + ")"
+		}
 	}
 	marksSay(sess, HotZoneHeraldName, heraldReport)
 	m.ask(sess, p, hotZoneBoxMark, marksBox{npc: npc.ServerID, zones: on}, heraldAsk, answers)
@@ -178,7 +188,7 @@ func (m *HeirloomMarks) hotZoneCommand(sess *session.Session, p *entity.Player, 
 			return
 		}
 		for _, z := range zones {
-			reply(hotZoneLine(z))
+			reply(hotZoneLine(z) + commaPart(m.zoneLevelsPart(z)))
 		}
 		return
 	}
@@ -216,7 +226,8 @@ func (m *HeirloomMarks) hotZoneCommand(sess *session.Session, p *entity.Player, 
 		z.ID = id
 		m.forgetZones()
 		log.Printf("Marks: %s's #hotzone %s: zone %d %q", p.Name, sub, id, z.Name)
-		reply(said + " " + hotZoneLine(z))
+		m.forgetZoneLevels(id)
+		reply(said + " " + hotZoneLine(z) + commaPart(m.zoneLevelsPart(z)))
 		m.hotZones() // read now: a zone of announce 1 turned on is announced (marks.go)
 	}
 	here := func(z *database.HotZone) {
@@ -380,4 +391,84 @@ func (m *HeirloomMarks) announce(z database.HotZone) {
 		return true
 	})
 	log.Printf("Marks: Hot zone %d %q announced to %d players", z.ID, z.Name, n)
+}
+
+// --- the zones' creature levels (petition 2963) ---
+
+// zoneLevelsTTL is how long a zone's creature levels are kept: a GM's spawn or balance change shows
+// within it, a change of the zone's place at once (the key).
+const zoneLevelsTTL = 5 * time.Minute
+
+// zoneLevels is a camp zone's creature levels as last counted, for its place.
+type zoneLevels struct {
+	world   int
+	x, z, r float32
+	lo, hi  int
+	ok      bool
+	at      time.Time
+}
+
+// zoneLevels is the lowest and highest level of a camp zone's creatures (World.CreatureLevelsNear),
+// counted at most zoneLevelsTTL ago; ok false for a quest zone or a place with none.
+func (m *HeirloomMarks) zoneLevels(z database.HotZone) (lo, hi int, ok bool) {
+	if m == nil || m.gw == nil || z.Kind != database.HotZoneCamp || z.Radius <= 0 {
+		return 0, 0, false
+	}
+	now := time.Now()
+	if m.now != nil {
+		now = m.now()
+	}
+	m.levMu.Lock()
+	c, have := m.levels[z.ID]
+	m.levMu.Unlock()
+	if have && c.world == z.World && c.x == z.X && c.z == z.Z && c.r == z.Radius && now.Sub(c.at) <= zoneLevelsTTL {
+		return c.lo, c.hi, c.ok
+	}
+	lo, hi, ok = m.gw.CreatureLevelsNear(uint8(z.World), z.X, z.Z, z.Radius)
+	m.levMu.Lock()
+	if m.levels == nil {
+		m.levels = map[int]zoneLevels{}
+	}
+	m.levels[z.ID] = zoneLevels{world: z.World, x: z.X, z: z.Z, r: z.Radius, lo: lo, hi: hi, ok: ok, at: now}
+	m.levMu.Unlock()
+	return lo, hi, ok
+}
+
+// forgetZoneLevels has the next look count zone id's creatures again.
+func (m *HeirloomMarks) forgetZoneLevels(id int) {
+	m.levMu.Lock()
+	delete(m.levels, id)
+	m.levMu.Unlock()
+}
+
+// zoneLevelsPart is "levels 8-12" (or "level 10") for a camp zone with creatures, "" else.
+func (m *HeirloomMarks) zoneLevelsPart(z database.HotZone) string {
+	lo, hi, ok := m.zoneLevels(z)
+	switch {
+	case !ok:
+		return ""
+	case lo == hi:
+		return fmt.Sprintf("level %d", lo)
+	}
+	return fmt.Sprintf("levels %d-%d", lo, hi)
+}
+
+// zoneLevelsShort is "L8-12" (or "L10") for an answer of the herald's box, "" else.
+func (m *HeirloomMarks) zoneLevelsShort(z database.HotZone) string {
+	lo, hi, ok := m.zoneLevels(z)
+	switch {
+	case !ok:
+		return ""
+	case lo == hi:
+		return fmt.Sprintf("L%d", lo)
+	}
+	return fmt.Sprintf("L%d-%d", lo, hi)
+}
+
+// commaPart is ", " + s, or "" for an empty s.
+func commaPart(s string) string {
+	if s == "" {
+		return ""
+	}
+	return ", " + s
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -438,5 +439,57 @@ func TestReliveAtTheRehabilitators(t *testing.T) {
 	}
 	if l, _ := r.m.reliveMenu(r.pa); len(l) != 2 || l[1] != "Resume at 55" {
 		t.Fatalf("after: %q", l)
+	}
+}
+
+// Petition 2963: the Hot zones show their creatures' levels, the lowest and highest of the attackable
+// creatures spawned in a camp zone's radius, so a player can delevel to one: in the herald's lines and
+// answers, /marks and #hotzone. The controls: a town person (NPC bit), a pet and a creature out of the
+// radius count for nothing; a quest zone shows none; a moved zone is counted again at once.
+func TestHotZonesShowTheirCreatureLevels(t *testing.T) {
+	r := newMarksRig(t)
+	add := func(id entity.EntityID, name string, level int, x, z float32, typ int, owner entity.EntityID) {
+		r.gw.NPCs[id] = &entity.NPC{ServerID: id, Name: name, Level: level, World: 0, X: x, Z: z, SpawnX: x, SpawnZ: z,
+			NPCType: typ, Owner: owner}
+	}
+	add(91001, "orc pawn", 12, 5010, 5010, 0, 0)
+	add(91002, "orc centurion", 18, 4950, 5040, 0, 0)
+	add(91003, "a townsperson", 2, 5005, 5005, 0x80, 0)
+	add(91004, "a pet", 40, 5002, 5002, 0, r.pa.ServerID)
+	add(91005, "far orc", 50, 5300, 5300, 0, 0)
+	add(91006, "Hot Zone Herald", 30, 5001, 5000, 0x80, 0)
+
+	r.m.hotZoneCommand(r.anna, r.pa, "here 100 Orc Camp")
+	if got := r.msgs(r.anna); len(got) != 1 || !strings.HasSuffix(got[0], ", levels 12-18") {
+		t.Fatalf("#hotzone here: %q", got)
+	}
+	r.m.hotZoneCommand(r.anna, r.pa, "quests orcs Orc Quests")
+	r.drain()
+	r.m.hotZoneCommand(r.anna, r.pa, "")
+	got := r.msgs(r.anna)
+	if len(got) != 2 || !strings.HasSuffix(got[0], ", levels 12-18") || strings.Contains(got[1], "level") {
+		t.Fatalf("#hotzone: %q", got)
+	}
+
+	r.m.marksCommand(r.anna, r.pa)
+	if !hasMsg(r.msgs(r.anna), "chat:Hot zones: Orc Camp (+35%, levels 12-18), Orc Quests (+35%).") {
+		t.Error("/marks shows no levels")
+	}
+
+	h := r.gw.NPCs[91006]
+	h.X, h.Y, h.Z = r.pa.X, r.pa.Y, r.pa.Z // in reach
+	r.talk(r.anna, h)
+	said := strings.Join(r.msgs(r.anna), "\n")
+	if !strings.Contains(said, "Orc Camp: creatures of levels 12-18, +35% Heirloom Marks.") ||
+		!strings.Contains(said, "|Orc Camp (L12-18)|Orc Quests") || strings.Contains(said, "||") {
+		t.Fatalf("the herald: %q", said)
+	}
+
+	// moved onto the far orc alone: counted again at once
+	zones, _ := r.db.HotZones()
+	r.pa.X, r.pa.Z = 5300, 5300
+	r.m.hotZoneCommand(r.anna, r.pa, fmt.Sprintf("move %d", zones[0].ID))
+	if got := r.msgs(r.anna); len(got) != 1 || !strings.HasSuffix(got[0], ", level 50") {
+		t.Fatalf("moved: %q", got)
 	}
 }

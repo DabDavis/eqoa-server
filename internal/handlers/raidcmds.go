@@ -420,6 +420,7 @@ var playerHelpLines = []string{
 	"  /who, /stuck, /roll, /pvp, /lfg on|off, /record [name], /bug <words>, /filter",
 	"  /feature <words> - asks the GMs for something new (a feature request, apart from bugs)",
 	"  /hide mercs, /show mercs - other players' mercenaries out of your view, or back",
+	"  /prefarm off (or on) - no quest items on your kills for steps no one is on; a leader's is the group's",
 	"  /afk [message] - [AFK] over your head; tells answered with the message (on|off too)",
 }
 

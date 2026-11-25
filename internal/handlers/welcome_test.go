@@ -670,13 +670,13 @@ func TestWelcomeTopicsAreTheShards(t *testing.T) {
 	got := features(welcomeTopics(heirloom, true, true))
 	want := []string{fmt.Sprintf(welcomeMercs, "/merc"), welcomeArchivistFBoard, welcomeTeleporterBoard,
 		"XP Boon (optional, for testing): any city's Announcements gives 6x experience for 4 hours of play.",
-		welcomeAscended, welcomeMapsOurs}
+		welcomeAscended, welcomeMapsOurs, fmt.Sprintf(welcomePrefarm, "/prefarm")}
 	if strings.Join(got, "\n") != strings.Join(want, "\n") {
 		t.Errorf("Heirloom's features:\n%s\nwant\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
 	}
 	got = features(welcomeTopics(live, true, true))
 	want = []string{"XP Boon (optional, for testing): any city's Announcements gives double experience for 4 hours of play.",
-		welcomeMapsOurs, welcomeConOurs}
+		welcomeMapsOurs, welcomeConOurs, fmt.Sprintf(welcomePrefarm, "/prefarm")}
 	if strings.Join(got, "\n") != strings.Join(want, "\n") {
 		t.Errorf("Live's features:\n%s\nwant\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
 	}
@@ -699,7 +699,7 @@ func TestWelcomeTopicsAreTheShards(t *testing.T) {
 	if l := features(ps2); l[0] != fmt.Sprintf(welcomeMercs, "/t merc") || !slices.Contains(l, welcomeMapsPS2) {
 		t.Errorf("a PS2's features: %q", l)
 	}
-	if l := features(welcomeTopics(live, false, true)); !slices.Contains(l, welcomeConPS2) {
+	if l := features(welcomeTopics(live, false, true)); !slices.Contains(l, welcomeConPS2) || !slices.Contains(l, fmt.Sprintf(welcomePrefarm, "/t prefarm")) {
 		t.Errorf("a PS2's /con on Live: %q", l)
 	}
 

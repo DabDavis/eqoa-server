@@ -36,6 +36,9 @@ type KillCredit struct {
 	// Group is the killer's group (Player.GroupID, a raid's too) at the death,
 	// 0 for none: the loot's kill group (handlers/lootrights.go)
 	Group uint32
+	// Leader is that group's leader's character (characters.serverid) at the death, 0
+	// for none: whose /prefarm choice holds for the group's kills (handlers/prefarm.go)
+	Leader uint32
 	// Raid is the killer's raid's loot rule and seats when it has one but free for
 	// all (raidrules.go's RaidKill), nil otherwise
 	Raid *RaidKill
@@ -108,6 +111,9 @@ func (w *World) creditKillLocked(sess *session.Session, p *Player, npc *NPC) {
 	}
 	c := KillCredit{NPCName: npc.Name, NPCSpawn: spawn, NPCID: npc.ServerID, Died: npc.DeathTime, Level: npc.Level, World: npc.World, X: npc.X, Z: npc.Z, Raid: raid,
 		Group: p.GroupID, OpenAt: openAt, OriginalRow: npc.row()}
+	if l := w.leaderOfLocked(w.groups[p.GroupID]); p.GroupID != 0 && l != nil {
+		c.Leader = l.CharServerID
+	}
 	// a Hardcore character helped gets no credit, no loot right (hcrules.go)
 	c.Hardcore = p.HardcoreBound()
 	c.HCEarned = c.Hardcore && !w.hcBarredLocked(npc, p)

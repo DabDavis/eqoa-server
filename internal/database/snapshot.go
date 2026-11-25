@@ -186,6 +186,9 @@ var snapshotRules = map[string]snapshotRule{
 	"hotzones":       {why: "the GMs' Hot zones: places and quest sets with a marks bonus; created_by is a GM's name, kept as the panel names GMs"},
 	"heirloomrankac": {why: "the AC an Heirloom Rank adds to each heirloom armour piece, by class and rank (marks.go)"},
 
+	// A player's own setting, no person's data: kept whole, said here so a snapshot's reader knows it.
+	"charprefarm": {why: "each character's /prefarm choice (on or off: quest items dropped ahead on its kills) and when (handlers/prefarm.go)"},
+
 	// Named like a secret, holding none: the content tools' provenance (their
 	// --undo, and what the real-data tests read). A key column is a row's key
 	// in the table the tool changed, a meta table's key the name of a fact.

@@ -98,6 +98,8 @@ type ChatHandler struct {
 	hideMercs mercsHiddenStore
 	// hideGMTag is where /hide gmtag is kept (hidegmtag.go)
 	hideGMTag gmTagHiddenStore
+	// prefarm is where /prefarm is kept (prefarm.go)
+	prefarm prefarmStore
 	// noAggro is where a GM's Safe Mode / #aggro off is kept (gmnoaggro.go)
 	noAggro gmNoAggroStore
 	// welcome is /tutorial's box (welcome.go); nil: no guide
@@ -421,6 +423,15 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		}
 	}
 
+	// /prefarm [on|off] (or #prefarm; a PS2's is "/t prefarm ...", below): quest items
+	// dropped ahead on the player's kills, or not, everyone's (prefarm.go)
+	if word, rest, _ := strings.Cut(message, " "); word != "" {
+		if arg, ok := prefarmLine(word, rest); ok {
+			h.prefarmCommand(sess, player, arg)
+			return
+		}
+	}
+
 	// /merc (or #merc; a PS2's is "/t merc ...", below): its mercenary, everyone's
 	// (merc.go); /familiar (or #familiar, "/t familiar ...") its familiar (familiar.go)
 	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/merc") || strings.EqualFold(word, "#merc") {
@@ -604,6 +615,12 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		}
 		if hide, ok := hideGMTagLine("/"+name, body); ok { // "/t hide gmtag" (hidegmtag.go)
 			h.hideGMTagCommand(sess, player, hide)
+			return
+		}
+		// and /prefarm (prefarm.go): "/t prefarm" alone, "on" or "off"; anything else
+		// to a "prefarm" is a tell
+		if strings.EqualFold(name, prefarmWord) && prefarmTellWords(body) {
+			h.prefarmCommand(sess, player, strings.ToLower(strings.TrimSpace(body)))
 			return
 		}
 		// and the mercenary's and the familiar's words (merc.go, familiar.go): "/t

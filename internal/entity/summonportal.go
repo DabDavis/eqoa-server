@@ -127,6 +127,18 @@ func (w *World) PortalSpot(portal EntityID) (GateSpot, bool) {
 	return st.at, true
 }
 
+// PortalOwner is the player whose portal it is, while it stands: those it brings
+// join that player's dungeon instance (dungeonsummon.go).
+func (w *World) PortalOwner(portal EntityID) (EntityID, bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	st := w.portalStandingLocked(portal)
+	if st == nil {
+		return 0, false
+	}
+	return st.owner, true
+}
+
 // PortalHears is whether the portal stands and the player is still by it: in
 // its world, alive, within PortalReach of it.
 func (w *World) PortalHears(portal, player EntityID) bool {
@@ -151,7 +163,7 @@ func (w *World) PortalBring(portal, player EntityID, sess *session.Session) bool
 		return false
 	}
 	log.Printf("Portal: %d brings %s", portal, p.Name)
-	w.gates.due = append(w.gates.due, GateTravel{Sess: sess, P: p, To: st.at, Spell: PortalName})
+	w.gates.due = append(w.gates.due, GateTravel{Sess: sess, P: p, To: st.at, Spell: PortalName, Via: st.owner})
 	return true
 }
 

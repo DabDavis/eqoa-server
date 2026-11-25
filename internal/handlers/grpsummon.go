@@ -25,7 +25,9 @@ package handlers
 //   - in an arena match (capture the flag, the siege: CTFInMatch);
 //   - a Hardcore character, when the caller is no GM (as no portal carries one:
 //     hcrules.go; a GM's #summon moves anyone);
-//   - of a game that cannot load the caller's world (LoadableWorlds).
+//   - of a game that cannot load the caller's world (LoadableWorlds);
+//   - not one the caller's dungeon instance holds, when the caller is no GM
+//     (entity/dungeonsummon.go: the door's rules; a GM's adds it).
 //
 // The caller is refused while dead or in an arena match. An account that is no
 // GM's (a sub GM's too) waits world.grpsummon_cooldown (unset: 60 s) between two that brought
@@ -185,6 +187,12 @@ func (h *ChatHandler) grpSummonCommand(sess *session.Session, player *entity.Pla
 			why = "Hardcore"
 		case !CanLoadWorld(ts, player.World):
 			why = "their game cannot load " + worldName(player.World)
+		default:
+			// into the caller's dungeon instance by the door's rules (a GM's
+			// brings anyone): entity/dungeonsummon.go, petition 2972
+			if line, ok := gw.InstanceJoinCheck(m.ServerID, player.ServerID, gm); !ok {
+				why = line
+			}
 		}
 		if why != "" {
 			left = append(left, fmt.Sprintf("%s (%s)", m.Name, why))
@@ -192,6 +200,10 @@ func (h *ChatHandler) grpSummonCommand(sess *session.Session, player *entity.Pla
 		}
 		ring++
 		to := gw.GateRingSpot(at, ring)
+		if line, ok := gw.JoinInstanceOf(m.ServerID, player.ServerID, gm); !ok {
+			left = append(left, fmt.Sprintf("%s (%s)", m.Name, line))
+			continue
+		}
 		if !h.teleportTo(sess, ts, m, to.X, to.Y, to.Z, m.Facing, to.World) {
 			left = append(left, fmt.Sprintf("%s (%s)", m.Name, "their game cannot load "+worldName(player.World)))
 			continue

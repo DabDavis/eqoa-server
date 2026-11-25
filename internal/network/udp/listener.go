@@ -1091,7 +1091,10 @@ func (l *Listener) processClientUpdate(sess *session.Session, msg *protocol.Mess
 	if l.gameWorld != nil {
 		player := l.gameWorld.SessionPlayer(sess)
 		if player != nil && stale {
-			reportWorldMismatch(sess, player, decoded[0])
+			// a report from before the world change, while its load's hold
+			// lasts: expected, not a mismatch (petition 2972's log: the way
+			// out of a dungeon logged one for the report from inside it).
+			// One still of the old world once the hold is over is logged below
 			return true
 		}
 		if player != nil && sess.ResumeMoved() {

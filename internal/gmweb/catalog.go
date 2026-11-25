@@ -353,6 +353,41 @@ var catalog = map[string]tableNote{
 			"note":     {Label: "Note", Help: "why"},
 		},
 	},
+	"petnames": {
+		Label: "Pet names", Group: "Players", Sort: "serverid",
+		Help: "The names players give their summoned pets (/pet rename; handlers/petrename.go), by the summoning spell: every " +
+			"summoning of that spell's pet comes by it, through logouts and restarts. A rename is held to a character's name rules " +
+			"and the name filter, and its row change is in the audit log under the player's account, so it reverts there. A merc's " +
+			"name is its charmerc row's (/merc rename). Every rename asked, refused ones too, is in Pet renames.",
+		Live:   "At the character's next login (or its next summoning after a restart); a rename in the game takes at once.",
+		Search: []string{"name"},
+		Cols: map[string]colNote{
+			"serverid": {Label: "Character", Ref: "characters"},
+			"spell":    {Label: "Summoning spell", Help: "the spell whose pet takes the name (itempattern/spell id)"},
+			"name":     {Label: "Name", Help: "3 to 15 letters, as a character's name"},
+			"at":       {Label: "Named at", Help: "UTC"},
+		},
+	},
+	"petnamelog": {
+		Label: "Pet renames", Group: "Players", Sort: "id", Write: writeNone,
+		Help: "Every pet or merc rename a player asked (/pet rename, /merc rename; handlers/petrename.go), accepted or refused. " +
+			"Outcome filtered is the name filter's catch: a word no character's name may carry, a reserved or staff name, a GM's " +
+			"character's name; the player was told only that the name is not allowed and that refused names are logged. The " +
+			"server's log has each as a \"PetRename:\" line (\"PetRename: FILTERED\" for the filter's).",
+		Show:   []string{"id", "at", "charname", "kind", "oldname", "asked", "outcome", "reason"},
+		Search: []string{"charname", "asked", "outcome", "reason"},
+		Cols: map[string]colNote{
+			"at":        {Label: "At", Help: "UTC"},
+			"serverid":  {Label: "Character", Ref: "characters"},
+			"charname":  {Label: "Character name"},
+			"accountid": {Label: "Account", Ref: "accountinfo"},
+			"kind":      {Label: "What", Help: "merc or pet"},
+			"oldname":   {Label: "Its name", Help: "before the rename"},
+			"asked":     {Label: "Name asked", Help: "as typed"},
+			"outcome":   {Label: "Outcome", Help: "renamed, refused, or filtered (the name filter's)"},
+			"reason":    {Label: "Why"},
+		},
+	},
 	"petdyeareas": {
 		Label: "Pet dye areas", Group: "World", Title: "look", Sort: "look",
 		Help: "A pet body's two areas for the Pet Groomers (entity/petdyes.go): materials are area 2's, the indices of the body's " +

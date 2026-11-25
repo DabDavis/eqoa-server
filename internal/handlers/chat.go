@@ -442,6 +442,12 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		h.familiars.Command(sess, player, rest)
 		return
 	}
+	// /pet rename <name> (or #pet; a PS2's "/t pet rename <name>"): its summoned
+	// pet's name, everyone's (petrename.go)
+	if rest, ok := petRenameLine(message); ok {
+		h.mercs.PetCommand(sess, player, rest)
+		return
+	}
 
 	// /marks (or #marks; a PS2's "/t marks", below): the character's Heirloom Marks, and
 	// /relive [end] (#relive, "/t relive end"): a Relive's state or its end, everyone's (marks.go)

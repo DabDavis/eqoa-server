@@ -159,6 +159,14 @@ type petState struct {
 	// stacks is whether a stacking charm took it (Cat Magnetism: stackcharm.go),
 	// side whether it is kept beside its owner's pet (World.sidePets), not as it
 	stacks, side bool
+	// kindName is the name it was made under (petName's: the spell's, its
+	// sheet's), which what it is goes by (Grand Animation's taunt, an item's
+	// summoning) whatever its owner named it (petrename.go); renamed whether
+	// its owner did; retellAt when its owner's pet bar is told it again, so
+	// the bar takes the new name (petrename.go's retellPetLocked), zero none
+	kindName string
+	renamed  bool
+	retellAt time.Time
 }
 
 // petOfLocked is the player's pet, alive, or nil.
@@ -489,7 +497,11 @@ func (w *World) makePetLocked(spell *CastSpell, caster, owner *Player, ms *mercS
 		hitScale = was / petHitRate(pet)                               // its damage a second kept
 	}
 	ps := &petState{owner: owner, npc: pet, stance: petSheetStance(sheet), last: now,
-		taunts: caster.Class == classEnchanter && pt == nil, enchanter: caster.Class == classEnchanter, earth: earth, kind: kind, hitScale: hitScale, tmpl: pt, spell: spell.SpellID, merc: ms}
+		taunts: caster.Class == classEnchanter && pt == nil, enchanter: caster.Class == classEnchanter, earth: earth, kind: kind, hitScale: hitScale, tmpl: pt, spell: spell.SpellID, merc: ms,
+		kindName: petName(pet.Name)}
+	if given := owner.PetNames[spell.SpellID]; ms == nil && given != "" {
+		pet.Name, ps.renamed = given, true // the name its owner gave this spell's pet (petrename.go)
+	}
 	tmplName := "no template"
 	if pt != nil {
 		tmplName = fmt.Sprintf("template %q (class %d, swing %d)", pt.tmpl.Name, pet.Class, npcSwingKind(pet))
@@ -905,6 +917,9 @@ func (w *World) petSystem(now time.Time) {
 		dt := float32(now.Sub(ps.last).Seconds())
 		ps.last = now
 		dt = min(max(dt, 0), 0.5)
+		if !ps.retellAt.IsZero() && !now.Before(ps.retellAt) {
+			w.retellPetLocked(ps, sess) // a new name onto its owner's pet bar (petrename.go)
+		}
 
 		w.petEffectsLocked(ps, now)
 		if pet.World != owner.World || distXZ(pet.X, pet.Z, owner.X, owner.Z) > petLost {
@@ -1332,7 +1347,7 @@ func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
 	defer w.petTauntHateCutLocked(ps, t)() // an enchanter's pet's taunt: 70% of its threat, an earth pet's 95% (pettaunthate.go)
 	w.petTopHateLocked(pet, t)             // the top of its hate and a margin (pettemplate.go, pettauntmargin.go)
 	n := petMeleeHit(pet, t, meleeIntn)
-	if petName(pet.Name) == grandAnimation {
+	if ps.madeAs() == grandAnimation {
 		n = grandAnimationTaunt
 	}
 	log.Printf("Pet: %s's %q taunts %s (round %d)", ps.owner.Name, pet.Name, t.Name, ps.rounds)
@@ -1944,6 +1959,9 @@ func (w *World) PetName(sess *session.Session) (string, bool) {
 	if ps == nil || ps.npc == nil || ps.npc.Dead {
 		return "", false
 	}
+	if ps.renamed {
+		return ps.npc.Name, true // the name its owner gave it (petrename.go)
+	}
 	return petName(ps.npc.Name), true
 }
 
@@ -1962,14 +1980,14 @@ func (w *World) SummonByItem(sess *session.Session, spell CastSpell, now, notBef
 	if s := w.templates.sheets[spell.SpellID]; s != nil && s.Name != "" {
 		name = s.Name
 	}
-	if old := w.pets[p.ServerID]; old != nil && old.npc != nil && !old.npc.Dead && petName(old.npc.Name) == petName(name) {
+	if old := w.pets[p.ServerID]; old != nil && old.npc != nil && !old.npc.Dead && old.madeAs() == petName(name) {
 		return ItemPetOut
 	}
 	if now.Before(notBefore) {
 		return ItemPetResting
 	}
 	w.summonPetLocked(&castState{spell: spell, caster: p.ServerID}, p, sess, now)
-	if ps := w.pets[p.ServerID]; ps == nil || ps.npc == nil || petName(ps.npc.Name) != petName(name) {
+	if ps := w.pets[p.ServerID]; ps == nil || ps.npc == nil || ps.madeAs() != petName(name) {
 		return ItemSummonNone
 	}
 	return ItemSummoned

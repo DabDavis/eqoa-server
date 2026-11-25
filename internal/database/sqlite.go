@@ -875,6 +875,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensurePetDyes(); err != nil { // petdyes.go: the Pet Groomer's dyes
 		return err
 	}
+	if err := db.ensurePetNames(); err != nil { // petnames.go: names players give their pets, renames asked
+		return err
+	}
 	if err := db.ensureCharHiddenLooks(); err != nil { // charhiddenlooks.go: worn looks a character hides
 		return err
 	}

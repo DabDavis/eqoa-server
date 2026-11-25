@@ -65,6 +65,9 @@ import (
 // one merc named by its slot or its name (first or last: "/merc 2 stay",
 // "/merc dismiss Ithiel"), else for every one out (stance, follow, stay,
 // attack, charm, group, revive), else for the one hired (dismiss, path, pet).
+// "/merc [name or 1-3] rename <new name>" (or "/merc rename <old> <new>")
+// names one anew, the name held to a character's rules and the name filter,
+// every rename logged (petrename.go, with /pet rename for a summoned pet).
 
 // MercLiaisonName is the liaison's name: an NPC of it is one. Since
 // 2026-11-11 it is a bulletin board (the owner: "change mercenary liason NPC
@@ -111,7 +114,7 @@ const (
 	mercRestLine  = "Your mercenary %s rests for %d more seconds."
 	mercBackLine  = "Your mercenary %s is back at your side."
 	mercKitFailed = "The liaison's ledger is out of order. Try again."
-	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, camp (here until you go 125 off; again breaks it), attack (your target), path, pet, master [name|none] (55+), charm [off], group, revive, dismiss, give [item], inv, equip|unequip|take <item>, aoe|single (a Cocktail alchemist), helm|look [on|off] (its helm, or all its armour's look, shown or hidden), stock, claim: with no name, every merc out. /familiar dismiss sends a familiar away."
+	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, camp (here until you go 125 off; again breaks it), attack (your target), path, pet, master [name|none] (55+), charm [off], group, revive, dismiss, give [item], inv, equip|unequip|take <item>, aoe|single (a Cocktail alchemist), helm|look [on|off] (its helm, or all its armour's look, shown or hidden), stock, claim, rename <new name> (3 to 15 letters, as a character's name): with no name, every merc out. /pet rename <new name> names your summoned pet. /familiar dismiss sends a familiar away."
 )
 
 // mercRoles are the liaison's first answers, each role's classes in their
@@ -1193,6 +1196,10 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 	if m.db != nil {
 		rows, _ = m.db.Mercs(p.CharServerID)
 	}
+	if pick, asked, ok := mercRenameLine(args); ok { // petrename.go: its name as typed, not lowered
+		m.rename(sess, p, rows, pick, asked)
+		return
+	}
 	words := strings.Fields(strings.ToLower(args))
 	slot := 0
 	if len(words) > 0 && !mercVerbs[words[0]] {
@@ -1418,13 +1425,16 @@ func (m *Mercs) dismiss(sess *session.Session, p *entity.Player, slot int) {
 var mercVerbs = map[string]bool{"status": true, "dismiss": true, "stance": true, "follow": true, "stay": true, "camp": true, "attack": true,
 	"group": true, "revive": true, "help": true, "path": true, "pet": true, "charm": true, "list": true, "defensive": true,
 	"offensive": true, "menu": true, "master": true, "aoe": true, "single": true, "give": true, "inv": true, "inventory": true, "items": true,
-	"equip": true, "unequip": true, "take": true, "stock": true, "claim": true, "spells": true, "helm": true, "look": true}
+	"equip": true, "unequip": true, "take": true, "stock": true, "claim": true, "spells": true, "helm": true, "look": true,
+	"rename": true}
 
 // mercWords reports a tell's body that is /merc's: none, or one of its words
-// first.
+// first, or second after a slot's number, or "rename" second after a merc's
+// name ("/t merc Jormonis rename Rennis": petrename.go).
 func mercWords(body string) bool {
 	f := strings.Fields(strings.ToLower(body))
-	return len(f) == 0 || mercVerbs[f[0]] || len(f) > 1 && mercVerbs[f[1]] && len(f[0]) == 1 && f[0][0] >= '1' && f[0][0] <= '3'
+	return len(f) == 0 || mercVerbs[f[0]] || len(f) > 1 && mercVerbs[f[1]] && len(f[0]) == 1 && f[0][0] >= '1' && f[0][0] <= '3' ||
+		len(f) > 2 && f[1] == "rename"
 }
 
 // A healer's modes' lines (the owner, 2026-11-12: "add defensive/offensive

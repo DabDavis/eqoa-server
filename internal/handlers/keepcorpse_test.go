@@ -84,10 +84,11 @@ func TestACorpseOpenedIsNotRolledAgain(t *testing.T) {
 	if g.player.Tunar != tunar {
 		t.Fatalf("its coins paid twice: %d, was %d", g.player.Tunar, tunar)
 	}
-	// and it goes on as any corpse: both taken, it goes
+	// and it goes on as any corpse: both taken, it goes (keys 0 and 1, as
+	// CLIENT's LootOne sends the top row each time: GetSlotId, after Took)
 	g.send(protocol.OpcodeClientLoot, func(w *buffer.Writer) { w.WriteUint32(0); w.WriteUint32(1) })
 	g.sent()
-	g.send(protocol.OpcodeClientLoot, func(w *buffer.Writer) { w.WriteUint32(0); w.WriteUint32(1) })
+	g.send(protocol.OpcodeClientLoot, func(w *buffer.Writer) { w.WriteUint32(1); w.WriteUint32(1) })
 	g.sent()
 	if g.heldOf(g.sword) != 3 || len(g.cleared) != 1 {
 		t.Fatalf("after taking the rest: holds %d, cleared %v", g.heldOf(g.sword), g.cleared)

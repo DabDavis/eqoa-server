@@ -1457,19 +1457,45 @@ func (w *World) castSystem(now time.Time) []respawnDue {
 	w.casts = keep
 
 	for _, p := range w.Players {
+		var over []castLockout
 		left := p.Lockouts[:0]
 		for _, l := range p.Lockouts {
 			if now.Before(l.until) {
 				left = append(left, l)
 				continue
 			}
+			over = append(over, l)
+		}
+		p.Lockouts = left
+		for i, l := range over {
+			if lockoutReplaced(left, over[:i], l) {
+				continue
+			}
 			if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
 				sendCooldown(sess, l.displayIndex, 0)
 			}
 		}
-		p.Lockouts = left
 	}
 	return gates
+}
+
+// lockoutReplaced is whether a lockout l that is over must not be told over
+// (0x00CD 0): a newer one of the same spell on the same ability is still
+// running (left), and CLIENT's Msg00CD, which sets the ability's one lockout
+// by its display index, would end that one early; or one of them was told over
+// already this tick (told).
+func lockoutReplaced(left, told []castLockout, l castLockout) bool {
+	for _, o := range left {
+		if o.spellID == l.spellID && o.displayIndex == l.displayIndex {
+			return true
+		}
+	}
+	for _, o := range told {
+		if o.spellID == l.spellID && o.displayIndex == l.displayIndex {
+			return true
+		}
+	}
+	return false
 }
 
 // landLocked is one cast landing on each of its targets still there. It

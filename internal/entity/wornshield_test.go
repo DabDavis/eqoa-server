@@ -182,6 +182,22 @@ func TestAWornShieldAnswersBesideASpellShield(t *testing.T) {
 	}
 }
 
+// Packmaster's Band of Darkness (Heirloom petition 3035) answers as the
+// Ascended Seraphic Planar Chestplate does, by its own name.
+func TestPackmastersBandIsTheAscendedSeraphic(t *testing.T) {
+	SetAscendedItems(map[int]int{980041: 8527})
+	defer SetAscendedItems(nil)
+	want, ok := WornShieldOf(980041, "Ascended Seraphic Planar Chestplate")
+	if !ok || want.Damage != 83 || want.DamageMax != 132 || want.Heal != 83 || want.HealMax != 132 || want.Scale != StatInt || !want.Line {
+		t.Fatalf("the Ascended Seraphic Planar: %+v %v", want, ok)
+	}
+	got, ok := WornShieldOf(1000819, "Packmaster's Band of Darkness")
+	want.Item = "Packmaster's Band of Darkness"
+	if !ok || got != want {
+		t.Errorf("the band: %+v %v, want %+v", got, ok, want)
+	}
+}
+
 // The Seraphic Planar (the user, 2026-11-05: "75 heal and damage. scales with
 // int higher, one of the very best in the game"): both 75 at no INT, 120 at
 // the wearer's INT cap (the user, 2026-11-08: "the damage/heal shield should

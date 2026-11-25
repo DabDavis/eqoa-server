@@ -141,6 +141,11 @@ var wornShields = map[string]WornShield{
 	// with other gear and buffs 20 heal damage shield"); its old copies,
 	// renamed "Legacy Fungal Spore Tunic", have none (the whole name keys)
 	"fungal spore tunic": {Heal: 20},
+	// Packmaster's own ring (Heirloom petition 3035, the owner: "Grant as
+	// asked"): "a health proc like the Ascended Sepheric Planar Breastplate",
+	// so the Ascended Seraphic Planar's answer as it is, 83 at none of the
+	// wearer's INT to 132 at its cap, heal and damage alike
+	"packmaster's band of darkness": seraphicPlanar.ascended(),
 	// (the heirlooms' chest piece healed as the Anointed from 2026-11-06 04:00
 	// to the next deploy: the user, "give it a healing effect per hit like the
 	// breastplate of the anointed", then "lets turn off the healing effect on

@@ -625,6 +625,46 @@ func stepSpawns(qu *database.Quest, st *database.QuestStep) (evs []database.Ques
 	return evs, names
 }
 
+// atNPCSpawns is stepSpawns for a talk, show or give step at an NPC its own
+// spawns bring (Heirloom petition 3049, the second isle of rain: "Sterie
+// Glitterlight ... will not spawn unless someone logs the quest"; quest 101302's
+// step 1 spawns her, walking her round by the maze's far side, and is done by
+// talking to her): the spawn events of its start and of the step before's done
+// that name its target, and the target. respawnLost makes them again only when
+// the target stands out of the world (the player within questRespawnReach of the
+// original), as a hunt step's: before, a talk step's spawn lost (its life up, the
+// player away, a keep restart) left the step undoable but by giving the quest up.
+func atNPCSpawns(qu *database.Quest, st *database.QuestStep) (evs []database.QuestEvent, names []string) {
+	if st == nil || !database.AtNPC(st.Kind) {
+		return nil, nil
+	}
+	target := strings.TrimSpace(st.Target)
+	if target == "" {
+		return nil, nil
+	}
+	of := func(list []database.QuestEvent) {
+		for _, e := range list {
+			if e.Do == database.EventSpawn && strings.EqualFold(strings.TrimSpace(e.NPC), target) {
+				evs = append(evs, e)
+			}
+		}
+	}
+	of(database.EventsOn(st.Events, database.EventStart))
+	var prev *database.QuestStep
+	for i := range qu.Steps {
+		if s := &qu.Steps[i]; s.Step < st.Step && (prev == nil || s.Step > prev.Step) {
+			prev = s
+		}
+	}
+	if prev != nil {
+		of(database.EventsOn(prev.Events, database.EventDone))
+	}
+	if len(evs) == 0 {
+		return nil, nil
+	}
+	return evs, []string{target}
+}
+
 // spawnStandsLocked reports a spawn of the character's step still in the
 // world, alive or its corpse lying. Must be called with q.mu held.
 func (q *QuestEngine) spawnStandsLocked(serverID uint32, quest, step int) bool {
@@ -718,6 +758,11 @@ func (q *QuestEngine) respawnLost() {
 				continue
 			}
 			evs, names := stepSpawns(qu, st)
+			atNPC := false
+			if len(evs) == 0 {
+				evs, names = atNPCSpawns(qu, st)
+				atNPC = len(evs) > 0
+			}
 			if len(evs) == 0 || q.spawnStandsLocked(id, qu.ID, st.Step) {
 				continue
 			}
@@ -739,7 +784,7 @@ func (q *QuestEngine) respawnLost() {
 			}
 			if owed[[2]int{qu.ID, st.Step}] {
 				log.Printf("Quests: %q step %d: %s's spawns (%s) made again after a keep restart", qu.Name, st.Step, p.Name, strings.Join(names, ", "))
-			} else if !q.gw.SpawnOnlyNear(world, x, z, questRespawnReach, names) && !q.byStepNPC(qu, st, names, world, x, z) {
+			} else if !q.gw.SpawnOnlyNear(world, x, z, questRespawnReach, names) && (atNPC || !q.byStepNPC(qu, st, names, world, x, z)) {
 				continue
 			} else {
 				log.Printf("Quests: %q step %d: %s came back for %s", qu.Name, st.Step, p.Name, strings.Join(names, ", "))

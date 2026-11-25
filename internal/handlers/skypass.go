@@ -96,9 +96,11 @@ var skyPasses = []skyPass{
 	// isle; the top floor at 229.2 off world 4's ground file, the nearest flesh fiend's spawn 51 away, facing south
 	{NPC: "essence of rain", X: 4482.5, Z: 5293.2, Key: "rain key", To: "the first isle of rain",
 		At: wayPlace{World: 4, X: 4225.0, Y: 229.2, Z: 5500.0, Facing: 0}, Steps: [][2]int{{101301, 2}}},
-	// a player's spot (petition 2049) was on Day Chain 2: back on its isle (the owner, 2026-11-14)
+	// a player's spot (petition 2049) was on Day Chain 2: back on its isle (the owner, 2026-11-14); lands where a
+	// player stood (Heirloom petition 3048: "when you port from rain one to rain 2, you should be here"), the
+	// terrain's floor at 180.06 off world 4's ground file, facing north (-z) into the isle as he faced
 	{NPC: "essence of rain", X: 4222.7, Z: 5714.6, Key: "Rain Key 1", To: "the second isle of rain",
-		At: wayPlace{World: 4, X: 4177.0, Y: 180.06, Z: 5210.0, Facing: 3.98}, Steps: [][2]int{{101301, 4}}},
+		At: wayPlace{World: 4, X: 4144.2, Y: 180.06, Z: 5237.6, Facing: 3.12}, Steps: [][2]int{{101301, 4}}},
 	// lands where a GM stood (petition 2042); a player's spot (2053) was on Day Chain 3 (the owner, 2026-11-14: back on the rain isles)
 	{NPC: "essence of rain", X: 4158.6, Z: 5122.5, Key: "Rain Key 2", To: "the third isle of rain",
 		At: wayPlace{World: 4, X: 4397.54, Y: 110.80, Z: 4559.93, Facing: 1.10}, Steps: [][2]int{{101302, 4}}},

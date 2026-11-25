@@ -1048,6 +1048,34 @@ const (
 	OpcodeRide GameOpcode = 0x7E83
 )
 
+// The real offence and defence figures for a client's own stat window (vanilla's
+// Stat Window, statwnd.rs; petition 2925: "Would it be possible to also include
+// OFF MODS, DEF MODS"; the owner, 2026-11-24: "Yes, real figures"): the ranges the
+// server's rolls use, as #stats states them (entity/statfigures.go), which the
+// stat channel (0x42) does not carry. Not retail.
+const (
+	// OpcodeStatFigures is a u8 both ways. Server to client once the player is
+	// in the world, except where Character > Summary's stat caps are the game's
+	// (handlers/vanillaui.go QoLStatCaps: world.vanilla_ui, an [OG]
+	// character's QoLOGOff): 1, the layout of OpcodeStatFiguresData. Client to
+	// server: 1 while its stat window is open (it is sent the figures at once
+	// and whenever they change), 0 when it closes (nothing more). A PS2
+	// ignores the offer and is sent nothing.
+	OpcodeStatFigures GameOpcode = 0x7E84
+
+	// OpcodeStatFiguresData is the figures, server to a client that answered
+	// 1, the whole set each time, little-endian: a u8 count, then each a u8 id
+	// and an i32 value. A client skips an id it does not know. The ids
+	// (entity.StatFig*), each a hit's damage:
+	//   1, 2: melee low and high: a hit of the player's main hand (a monk's
+	//         bare hands) on a creature of its own level, its floor applied;
+	//   3, 4: ranged low and high: one arrow of its ranged weapon on such a
+	//         creature (sent instead of 1 and 2 while one is worn);
+	//   5, 6: defence low and high: a creature of its own level's hit on it,
+	//         after its AC and AGI.
+	OpcodeStatFiguresData GameOpcode = 0x7E85
+)
+
 // A monster's name and level when the player talks to it (□, Q on vanilla's
 // keyboard) and it has nothing to say, for a client that shows them in the
 // target's details box (handlers/mobinfo.go, world.mob_info; a GM's
@@ -1901,6 +1929,10 @@ func (op GameOpcode) String() string {
 		return "DecorLights"
 	case OpcodeRide:
 		return "Ride"
+	case OpcodeStatFigures:
+		return "StatFigures"
+	case OpcodeStatFiguresData:
+		return "StatFiguresData"
 	case OpcodePetDyesOffer:
 		return "PetDyesOffer"
 	case OpcodePetDyesAnswer:

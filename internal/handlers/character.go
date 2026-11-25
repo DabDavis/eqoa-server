@@ -1057,6 +1057,9 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// and a damage meter (dpsmeter.go): a client that draws one asks, a PS2
 	// ignores it
 	SendDPSMeterOffer(sess)
+	// and the real offence and defence figures (statfigures.go): a client
+	// whose stat window is open asks, a PS2 ignores it
+	SendStatFiguresOffer(sess)
 	// and a monster's name and level in the details box (mobinfo.go), where
 	// world.mob_info is on: a client that shows them there asks, a PS2
 	// ignores it and is shown them in a dialogue box

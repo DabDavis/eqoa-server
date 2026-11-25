@@ -146,6 +146,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.groupEffectsSystem(now)
 	w.buffWindowSystem(now) // the buff window's set, to the clients that draw it (buffwindow.go)
 	w.dpsMeterSystem(now)   // the damage meters' fights, to the clients that draw them (dpsmeter.go)
+	w.statFiguresSystem()   // the offence and defence figures, to the stat windows open (statfigures.go)
 	t.mark(tsPowerSync)
 	w.tickSeenLocked()
 	return due, gates, gone

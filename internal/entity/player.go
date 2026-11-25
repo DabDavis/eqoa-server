@@ -356,6 +356,14 @@ type Player struct {
 	buffWindowSent string
 	buffWindowDue  bool
 
+	// StatFigures: the player's client draws its stat window and asked for the
+	// real offence and defence figures (statfigures.go, opcodes 0x7E84 and
+	// 0x7E85); statFiguresSent is the body it was last sent, statFiguresDue
+	// sends the next whatever it is (just asked).
+	StatFigures     bool
+	statFiguresSent string
+	statFiguresDue  bool
+
 	// QuestHeadMarks: the player's client draws the quest marks over the
 	// NPCs' heads and asked for them (questheadmarks.go, opcodes
 	// 0x7E61-0x7E63); questHeadSent is the set it was last sent,

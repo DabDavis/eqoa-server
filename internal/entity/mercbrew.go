@@ -71,7 +71,8 @@ import (
 // Its meals: out of a fight (nothing fighting it, its owner or its owner's
 // mercs, its owner swinging at nothing), below mercEatBelow of its health,
 // with no meal on it, it eats: a meal it carries (its health a tick, the
-// item's HoT), else a ration (RationRestore: a tenth of its most health a
+// item's HoT; every merc's since petition 3061: mercmeal.go), else, an
+// alchemist alone, a ration (RationRestore: a tenth of its most health a
 // tick, a player's ration's), for a meal's minute, its first tick at once, as
 // a player's meal (consumable.go); a fight ends it, as a player's.
 //
@@ -681,9 +682,6 @@ const mercMealIcon uint32 = 0x828563AF
 // fight's end of one; it reports one eaten. Must be called with the lock held.
 func (w *World) mercEatTurnLocked(ms *mercState, now time.Time) bool {
 	m := ms.npc
-	if !ms.mercThrowsPotions() {
-		return false
-	}
 	fight := w.mercInFightLocked(ms) || ms.target != 0
 	if ae := mercEating(m); ae != nil {
 		if fight || m.LastCombatTime.After(ae.Until.Add(-ConsumableDuration)) {
@@ -707,6 +705,9 @@ func (w *World) mercEatTurnLocked(ms *mercState, now time.Time) bool {
 		}
 	}
 	if carried == 0 {
+		if !ms.mercThrowsPotions() {
+			return false // a ration's figures with none carried: an alchemist's alone (mercmeal.go)
+		}
 		hot = ration
 	}
 	ae := &ActiveEffect{SpellID: FoodEffectID, Name: name, Icon: mercMealIcon, Caster: m.ServerID, Until: now.Add(ConsumableDuration)}

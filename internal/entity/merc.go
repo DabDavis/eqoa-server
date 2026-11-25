@@ -171,12 +171,15 @@ type MercKit struct {
 }
 
 // MercCarried is one record a merc carries to use (MercKit.Carried): its
-// charmercitem id, its item and how many; a meal's health a tick (Food).
+// charmercitem id, its item and how many; a meal's health a tick (Food), a
+// grocer's drink's power a tick (Drink: mercmeal.go).
 type MercCarried struct {
 	ID, PatternID, Count int
 	Name                 string
 	Food                 bool
 	HoT                  int
+	Drink                bool
+	PoT                  int
 }
 
 // MercLook is what a merc's channel shows of its body and its heirlooms.
@@ -288,6 +291,10 @@ type mercState struct {
 	// of its own (a stroll at ease aside)
 	brewAt      time.Time
 	brewStirred time.Time
+	// lowPowerSaid: it said its power ran low in this dip (mercmeal.go),
+	// lowPowerAt when
+	lowPowerSaid bool
+	lowPowerAt   time.Time
 }
 
 // mercNoCollideID is a merc's entry on its owner's non-collide list (0x1003:
@@ -1130,6 +1137,7 @@ func (w *World) mercSystem(now time.Time) {
 			w.mercPetTurnLocked(ms, sess, false, dt, now)
 			continue
 		}
+		w.mercLowPowerLocked(ms, now)    // its word when its power runs low (mercmeal.go)
 		w.mercCampUpkeepLocked(ms, sess) // a camp its owner left breaks (merccamp.go)
 		if n.World != owner.World || distXZ(n.X, n.Z, owner.X, owner.Z) > w.mercLostLocked(ms) {
 			// a teleport, another world, a coach: it comes along, as a pet does

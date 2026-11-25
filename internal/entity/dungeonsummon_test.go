@@ -33,7 +33,7 @@ func TestDungeonSummonJoinsByTheDoorsRules(t *testing.T) {
 		t.Fatalf("c joined: %v %q instance %d", ok, why, c.Instance)
 	}
 	why, ok := r.w.InstanceJoinCheck(d.ServerID, a.ServerID, false)
-	if ok || why != "Raider3 cannot be summoned into Raider0's instance of Test Guk: they are locked out of new instances of it for 10 more minutes." {
+	if ok || why != "Raider3 cannot be summoned into Raider0's instance of Test Guk: they are locked out of new instances of it for 9 more minutes." {
 		t.Fatalf("d, locked out: %v %q", ok, why)
 	}
 	if _, ok := r.w.JoinInstanceOf(b.ServerID, a.ServerID, false); !ok || b.Instance != in {

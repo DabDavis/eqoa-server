@@ -1519,6 +1519,15 @@ const (
 	// place, and a u16 of seconds until the server sends it to its login
 	// (0x0777).
 	OpcodeHardcoreFall GameOpcode = 0x7EB2
+	// OpcodeNpcRoles is what the server knows of its NPCs that a client cannot
+	// read off their names and flags, for vanilla's minimap colours (Heirloom
+	// petition 3092; handlers/npcroles.go): server to client only, to a client
+	// that answered OpcodeBugReportOffer (a PS2 never is), at that answer. A u8
+	// version (1), a u8 of flags (1 the first part: forget what the last said;
+	// 2 the last part), a u16 count, then each NPC: a u8 role (1 a spell
+	// merchant), a u8 class (0-14 the class whose scrolls it sells most, 255
+	// none), and its name (u8-counted UTF-8). A long list comes in parts.
+	OpcodeNpcRoles GameOpcode = 0x7EE0
 )
 
 // =============================================================================
@@ -1918,6 +1927,8 @@ func (op GameOpcode) String() string {
 		return "HardcoreChars"
 	case OpcodeHardcoreFall:
 		return "HardcoreFall"
+	case OpcodeNpcRoles:
+		return "NpcRoles"
 	case OpcodeVanillaUI:
 		return "VanillaUI"
 	case OpcodeConLevelOffer:

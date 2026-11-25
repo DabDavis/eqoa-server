@@ -140,6 +140,8 @@ func main() {
 	accountStore := database.NewSQLiteAccountStore(db)
 	inventoryStore := database.NewInventoryStore(db)
 	spellbookStore := database.NewSpellbookStore(db)
+	// the spell merchants vanilla's minimap colours (handlers/npcroles.go)
+	handlers.SetNpcRoleStore(spellbookStore)
 
 	// Initialize game world
 	gameWorld := entity.NewWorld()

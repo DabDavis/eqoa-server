@@ -1706,22 +1706,38 @@ func (w *World) coachDestinations(excludeName string, keep func(*NPC) bool) []Co
 
 // coachDestLocked is the stop a coachman's stable is in the other coachmen's
 // menus: his town, and where a rider is set down (in front of him, else his
-// own spot). Must be called with the lock held.
+// own spot). Set down in front of him, the rider faces him, the camera behind
+// (CLIENT's Respawn: SetLocation with the 0x00B2's heading, then
+// SetOrbitAngleBehind), so his menu is a press away (Heirloom petition 3091:
+// "when you arrive at a coach you are not facing the coachman"); on his own
+// spot, his way, as before. Must be called with the lock held.
 func (w *World) coachDestLocked(npc *NPC) CoachDest {
 	label, _ := coachLabel(npc)
 	f := float64(npc.SpawnFacing)
 	x, z := npc.SpawnX+coachLandOut*float32(math.Sin(f)), npc.SpawnZ+coachLandOut*float32(math.Cos(f))
+	facing := faceBack(npc.SpawnFacing)
 	if !w.coachFloorLocked(npc.World, x, npc.SpawnY, z) && w.coachFloorLocked(npc.World, npc.SpawnX, npc.SpawnY, npc.SpawnZ) {
 		x, z = npc.SpawnX, npc.SpawnZ // no floor in front of him: his own spot
+		facing = npc.SpawnFacing
 	}
 	return CoachDest{
 		Name:   label,
 		X:      x,
 		Y:      npc.SpawnY,
 		Z:      z,
-		Facing: npc.SpawnFacing,
+		Facing: facing,
 		World:  npc.World,
 	}
+}
+
+// faceBack is the heading that looks back at one facing h from in front of
+// it: h turned half round, in [0, 2pi).
+func faceBack(h float32) float32 {
+	b := math.Mod(float64(h)+math.Pi, 2*math.Pi)
+	if b < 0 {
+		b += 2 * math.Pi
+	}
+	return float32(b)
 }
 
 // sendPlayerDied sends OpcodeCharacterDied (0x005E).

@@ -711,10 +711,15 @@ func (h *InteractHandler) sendCoachPage(sess *session.Session, player *entity.Pl
 	words, own := coachWordsByName[player.CoachBy] // a filmed coachman's (npcwords.go)
 	options := make([]string, 0, len(pageDests)+2)
 	for _, d := range pageDests {
+		tag := ""
+		if d.QuestStop {
+			tag = questStopTag // a step of a quest under way there (questcoachway.go)
+		}
 		if own && !d.Ledgers {
-			options = append(options, words.label(d))
+			options = append(options, words.labelTagged(d, tag))
 			continue
 		}
+		d.Name += tag
 		options = append(options, destLabel(d))
 	}
 	if hasMore {

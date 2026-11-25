@@ -384,6 +384,7 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 			addAt(markTake, s, mq)
 		}
 	}
+	var allow func(wayHop) bool // the way marks' trips the player may take, made at the first
 	for _, cq := range c.active() {
 		qu := q.cat.byID[cq.QuestID]
 		if qu == nil {
@@ -409,9 +410,14 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 			for _, s := range at {
 				addAt(kind, s, mq)
 			}
-			// none in the player's world: the way there (questmarkspots.go)
-			if len(at) > 0 && at[0].World != world {
-				if h, ok := q.wayToLocked(spots, world, at[0].World, x, z); ok {
+			// none in the player's world, or in another of its homes (the
+			// Homelands: coaches between them): the way there
+			// (questmarkspots.go, questcoachway.go)
+			if here := wayNodeAt(world, x, z); len(at) > 0 && wayNodeOf(at[0]) != here {
+				if allow == nil {
+					allow = q.wayAllowLocked(c.serverID)
+				}
+				if h, ok := q.wayToLocked(spots, here, wayNodeOf(at[0]), x, z, allow); ok {
 					wq := mq
 					wq.line = st.Journal
 					wq.detail = wayLine(h, "")

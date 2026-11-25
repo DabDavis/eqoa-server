@@ -1691,23 +1691,30 @@ func (w *World) coachDestinations(excludeName string, keep func(*NPC) bool) []Co
 		if npc.Name == excludeName || !keep(npc) {
 			continue
 		}
-		label, _ := coachLabel(npc)
-		f := float64(npc.SpawnFacing)
-		x, z := npc.SpawnX+coachLandOut*float32(math.Sin(f)), npc.SpawnZ+coachLandOut*float32(math.Cos(f))
-		if !w.coachFloorLocked(npc.World, x, npc.SpawnY, z) && w.coachFloorLocked(npc.World, npc.SpawnX, npc.SpawnY, npc.SpawnZ) {
-			x, z = npc.SpawnX, npc.SpawnZ // no floor in front of him: his own spot
-		}
-		dests = append(dests, CoachDest{
-			Name:   label,
-			X:      x,
-			Y:      npc.SpawnY,
-			Z:      z,
-			Facing: npc.SpawnFacing,
-			World:  npc.World,
-		})
+		dests = append(dests, w.coachDestLocked(npc))
 	}
 	sortDests(dests)
 	return dests
+}
+
+// coachDestLocked is the stop a coachman's stable is in the other coachmen's
+// menus: his town, and where a rider is set down (in front of him, else his
+// own spot). Must be called with the lock held.
+func (w *World) coachDestLocked(npc *NPC) CoachDest {
+	label, _ := coachLabel(npc)
+	f := float64(npc.SpawnFacing)
+	x, z := npc.SpawnX+coachLandOut*float32(math.Sin(f)), npc.SpawnZ+coachLandOut*float32(math.Cos(f))
+	if !w.coachFloorLocked(npc.World, x, npc.SpawnY, z) && w.coachFloorLocked(npc.World, npc.SpawnX, npc.SpawnY, npc.SpawnZ) {
+		x, z = npc.SpawnX, npc.SpawnZ // no floor in front of him: his own spot
+	}
+	return CoachDest{
+		Name:   label,
+		X:      x,
+		Y:      npc.SpawnY,
+		Z:      z,
+		Facing: npc.SpawnFacing,
+		World:  npc.World,
+	}
 }
 
 // sendPlayerDied sends OpcodeCharacterDied (0x005E).

@@ -218,6 +218,11 @@ type QuestEngine struct {
 	// trips (questmarkspots.go), made from spots and forgotten with them
 	camps map[string][]huntCamp
 	hops  []wayHop
+	// coachSigned reads a character's signed ledgers (charcoaches), signed
+	// keeps them a while for the way marks (questcoachway.go); nil: every
+	// coach stop counts
+	coachSigned func(serverID uint32) (map[string]bool, error)
+	signed      map[uint32]signedLedgers
 
 	// marked is table questmarks, the quests flagged for the marks over
 	// their NPCs' heads (questheadmarks.go), read at Reload; gen counts the
@@ -430,6 +435,7 @@ func NewQuestEngine(db *database.SQLiteDB, gw *entity.World, sm *session.Manager
 		q.notYetLines = db.QuestNotYet
 		store := database.NewSQLiteCharacterStore(db)
 		q.binds, q.places = store, store
+		q.coachSigned = store.CoachTowns
 	}
 	if err := q.Reload(); err != nil {
 		return nil, err

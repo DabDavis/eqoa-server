@@ -127,7 +127,10 @@ type QuestEngine struct {
 	// being counted is credited to (killed), whose kill steps count on their own
 	skySyncing bool
 	skyKill    map[uint32]bool
-	boxSeq     uint32
+	// prefarm is /prefarm's verdict on the kill being counted (prefarm.go), nil
+	// outside one
+	prefarm *prefarmKill
+	boxSeq  uint32
 	// owed are the steps whose spawns a keep restart took from a character,
 	// [quest, step] by character, made again by respawnLost wherever it stands
 	// (keep.go's QuestSpawns)
@@ -2077,6 +2080,8 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 		q.skyKill[kp.ServerID] = true
 	}
 	defer func() { q.skyKill = nil }()
+	q.prefarm = &prefarmKill{k: k} // /prefarm (prefarm.go): read at its first need
+	defer func() { q.prefarm = nil }()
 	dropped := q.corpseDropsLocked(k, chars) // before the steps move on: who is on which, at the kill
 	defer q.placeDropsLocked(k, dropped)     // after: but those a full stack counted (lootKillLocked)
 	for i, kp := range k.Players {
@@ -2163,8 +2168,8 @@ func (q *QuestEngine) laterStepKillLocked(c *questChar, kp entity.KillPlayer, qu
 // drops it with the player not on the step yet (questpreloot.go: to anyone, or ahead of the
 // step for this player).
 func (q *QuestEngine) dropsAheadNameLocked(kp entity.KillPlayer, c *questChar, qu *database.Quest, later *database.QuestStep, killed string) (string, bool) {
-	if later.Kind != database.StepLoot || kp.Session == nil || q.items == nil {
-		return "", false
+	if later.Kind != database.StepLoot || kp.Session == nil || q.items == nil || q.aheadOffLocked() {
+		return "", false // /prefarm off: nothing drops ahead on this kill (prefarm.go)
 	}
 	pid, _, _ := later.LootItem()
 	pat, err := q.items.GetItemPattern(pid)

@@ -67,7 +67,9 @@ import (
 // An item dropped with no player of the kill on its step keeps the corpse only aheadKeep
 // (questloot.go: Live petition 5118, dead wildlife holding Ant Chitin for no one); one a player
 // of the kill is on the step for keeps it as any loot does. A kill no player is credited with
-// drops nothing. The tracker (questprogress.go) shows the items held ahead of a later loot
+// drops nothing. With /prefarm off (prefarm.go: the group or raid leader's choice, else the
+// killer's) an item for no player of the kill on its step is not dropped at all (petition 2975,
+// the owner 2026-11-25); a player of the kill on the step has its own copy as ever. The tracker (questprogress.go) shows the items held ahead of a later loot
 // step of a quest under way; a kill of a later step's creature says that its item drops
 // (laterStepKillLocked).
 
@@ -226,6 +228,10 @@ func (q *QuestEngine) placeDropsLocked(k entity.KillCredit, dropped map[int]*que
 		d := dropped[pid]
 		rec := database.CharInventoryEntry{StackLeft: 1, EquipLoc: -1, Pattern: *d.pat}
 		if !d.onStep {
+			if q.aheadOffLocked() { // /prefarm off (prefarm.go)
+				log.Printf("Quests: %q kept %q off its corpse (%s; no player of the kill on the step; /prefarm off of character %d)", k.NPCName, d.pat.ItemName, d.why, q.prefarm.whose)
+				continue
+			}
 			q.drop(k.NPCID, k.Died, rec, true)
 			log.Printf("Quests: %q dropped %q on its corpse (%s; no player of the kill on the step)", k.NPCName, d.pat.ItemName, d.why)
 			continue

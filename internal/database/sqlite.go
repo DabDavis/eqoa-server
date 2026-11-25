@@ -906,6 +906,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharHideMercs(); err != nil { // charhidemercs.go: who hid other players' mercenaries, /hide mercs
 		return err
 	}
+	if err := db.ensureCharPrefarm(); err != nil { // charprefarm.go: who has /prefarm off (no quest items dropped ahead)
+		return err
+	}
 	if err := db.ensureMercs(); err != nil { // mercs.go: the mercenaries hired and the familiars
 		return err
 	}

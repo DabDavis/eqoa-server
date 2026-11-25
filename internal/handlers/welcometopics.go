@@ -77,6 +77,7 @@ const (
 	welcomeMapsPS2         = "Maps: the PC and browser client has a world map (M) and a minimap (N), with XP camps, coaches and quest marks."
 	welcomeConOurs         = "/con tells you your target's level, and the PC client shows it in the target box."
 	welcomeConPS2          = "/t con tells you your target's level."
+	welcomePrefarm         = "%s off: quest items drop on your kills only for a player on that step. A group or raid leader's holds for the group."
 )
 
 // welcomeTopic is one topic as a player is shown it: its name and its lines.
@@ -168,5 +169,9 @@ func welcomeFeatureLines(f welcomeFacts, ours, qol bool) []string {
 			}
 		}
 	}
-	return l
+	prefarm := "/t prefarm" // prefarm.go, every shard's
+	if ours {
+		prefarm = "/prefarm"
+	}
+	return append(l, fmt.Sprintf(welcomePrefarm, prefarm))
 }

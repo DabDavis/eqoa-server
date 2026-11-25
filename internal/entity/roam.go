@@ -318,8 +318,10 @@ func (w *World) findRoamersLocked(now time.Time) {
 	w.linkCompanionsLocked() // the creatures' own pets, who walk with them and not of themselves (companion.go)
 	found := make(map[EntityID]bool)
 	var next []*NPC
+	var nearby []EntityID
 	for _, p := range w.Players {
-		for _, id := range w.SpatialIndex.QueryRadius(p.X, p.Z, roamActiveRange) {
+		nearby = w.SpatialIndex.appendRadius(nearby[:0], p.X, p.Z, roamActiveRange)
+		for _, id := range nearby {
 			npc, ok := w.NPCs[id]
 			if !ok || found[id] || !w.npcSharesLocked(npc, p) || !w.wanders(npc) {
 				continue

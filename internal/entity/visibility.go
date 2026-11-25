@@ -124,6 +124,7 @@ func (w *World) visibilitySystem() {
 		return
 	}
 
+	var nearbyIDs []EntityID
 	w.SessionManager.ForEach(func(sess *session.Session) bool {
 		if !sess.CharacterInWorld() {
 			return true
@@ -144,7 +145,7 @@ func (w *World) visibilitySystem() {
 		slots := len(vis.ChannelEntity)
 
 		// Query nearby entities from spatial index
-		nearbyIDs := w.SpatialIndex.QueryRadius(player.X, player.Z, float32(conn.ViewDistance()))
+		nearbyIDs = w.SpatialIndex.appendRadius(nearbyIDs[:0], player.X, player.Z, float32(conn.ViewDistance()))
 
 		// Filter out self, dead entities (unless recent corpse), and build
 		// distance list; and each papered board's name plate beside it

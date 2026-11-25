@@ -233,6 +233,11 @@ func (qt *QuadTree) query(bounds Bounds, result *[]EntityID) {
 
 // QueryRadius returns all entity IDs within a radius of a point.
 func (qt *QuadTree) QueryRadius(x, y, radius float32) []EntityID {
+	return qt.appendRadius(nil, x, y, radius)
+}
+
+// appendRadius lets a pass reuse its result buffer across nearby players.
+func (qt *QuadTree) appendRadius(dst []EntityID, x, y, radius float32) []EntityID {
 	bounds := Bounds{
 		X:      x - radius,
 		Y:      y - radius,
@@ -240,40 +245,28 @@ func (qt *QuadTree) QueryRadius(x, y, radius float32) []EntityID {
 		Height: radius * 2,
 	}
 
-	// Collect entries (with positions) from the bounding box.
-	var candidates []qtEntry
-	qt.queryEntries(bounds, &candidates)
-
-	// Filter to actual circle.
-	radiusSq := radius * radius
-	var result []EntityID
-	for _, entry := range candidates {
-		dx := entry.X - x
-		dy := entry.Y - y
-		if dx*dx+dy*dy <= radiusSq {
-			result = append(result, entry.ID)
-		}
-	}
-	return result
+	return qt.radiusMatches(dst, bounds, x, y, radius*radius)
 }
 
-func (qt *QuadTree) queryEntries(bounds Bounds, result *[]qtEntry) {
+func (qt *QuadTree) radiusMatches(dst []EntityID, bounds Bounds, x, y, radiusSq float32) []EntityID {
 	if !qt.bounds.Intersects(&bounds) {
-		return
+		return dst
 	}
 
 	for _, entry := range qt.entries {
-		if bounds.Contains(entry.X, entry.Y) {
-			*result = append(*result, entry)
+		dx, dy := entry.X-x, entry.Y-y
+		if bounds.Contains(entry.X, entry.Y) && dx*dx+dy*dy <= radiusSq {
+			dst = append(dst, entry.ID)
 		}
 	}
 
 	if qt.divided {
-		qt.northwest.queryEntries(bounds, result)
-		qt.northeast.queryEntries(bounds, result)
-		qt.southwest.queryEntries(bounds, result)
-		qt.southeast.queryEntries(bounds, result)
+		dst = qt.northwest.radiusMatches(dst, bounds, x, y, radiusSq)
+		dst = qt.northeast.radiusMatches(dst, bounds, x, y, radiusSq)
+		dst = qt.southwest.radiusMatches(dst, bounds, x, y, radiusSq)
+		dst = qt.southeast.radiusMatches(dst, bounds, x, y, radiusSq)
 	}
+	return dst
 }
 
 // Count returns the total number of entities.

@@ -23,18 +23,29 @@ const (
 // with the lock let go (respawn.go).
 func (w *World) Tick(now time.Time) {
 	due, gates, gone := w.tickLocked(now)
-	w.runDuelPurse()        // a duel's wager held or paid (duelpurse.go)
-	w.runCombatRecords()    // a PvP death or a duel's end counted (combatrecord.go)
+	w.ticks.mark(tsAfterLock) // unlocking and returning from tickLocked
+	w.runDuelPurse()          // a duel's wager held or paid (duelpurse.go)
+	w.ticks.markPost("duel purse")
+	w.runCombatRecords() // a PvP death or a duel's end counted (combatrecord.go)
+	w.ticks.markPost("combat records")
 	w.runProgressSaves(now) // a level gained, and experience every few minutes, written (progresssave.go)
+	w.ticks.markPost("progress saves")
 	w.runRespawns(due)
+	w.ticks.markPost("respawns")
 	w.runGates(gates)
-	w.runTravels()    // the spells that send players to a named place (gates.go)
-	w.runHeroCalls()  // Call of the Hero's members asked (callhero.go)
-	w.runHandsBack()  // the hands a switch took off for a cast, back after it (cast.go)
-	w.runMercNotes()  // what became of the mercs, to the handlers (merc.go)
+	w.ticks.markPost("gates")
+	w.runTravels() // the spells that send players to a named place (gates.go)
+	w.ticks.markPost("travels")
+	w.runHeroCalls() // Call of the Hero's members asked (callhero.go)
+	w.ticks.markPost("hero calls")
+	w.runHandsBack() // the hands a switch took off for a cast, back after it (cast.go)
+	w.ticks.markPost("hands back")
+	w.runMercNotes() // what became of the mercs, to the handlers (merc.go)
+	w.ticks.markPost("merc notes")
 	w.runAmbient(now) // the NPCs' unprompted lines, npcdialog read with no lock held (ambient.go)
+	w.ticks.markPost("ambient dialogue")
 	w.runCorpsesGone(gone)
-	w.ticks.mark(tsAfterLock)
+	w.ticks.markPost("corpses gone")
 }
 
 // tickLocked is the tick's systems under the world lock. It returns the

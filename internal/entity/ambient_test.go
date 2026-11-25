@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"errors"
 	"net"
 	"slices"
 	"testing"
@@ -9,6 +10,53 @@ import (
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/session"
 )
+
+func TestBusyAmbientReadLeavesWorldTicksFree(t *testing.T) {
+	r := newAmbientRig(t)
+	r.player("Near", 1000, 1020)
+	started, release := make(chan struct{}), make(chan struct{})
+	defer func() {
+		select {
+		case <-release:
+		default:
+			close(release)
+		}
+	}()
+	r.w.SetAmbientLines(func() ([]database.NPCDialogLine, error) {
+		close(started)
+		<-release
+		return nil, errors.New("old reader")
+	})
+	now := time.Now()
+	returned := make(chan struct{})
+	go func() { r.w.Tick(now); close(returned) }()
+	select {
+	case <-returned:
+	case <-time.After(time.Second):
+		t.Fatal("a blocked dialogue read blocked the game tick")
+	}
+	<-started
+	old := r.w.ambient.pending
+	r.w.Tick(now.Add(ambientEvery))
+	if r.w.ambient.pending != old {
+		t.Fatal("another read started before the first returned")
+	}
+	r.w.SetAmbientLines(func() ([]database.NPCDialogLine, error) {
+		return []database.NPCDialogLine{ambientRow(1, r.npc.Name, database.DialogUseAmbient, "Here.")}, nil
+	})
+	close(release)
+	<-old.done
+	r.w.runAmbient(now.Add(2 * ambientEvery))
+	fresh := r.w.ambient.pending
+	if fresh == nil || fresh == old {
+		t.Fatal("replacement reader did not start")
+	}
+	<-fresh.done
+	r.w.runAmbient(now.Add(2*ambientEvery + time.Millisecond))
+	if r.w.ambient.speakers[r.npc.ServerID] == nil {
+		t.Fatal("fresh dialogue was not applied on the world tick")
+	}
+}
 
 // ambientRig is a world with one speaker in a library and the players added near or far.
 type ambientRig struct {

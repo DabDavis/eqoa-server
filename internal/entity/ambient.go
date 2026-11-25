@@ -54,52 +54,96 @@ type ambientSpeaker struct {
 type ambientState struct {
 	lines    func() ([]database.NPCDialogLine, error)
 	at       time.Time
+	pending  *ambientRead
 	speakers map[EntityID]*ambientSpeaker
+}
+
+// Only the reader fills lines and err. Closing done hands them to the tick.
+// A replacement reader marks the old result obsolete under the world lock.
+type ambientRead struct {
+	done     chan struct{}
+	lines    []database.NPCDialogLine
+	err      error
+	obsolete bool
 }
 
 // SetAmbientLines gives the World npcdialog's reader (database.NPCDialog) for
 // the ambient lines; nil: none are said.
 func (w *World) SetAmbientLines(f func() ([]database.NPCDialogLine, error)) {
 	w.mu.Lock()
+	if pending := w.ambient.pending; pending != nil {
+		pending.obsolete = true
+	}
 	w.ambient.lines = f
+	w.ambient.at = time.Time{}
 	w.mu.Unlock()
 }
 
 // runAmbient is the ambient lines' turn after the tick's lock (Tick), every
-// ambientEvery: npcdialog read with no lock held (it may query), then
-// AmbientSay.
+// ambientEvery. The game's single SQLite connection may be busy. Keep at
+// most one read in flight and apply the result on a subsequent world tick.
 func (w *World) runAmbient(now time.Time) {
 	w.mu.RLock()
-	f, at := w.ambient.lines, w.ambient.at
+	idle := w.ambient.pending == nil && (w.ambient.lines == nil || now.Sub(w.ambient.at) < ambientEvery)
 	w.mu.RUnlock()
-	if f == nil || now.Sub(at) < ambientEvery {
+	if idle {
 		return
 	}
 	w.mu.Lock()
-	w.ambient.at = now
-	w.mu.Unlock()
-	lines, err := f()
-	if err != nil {
-		log.Printf("Ambient: npcdialog: %v", err)
+	defer w.mu.Unlock()
+	a := &w.ambient
+	if read := a.pending; read != nil {
+		select {
+		case <-read.done:
+			a.pending = nil
+			if !read.obsolete {
+				if read.err != nil {
+					log.Printf("Ambient: npcdialog: %v", read.err)
+				} else {
+					w.scanAmbientLocked(read.lines, now)
+				}
+				return
+			}
+		default:
+			return
+		}
+	}
+	f := a.lines
+	if f == nil || now.Sub(a.at) < ambientEvery {
 		return
 	}
-	w.AmbientSay(lines, now)
+	read := &ambientRead{done: make(chan struct{})}
+	a.pending, a.at = read, now
+	go func() {
+		rows, err := f()
+		read.lines, read.err = ambientLines(rows), err
+		close(read.done)
+	}()
 }
 
 // AmbientSay is one look at the speakers (the file's comment): each NPC near a
 // player with an ambient line that fits it is given its time, and says a line
 // when its time has come. It returns how many lines were said.
 func (w *World) AmbientSay(lines []database.NPCDialogLine, now time.Time) int {
-	ambient := false
-	for _, l := range lines {
-		if l.Use == database.DialogUseAmbient && l.Line != "" && l.Weight > 0 {
-			ambient = true
-			break
-		}
-	}
+	lines = ambientLines(lines)
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	if !ambient {
+	return w.scanAmbientLocked(lines, now)
+}
+
+// Pick the rows once so each due NPC only considers lines it can say.
+func ambientLines(lines []database.NPCDialogLine) []database.NPCDialogLine {
+	var ambient []database.NPCDialogLine
+	for _, l := range lines {
+		if l.Use == database.DialogUseAmbient && l.Line != "" && l.Weight > 0 {
+			ambient = append(ambient, l)
+		}
+	}
+	return ambient
+}
+
+func (w *World) scanAmbientLocked(lines []database.NPCDialogLine, now time.Time) int {
+	if len(lines) == 0 {
 		w.ambient.speakers = nil
 		return 0
 	}
@@ -108,11 +152,13 @@ func (w *World) AmbientSay(lines []database.NPCDialogLine, now time.Time) int {
 	}
 	seen := make(map[EntityID]bool)
 	said := 0
+	var nearby []EntityID
 	for _, p := range w.Players {
 		if !w.ambientHearsLocked(p, now) {
 			continue
 		}
-		for _, id := range w.SpatialIndex.QueryRadius(p.X, p.Z, AmbientNear) {
+		nearby = w.SpatialIndex.appendRadius(nearby[:0], p.X, p.Z, AmbientNear)
+		for _, id := range nearby {
 			npc, ok := w.NPCs[id]
 			if !ok || seen[id] || npc.World != p.World || !dialogAble(npc) {
 				continue

@@ -75,6 +75,11 @@ const (
 // durStat is a sum and a most of durations.
 type durStat struct{ sum, max time.Duration }
 
+type postCallback struct {
+	name string
+	took time.Duration
+}
+
 func (d *durStat) add(x time.Duration) {
 	d.sum += x
 	d.max = max(d.max, x)
@@ -86,6 +91,7 @@ type tickTimer struct {
 	// this tick's laps, and what it saw at its end under the lock
 	last          time.Time
 	lap           [tsCount]time.Duration
+	longestPost   postCallback
 	npcs, players int
 	sets          [4]int // fights, corpses, regeneration, guards (npcsets.go)
 
@@ -97,6 +103,7 @@ type tickTimer struct {
 
 // tickWindow is the figures since the last report.
 type tickWindow struct {
+	longestPost     postCallback
 	from, lastStart time.Time
 	interval        time.Duration
 	turns           int
@@ -115,13 +122,23 @@ type tickWindow struct {
 func (t *tickTimer) start(at time.Time) {
 	t.last = at
 	t.lap = [tsCount]time.Duration{}
+	t.longestPost = postCallback{}
 }
 
 // mark ends the lap since the last mark as lap's.
-func (t *tickTimer) mark(lap int) {
+func (t *tickTimer) mark(lap int) time.Duration {
 	now := time.Now()
-	t.lap[lap] += now.Sub(t.last)
+	elapsed := now.Sub(t.last)
+	t.lap[lap] += elapsed
 	t.last = now
+	return elapsed
+}
+
+// Keep the combined afterlock lap and identify the longest callback inside it.
+func (t *tickTimer) markPost(name string) {
+	if elapsed := t.mark(tsAfterLock); elapsed > t.longestPost.took {
+		t.longestPost = postCallback{name, elapsed}
+	}
 }
 
 // tickSeenLocked notes what the tick saw at its end: the NPCs, the players
@@ -147,6 +164,9 @@ func (w *World) TickTurn(start, worldDone, end time.Time, interval time.Duration
 	}
 	win.lastStart, win.interval = start, interval
 	win.turns++
+	if t.longestPost.took > win.longestPost.took {
+		win.longestPost = t.longestPost
+	}
 	var locked time.Duration
 	for i, d := range t.lap {
 		win.laps[i].add(d)
@@ -216,6 +236,9 @@ func (t *tickTimer) reportLines(end time.Time) []string {
 	type lapRow struct {
 		name     string
 		avg, max time.Duration
+	}
+	if win.longestPost.took >= tickSlow {
+		lines = append(lines, fmt.Sprintf("longest afterlock callback: %s %s", win.longestPost.name, msText(win.longestPost.took)))
 	}
 	var rows []lapRow
 	for i, d := range win.laps {

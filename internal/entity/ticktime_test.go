@@ -6,6 +6,27 @@ import (
 	"time"
 )
 
+func TestSlowPostCallbackSurvivesUntilMinuteReport(t *testing.T) {
+	w := NewWorld()
+	start := time.Now()
+	w.ticks.start(start.Add(-150 * time.Millisecond))
+	w.ticks.markPost("progress saves")
+	w.ticks.markPost("ambient dialogue")
+	if w.ticks.lap[tsAfterLock] < 150*time.Millisecond {
+		t.Fatal("callback time missing from afterlock")
+	}
+	w.TickTurn(start, start, start, 100*time.Millisecond)
+	next := start.Add(time.Minute)
+	w.ticks.start(next)
+	w.TickTurn(next, next, next, 100*time.Millisecond)
+	if text := strings.Join(w.TickReport(), "\n"); !strings.Contains(text, "longest afterlock callback: progress saves") {
+		t.Fatalf("missing slow callback in %s", text)
+	}
+	if w.ticks.win.longestPost.took != 0 || w.ticks.longestPost.took != 0 {
+		t.Fatal("stale callback carried into next sample")
+	}
+}
+
 // A minute of turns makes one report: the turns, the slow one counted, the
 // longest gap (a turn missed), and the systems by their average, longest
 // first.
@@ -58,6 +79,10 @@ func TestTickTimerReportsAMinute(t *testing.T) {
 func TestTickLapsAddUpToTheTick(t *testing.T) {
 	w, _ := setsWorld(t, 200)
 	start := time.Now()
+	// A quiet test tick can finish inside one Windows clock step. Supply
+	// a real lock wait so there is measurable time for the laps to cover.
+	w.mu.Lock()
+	time.AfterFunc(20*time.Millisecond, w.mu.Unlock)
 	w.Tick(start)
 	took := time.Since(start)
 	var sum time.Duration

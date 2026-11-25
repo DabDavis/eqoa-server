@@ -111,7 +111,7 @@ const (
 	mercRestLine  = "Your mercenary %s rests for %d more seconds."
 	mercBackLine  = "Your mercenary %s is back at your side."
 	mercKitFailed = "The liaison's ledger is out of order. Try again."
-	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, camp (here until you go 125 off; again breaks it), attack (your target), path, pet, master [name|none] (55+), charm [off], group, revive, dismiss, give [item], inv, equip|unequip|take <item>, aoe|single (a Cocktail alchemist), helm [on|off] (its helm shown or hidden), stock, claim: with no name, every merc out. /familiar dismiss sends a familiar away."
+	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, camp (here until you go 125 off; again breaks it), attack (your target), path, pet, master [name|none] (55+), charm [off], group, revive, dismiss, give [item], inv, equip|unequip|take <item>, aoe|single (a Cocktail alchemist), helm|look [on|off] (its helm, or all its armour's look, shown or hidden), stock, claim: with no name, every merc out. /familiar dismiss sends a familiar away."
 )
 
 // mercRoles are the liaison's first answers, each role's classes in their
@@ -772,7 +772,10 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 	l.PrimaryType, l.SecondaryType = p.PrimaryType, p.SecondaryType
 	l.WornPieces, l.WornMask, l.WornItems = p.WornPieces, p.WornMask, p.WornItems // its pieces' auras (entity/pieceaura.go)
 	if row.HideHelm {
-		l.Hidden |= entity.HideHelm // /merc helm off (mercHelm): worn, its look not shown
+		l.Hidden |= entity.HideHelm // /merc helm off (mercHide): worn, its look not shown
+	}
+	if row.HideLook {
+		l.Hidden |= entity.MercArmorLook // /merc look off (mercHide): its armour worn, none of it shown
 	}
 	if row.Class == mercAlchemist && !ownHand { // its own in its hands shown as a player's
 		if bottle := m.potionBottle(); bottle != 0 {
@@ -1317,7 +1320,9 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 		}
 		SendClientMessage(sess, line)
 	case "helm":
-		m.mercHelm(sess, p, rows, slot, words[1:])
+		m.mercHide(sess, p, rows, slot, words[1:], false)
+	case "look":
+		m.mercHide(sess, p, rows, slot, words[1:], true)
 	case "group":
 		if line := m.gw.AskMercGroup(sess); line != "" {
 			SendClientMessage(sess, line)
@@ -1413,7 +1418,7 @@ func (m *Mercs) dismiss(sess *session.Session, p *entity.Player, slot int) {
 var mercVerbs = map[string]bool{"status": true, "dismiss": true, "stance": true, "follow": true, "stay": true, "camp": true, "attack": true,
 	"group": true, "revive": true, "help": true, "path": true, "pet": true, "charm": true, "list": true, "defensive": true,
 	"offensive": true, "menu": true, "master": true, "aoe": true, "single": true, "give": true, "inv": true, "inventory": true, "items": true,
-	"equip": true, "unequip": true, "take": true, "stock": true, "claim": true, "spells": true, "helm": true}
+	"equip": true, "unequip": true, "take": true, "stock": true, "claim": true, "spells": true, "helm": true, "look": true}
 
 // mercWords reports a tell's body that is /merc's: none, or one of its words
 // first.
@@ -1536,11 +1541,14 @@ func (m *Mercs) Restore(sess *session.Session, p *entity.Player, k entity.KeptMe
 	m.gw.RestoreMerc(sess, kit, k, now)
 }
 
-// mercHelm is /merc helm [on|off] (petition 2965, "hide helm from merc"): off hides the helm's look of
-// the merc of the slot (0 every hire), on shows it again, neither turns each over. The helm stays worn,
-// its stats its; only what every client is shown of it is bare (MercLook.Hidden), at once for a merc out
-// (its kit made again) and kept in its row (charmerc.hide_helm) over logouts and restarts.
-func (m *Mercs) mercHelm(sess *session.Session, p *entity.Player, rows []database.MercRow, slot int, args []string) {
+// mercHide is /merc helm [on|off] (petition 2965, "hide helm from merc") and, look true, /merc look
+// [on|off] (its follow-up: a tank's whole appearance): off hides the helm's look (look: every armour
+// piece's, the robe and the helm, entity.MercArmorLook) of the merc of the slot (0 every hire), on
+// shows it again, neither turns each over. The pieces stay worn, their stats theirs; only what every
+// client is shown of them is bare (MercLook.Hidden), at once for a merc out (its kit made again) and
+// kept in its row (charmerc.hide_helm, hide_look) over logouts and restarts. Look off hides the helm
+// whatever /merc helm says; look on leaves a helm /merc helm hid hidden.
+func (m *Mercs) mercHide(sess *session.Session, p *entity.Player, rows []database.MercRow, slot int, args []string, look bool) {
 	if m.db == nil {
 		return
 	}
@@ -1552,7 +1560,7 @@ func (m *Mercs) mercHelm(sess *session.Session, p *entity.Player, rows []databas
 		case "off", "hide", "hidden":
 			want = 1
 		default:
-			SendErrorMessage(sess, mercHelmUsage)
+			SendErrorMessage(sess, map[bool]string{false: mercHelmUsage, true: mercLookUsage}[look])
 			return
 		}
 	}
@@ -1562,17 +1570,32 @@ func (m *Mercs) mercHelm(sess *session.Session, p *entity.Player, rows []databas
 			continue
 		}
 		hide := !r.HideHelm
+		set := m.db.SetMercHideHelm
+		if look {
+			hide, set = !r.HideLook, m.db.SetMercHideLook
+		}
 		if want >= 0 {
 			hide = want == 1
 		}
-		if err := m.db.SetMercHideHelm(p.CharServerID, r.Slot, hide); err != nil {
-			log.Printf("Merc: %s's %q's helm not kept: %v", p.Name, r.Name, err)
+		if err := set(p.CharServerID, r.Slot, hide); err != nil {
+			log.Printf("Merc: %s's %q's helm or look not kept: %v", p.Name, r.Name, err)
 			SendErrorMessage(sess, mercKitFailed)
 			return
 		}
 		m.rekitSlot(p, r.Slot)
 		n++
-		SendClientMessage(sess, fmt.Sprintf(map[bool]string{true: mercHelmHidden, false: mercHelmShown}[hide], r.Name))
+		line := map[bool]string{true: mercHelmHidden, false: mercHelmShown}[hide]
+		switch {
+		case look && hide:
+			line = mercLookHidden
+		case look && r.HideHelm:
+			line = mercLookShownHelmNot
+		case look:
+			line = mercLookShown
+		case r.HideLook && !hide:
+			line = mercHelmLookOff
+		}
+		SendClientMessage(sess, fmt.Sprintf(line, r.Name))
 	}
 	if n == 0 {
 		SendErrorMessage(sess, mercHelmNone)
@@ -1585,4 +1608,10 @@ const (
 	mercHelmHidden = "%s's helm is hidden. It still wears it."
 	mercHelmShown  = "%s's helm is shown."
 	mercHelmNone   = "You have no mercenary."
+
+	mercLookUsage        = "/merc [name or 1-3] look [on|off]: its armour's look shown or hidden."
+	mercLookHidden       = "%s's armour is hidden. It still wears it."
+	mercLookShown        = "%s's armour is shown."
+	mercLookShownHelmNot = "%s's armour is shown, its helm still hidden (/merc helm on shows it)."
+	mercHelmLookOff      = "%s's helm will show once /merc look is on: its armour, the helm too, is hidden now."
 )

@@ -197,7 +197,8 @@ type MercLook struct {
 	// records' (-charmercitem.id), 0 an heirloom it is lent
 	WornItems [AuraSlots]int `json:",omitempty"`
 	// Hidden is the parts of its look its hirer hides (HideHelm: /merc helm
-	// off, petition 2965): shown as nothing worn, their auras too
+	// off; MercArmorLook: /merc look off; petition 2965): shown as nothing
+	// worn, their auras too
 	Hidden uint16 `json:",omitempty"`
 }
 
@@ -212,7 +213,12 @@ type mercState struct {
 	// world: its stats and figures (the file's doc); its id is the NPC's
 	body *Player
 	kit  MercKit
-	role mercRole
+	// dyes is its owner's dyes as it shows them (mercdyes.go), made again
+	// when its owner's or its hidden parts change (dyesOf, dyesHid)
+	dyes, dyesOf Dyes
+	dyesHid      uint16
+	dyesMade     bool
+	role         mercRole
 	// life tells this hire's casts from an earlier one's (merccast.go)
 	life   uint64
 	stance MercStance
@@ -606,7 +612,8 @@ func (w *World) dressMercLocked(n *NPC, k *MercKit, owner *Player) {
 	// the armour on its chest, as its players are (armorbody.go; the owner,
 	// 2026-11-11: "mercenaries arent always wearing armor visually, like uwu's
 	// merc ithiel", a hill giant necromancer in its robe)
-	if b := w.armorBodies[k.Race][k.Gear.Armor]; b != 0 && takesArmorBody(k.Race, uint32(n.ModelID)) {
+	// (none with its armour's look hidden: /merc look off shows its own body)
+	if b := w.armorBodies[k.Race][k.Gear.Armor]; b != 0 && l.Hidden&HideChest == 0 && takesArmorBody(k.Race, uint32(n.ModelID)) {
 		n.ModelID = int64(b)
 	}
 	n.Size = w.raceSizeLocked(k.Race)
@@ -623,11 +630,27 @@ func (w *World) dressMercLocked(n *NPC, k *MercKit, owner *Player) {
 	n.PrimaryType, n.SecondaryType = l.PrimaryType, l.SecondaryType
 	n.WornPieces, n.WornMask, n.WornItems = l.WornPieces, l.WornMask, l.WornItems
 	n.HiddenParts = l.Hidden
-	if l.Hidden&HideHelm != 0 {
-		n.Head = 0
+	for _, h := range []struct {
+		part uint16
+		v    *int
+	}{{HideChest, &n.Torso}, {HideBracer, &n.Forearm}, {HideGloves, &n.NPCGloves}, {HideLegs, &n.NPCLegs}, {HideBoots, &n.Feet}, {HideHelm, &n.Head}} {
+		if l.Hidden&h.part != 0 {
+			*h.v = 0
+		}
+	}
+	if l.Hidden&HideRobe != 0 {
+		n.RobeStyle = ""
+	}
+	if l.Hidden&HideChest != 0 {
+		n.Tint = 0
 	}
 	n.Class = k.Class
 }
+
+// MercArmorLook is the parts /merc look off hides (petition 2965's
+// follow-up): every armour piece's look and the robe, the helm's too, and the
+// cape's aura; the hands' held items stay shown.
+const MercArmorLook = HideChest | HideBracer | HideGloves | HideLegs | HideBoots | HideHelm | HideRobe | HideCape
 
 // spawnMercLocked makes the merc of the kit beside its owner: its NPC dressed
 // and at a player's hit points and power, in the world, its owner's. Must be

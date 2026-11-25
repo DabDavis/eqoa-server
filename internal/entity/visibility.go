@@ -408,7 +408,7 @@ func (w *World) serializeEntityForChannelIn(s *chanScratch, sess *session.Sessio
 		if n.WornMask != 0 {
 			auras = w.NPCPieceAurasOf(n) // a mercenary's heirlooms (pieceaura.go)
 		}
-		dyes = npcDyesOfKey(n.classKey()) // its name's dyes (npcdyes.go)
+		dyes = w.npcDyesLocked(n) // its name's dyes (npcdyes.go), a merc's its owner's (mercdyes.go)
 	}
 	return forViewerAuras(live, sess, buf, dyes, auras)
 }
@@ -444,13 +444,13 @@ func (w *World) serializeEntityDiscIn(to []byte, sess *session.Session, id Entit
 			buf[26] = 3
 			buf[27] = 0
 		}
-		w.duelViewPetLocked(sess, npc, buf)               // a duel opponent's pet as a creature (duel.go)
-		w.pvpViewPetLocked(sess, npc, buf)                // a foe's pet, to be swung at (pvp.go)
-		w.challengeViewLocked(sess, npc, buf)             // a Metal Moogie not one's own to fight (metalmoogie.go)
-		w.decorArtViewLocked(sess, npc, buf)              // a decoration's art, to a client that draws decorations (decorlights.go)
-		w.petArtViewLocked(sess, npc, buf)                // a pet's art (a rank's PetArt), to a client that draws it (decorlights.go)
-		putNPCDyeTints(npcDyesOfKey(npc.classKey()), buf) // its dyes' nearest tints (npcdyes.go)
-		putNPCDyeRobeKey(npc.classKey(), buf)             // and the robe its dyes put on
+		w.duelViewPetLocked(sess, npc, buf)       // a duel opponent's pet as a creature (duel.go)
+		w.pvpViewPetLocked(sess, npc, buf)        // a foe's pet, to be swung at (pvp.go)
+		w.challengeViewLocked(sess, npc, buf)     // a Metal Moogie not one's own to fight (metalmoogie.go)
+		w.decorArtViewLocked(sess, npc, buf)      // a decoration's art, to a client that draws decorations (decorlights.go)
+		w.petArtViewLocked(sess, npc, buf)        // a pet's art (a rank's PetArt), to a client that draws it (decorlights.go)
+		putNPCDyeTints(w.npcDyesLocked(npc), buf) // its dyes' nearest tints (npcdyes.go, mercdyes.go)
+		putNPCDyeRobeKey(npc.classKey(), buf)     // and the robe its dyes put on
 		w.putChannelTargetLocked(sess, npc, buf)
 		if npc.NoSelect && !npc.Dead {
 			buf[26] &^= 1 // not selectable: no Tab, no click, no target box (npctitle.go's noselect)

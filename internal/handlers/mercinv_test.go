@@ -524,3 +524,65 @@ func TestMercHelmHidden(t *testing.T) {
 		t.Error("a tell's helm is not /merc's")
 	}
 }
+
+// Petition 2965's follow-up: /merc look off hides every armour piece's look (the chest's body and tint,
+// the helm's too) at once on the NPC, its stats kept and its weapon still shown; kept in its row (a kit
+// made again hides it), on shows it, a helm /merc helm hid stays hidden. A tell's "look off" is /merc's.
+func TestMercLookHidden(t *testing.T) {
+	r, m, db := newMercFixture(t)
+	invItems(t, db)
+	n := func(v int) *int { return &v }
+	const itHelm = 910011
+	putItem(t, db, database.ItemPatternRecord{PatternID: itHelm, ItemName: "Iron Helm", EquipSlot: 1, LevelReq: 1, AC: n(5), Model: 7})
+	if _, err := db.Exec(`UPDATE itempattern SET rent = 0 WHERE patternid = ?`, itHelm); err != nil {
+		t.Fatal(err)
+	}
+	m.hireWith(r.anna, r.pa, 0, 0, 0, -1)
+	r.pack(db, [2]int{itHelm, 1}, [2]int{itBreastplate, 1})
+	for _, c := range []string{"give iron helm", "equip iron helm", "give mithril", "equip mithril"} {
+		m.Command(r.anna, r.pa, c)
+	}
+	merc := func() *entity.NPC {
+		for _, x := range r.gw.NPCs {
+			if x.IsMerc() {
+				return x
+			}
+		}
+		t.Fatal("no merc out")
+		return nil
+	}
+	if merc().Head != 7 || merc().Torso != 9 {
+		t.Fatalf("worn look not shown: head %d torso %d", merc().Head, merc().Torso)
+	}
+	ac, weapon := r.mercInfo(1).AC, merc().PrimaryWeapon
+	r.drain()
+	m.Command(r.anna, r.pa, "look off")
+	row, _, _ := db.Merc(r.pa.CharServerID, 1)
+	x := merc()
+	if !row.HideLook || x.Head != 0 || x.Torso != 0 || x.Forearm != 0 || x.NPCGloves != 0 || x.NPCLegs != 0 || x.Feet != 0 ||
+		x.RobeStyle != "" || x.Tint != 0 || x.HiddenParts != entity.MercArmorLook {
+		t.Fatalf("look off: row %v, %+v", row.HideLook, x)
+	}
+	if r.mercInfo(1).AC != ac || x.PrimaryWeapon != weapon {
+		t.Error("hiding the look took armour or the weapon off")
+	}
+	if got := r.msgs(r.anna); !hasMsg(got, "chat:"+row.Name+"'s armour is hidden. It still wears it.") {
+		t.Errorf("sent %q", got)
+	}
+	if k, err := m.kit(row, r.pa.Level); err != nil || k.Look.Hidden != entity.MercArmorLook || k.Look.Chest != 9 {
+		t.Fatalf("the row's kit: %+v %v", k.Look, err)
+	}
+	m.Command(r.anna, r.pa, "helm off")
+	m.Command(r.anna, r.pa, "look on")
+	if row, _, _ = db.Merc(r.pa.CharServerID, 1); row.HideLook || merc().Torso != 9 || merc().Head != 0 {
+		t.Fatalf("look on, helm off: row %v torso %d head %d", row.HideLook, merc().Torso, merc().Head)
+	}
+	m.Command(r.anna, r.pa, "helm on")
+	m.Command(r.anna, r.pa, "look") // turned over: hidden
+	if row, _, _ = db.Merc(r.pa.CharServerID, 1); !row.HideLook || merc().Head != 0 {
+		t.Fatal("look toggled did not hide it")
+	}
+	if !mercWords("look off") || !mercWords("2 look") {
+		t.Error("a tell's look is not /merc's")
+	}
+}

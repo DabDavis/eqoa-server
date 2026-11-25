@@ -32,11 +32,10 @@ import (
 type LootRule uint8
 
 const (
-	// LootFreeForAll: anyone loots anything (every group's way, and a raid's
-	// until its leader picks another).
+	// LootFreeForAll: anyone loots anything. The default for a plain group.
 	LootFreeForAll LootRule = 0
 	// LootNeedGreed: the rules' items of a raid's kill are rolled on, Need
-	// before Greed (handlers/raidloot.go).
+	// before Greed (handlers/raidloot.go). The default for a new raid.
 	LootNeedGreed LootRule = 1
 	// LootMaster: a raid's kill holding a rules' item is its master looter's
 	// (the leader's) to take, assign or abandon (handlers/raidloot.go).
@@ -71,9 +70,17 @@ func ParseLootRule(s string) (LootRule, bool) {
 // raidRules is a raid's own (Group.rules): its loot rule, its one helper (the leader's
 // pick, who may invite and kick) and its main assist (whom /raidassist assists).
 type raidRules struct {
-	loot   LootRule
-	helper EntityID
-	assist EntityID
+	loot         LootRule
+	lootSelected bool // the leader chose a rule, including free for all
+	helper       EntityID
+	assist       EntityID
+}
+
+// setDefaultRaidLootLocked applies the raid default to a group that just became a raid.
+func (g *Group) setDefaultRaidLootLocked() {
+	if g.rules.loot == LootFreeForAll && !g.rules.lootSelected {
+		g.rules.loot = LootNeedGreed
+	}
 }
 
 // raidWorld is the World's raid state beyond its groups: the kicked members' claims, by

@@ -2,6 +2,7 @@ package entity
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"testing"
 
 	"github.com/eqoa/server/internal/protocol"
@@ -86,5 +87,30 @@ func TestAGroupsNeedBeforeGreed(t *testing.T) {
 	r.w.GroupLootRule(r.sess[0], "ffa")
 	if k := kill(9603); k != nil {
 		t.Fatalf("off again: the kill carries %+v", k)
+	}
+}
+
+func TestAGroupKeepsItsSelectedLootRuleWhenItBecomesARaid(t *testing.T) {
+	r := newRaidRig(t, 3, 30)
+	r.form(3)
+	r.w.GroupLootRule(r.sess[0], "ffa")
+	snapshot, err := json.Marshal(r.w.KeepGroups())
+	if err != nil {
+		t.Fatal(err)
+	}
+	var kept []KeptGroup
+	if err := json.Unmarshal(snapshot, &kept); err != nil {
+		t.Fatal(err)
+	}
+	for _, p := range r.p {
+		p.GroupID = 0
+	}
+	r.w.groups = nil
+	if count, err := r.w.RestoreGroups(kept); count != 1 || err != nil {
+		t.Fatalf("restored %d groups: %v", count, err)
+	}
+	r.w.RaidCall(r.sess[0])
+	if g := r.raidOf(0); !raidingLocked(g) || g.rules.loot != LootFreeForAll {
+		t.Fatalf("the raid lost the group's explicit free-for-all rule: %+v", g)
 	}
 }

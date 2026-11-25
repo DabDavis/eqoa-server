@@ -253,8 +253,8 @@ func TestRealQuestMarks(t *testing.T) {
 				judge(&before, "before", qu, st, rs, oldStepSpots(st, world, px, pz), false, world, px, pz)
 				_, marks := q.stepSpotsLocked(spots, st, 0, world, px, pz)
 				way := false
-				if len(marks) > 0 && marks[0].World != world {
-					_, way = q.wayToLocked(spots, world, marks[0].World, px, pz)
+				if here := wayNodeAt(world, px, pz); len(marks) > 0 && wayNodeOf(marks[0]) != here {
+					_, way = q.wayToLocked(spots, here, wayNodeOf(marks[0]), px, pz, nil)
 				}
 				judge(&after, "after", qu, st, rs, marks, way, world, px, pz)
 			}

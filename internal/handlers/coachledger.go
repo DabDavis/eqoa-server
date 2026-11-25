@@ -204,6 +204,7 @@ func (h *InteractHandler) coachMenu(sess *session.Session, player *entity.Player
 			h.sendDialogueBox(sess, part)
 		}
 	}
+	Quests().CoachStops(player, npc, dests) // a " ?" at a quest's stop (questcoachway.go)
 	if every {
 		dests = append(dests, entity.CoachDest{Name: everyLedgerOption, Ledgers: true})
 		h.every.offer(player.CharServerID, npc)

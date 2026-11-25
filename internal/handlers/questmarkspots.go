@@ -306,20 +306,43 @@ func (q *QuestEngine) stepSpotsLocked(spots map[string][]entity.NPCSpot, st *dat
 	return kind, kept
 }
 
+// wayNode is a place the ways join: a world, and in a world of races' homes
+// (the Homelands: each a zone of its own, the coaches the only road between
+// them) the home a place lies in (entity.CoachHomeAt; "" elsewhere).
+type wayNode struct {
+	world uint8
+	home  string
+}
+
+// wayNodeAt is the way's place of (x, z) in world.
+func wayNodeAt(world uint8, x, z float32) wayNode {
+	h, _ := entity.CoachHomeAt(world, x, z)
+	return wayNode{world, h}
+}
+
+// wayNodeOf is a spot's way place.
+func wayNodeOf(s entity.NPCSpot) wayNode { return wayNodeAt(s.World, s.X, s.Z) }
+
 // wayHop is one trip of a travel NPC: where the NPC stands, the world it
 // lands in and the place's name.
 type wayHop struct {
 	from entity.NPCSpot
 	to   uint8
 	name string
+	// at and lands are the places the trip starts and ends (wayNode)
+	at, lands wayNode
 	// questOnly is a trip only a quest opens (the Plane of Sky's): a way
 	// only where no open one leads
 	questOnly bool
+	// coach is a coachman's stop (entity.CoachTrips); ledger, one sold only
+	// to a traveller who has signed the stop's ledger (its name)
+	coach, ledger bool
 }
 
 // wayHopsLocked is every trip of wayRoutes whose NPC stands in the world,
-// read with the spots (a vampire's coffin left out: not a way for anyone).
-// Must be called with q.mu held.
+// read with the spots (a vampire's coffin left out: not a way for anyone),
+// and every coachman's stop (entity.CoachTrips) that leads to another place
+// (wayNode). Must be called with q.mu held.
 func (q *QuestEngine) wayHopsLocked(spots map[string][]entity.NPCSpot) []wayHop {
 	if q.hops != nil {
 		return q.hops
@@ -335,18 +358,28 @@ func (q *QuestEngine) wayHopsLocked(spots map[string][]entity.NPCSpot) []wayHop 
 			if r.Vampire {
 				continue
 			}
-			to := -1
-			if r.At != nil {
-				to = int(r.At.World)
-			} else if a := spots[foldName(r.Arrive)]; len(a) > 0 {
-				to = int(a[0].World)
-			}
-			if to < 0 {
+			var lands wayNode
+			switch a := spots[foldName(r.Arrive)]; {
+			case r.At != nil:
+				lands = wayNodeAt(r.At.World, r.At.X, r.At.Z)
+			case len(a) > 0:
+				lands = wayNodeOf(a[0])
+			default:
 				continue
 			}
 			for _, s := range spots[foldName(n)] {
-				if !s.SpawnOnly && int(s.World) != to {
-					q.hops = append(q.hops, wayHop{from: s, to: uint8(to), name: r.To, questOnly: r.QuestOnly})
+				if at := wayNodeOf(s); !s.SpawnOnly && at != lands {
+					q.hops = append(q.hops, wayHop{from: s, to: lands.world, name: r.To, at: at, lands: lands, questOnly: r.QuestOnly})
+				}
+			}
+		}
+	}
+	if q.gw != nil {
+		for _, t := range q.gw.CoachTrips() {
+			at := wayNodeOf(t.From)
+			for _, d := range t.Dests {
+				if lands := wayNodeAt(d.World, d.X, d.Z); lands != at {
+					q.hops = append(q.hops, wayHop{from: t.From, to: d.World, name: d.Name, at: at, lands: lands, coach: true, ledger: t.Ledger})
 				}
 			}
 		}
@@ -354,61 +387,78 @@ func (q *QuestEngine) wayHopsLocked(spots map[string][]entity.NPCSpot) []wayHop 
 	return q.hops
 }
 
-// wayToLocked is the travel NPC nearest (x, z) in world whose trip starts the
-// shortest way (the fewest trips) to world to, and the place it goes, by the
-// trips open to anyone, else those a quest opens too; false where no trips
-// lead there. Must be called with q.mu held.
-func (q *QuestEngine) wayToLocked(spots map[string][]entity.NPCSpot, world, to uint8, x, z float32) (wayHop, bool) {
-	var open []wayHop
+// wayToLocked is the travel NPC nearest (x, z) at place from whose trip
+// starts the shortest way (the fewest trips) to place to, and the place it
+// goes, by the trips open to anyone, else those a quest opens too; false
+// where no trips lead there. allow (nil: every trip) keeps the trips the
+// player may take (wayAllowLocked: a coach's signed ledgers). Must be called
+// with q.mu held.
+func (q *QuestEngine) wayToLocked(spots map[string][]entity.NPCSpot, from, to wayNode, x, z float32, allow func(wayHop) bool) (wayHop, bool) {
+	var open, all []wayHop
 	for _, h := range q.wayHopsLocked(spots) {
+		if allow != nil && !allow(h) {
+			continue
+		}
+		all = append(all, h)
 		if !h.questOnly {
 			open = append(open, h)
 		}
 	}
-	if h, ok := wayBy(open, world, to, x, z); ok {
+	if h, ok := wayBy(open, from, to, x, z); ok {
 		return h, true
 	}
-	return wayBy(q.wayHopsLocked(spots), world, to, x, z)
+	return wayBy(all, from, to, x, z)
 }
 
-// wayBy is wayToLocked over the trips hops.
-func wayBy(hops []wayHop, world, to uint8, x, z float32) (wayHop, bool) {
-	// the trips each world is from the target: a breadth-first walk back
-	far := map[uint8]int{to: 0}
+// wayFar is how many trips of hops each place is from place to (a
+// breadth-first walk back from it).
+func wayFar(hops []wayHop, to wayNode) map[wayNode]int {
+	far := map[wayNode]int{to: 0}
 	for changed := true; changed; {
 		changed = false
 		for _, h := range hops {
-			if d, ok := far[h.to]; ok {
-				if e, seen := far[h.from.World]; !seen || d+1 < e {
-					far[h.from.World] = d + 1
+			if d, ok := far[h.lands]; ok {
+				if e, seen := far[h.at]; !seen || d+1 < e {
+					far[h.at] = d + 1
 					changed = true
 				}
 			}
 		}
 	}
-	if _, ok := far[world]; !ok || world == to {
+	return far
+}
+
+// wayBy is wayToLocked over the trips hops.
+func wayBy(hops []wayHop, from, to wayNode, x, z float32) (wayHop, bool) {
+	far := wayFar(hops, to)
+	if _, ok := far[from]; !ok || from == to {
 		return wayHop{}, false
 	}
 	var best wayHop
 	found := false
 	for _, h := range hops {
-		if h.from.World != world {
+		if h.at != from {
 			continue
 		}
-		d, ok := far[h.to]
-		if !ok || d+1 != far[world] {
+		d, ok := far[h.lands]
+		if !ok || d+1 != far[from] {
 			continue
 		}
-		if !found || spotDist(h.from, world, x, z) < spotDist(best.from, world, x, z) {
+		if !found || spotDist(h.from, from.world, x, z) < spotDist(best.from, from.world, x, z) {
 			best, found = h, true
 		}
 	}
 	return best, found
 }
 
-// wayLine is a way mark's detail: the trip and where it leads.
+// wayLine is a way mark's detail: the trip and where it leads ("Ride
+// Coachman Ronks's coach to Goldfeather Eyrie" for a coach's).
 func wayLine(h wayHop, step string) string {
-	s := fmt.Sprintf("Travel with %s to %s", strings.TrimSpace(h.from.Name), h.name)
+	who := strings.TrimSpace(h.from.Name)
+	s := fmt.Sprintf("Travel with %s to %s", who, h.name)
+	if h.coach {
+		s = fmt.Sprintf("Ride %s's coach to %s", who, h.name)
+	}
 	if step = strings.TrimSpace(step); step != "" {
 		s += ", for: " + step
 	}

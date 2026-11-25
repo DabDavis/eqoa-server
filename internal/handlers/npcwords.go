@@ -73,12 +73,17 @@ type coachWords struct {
 }
 
 // label is a destination in his words.
-func (w coachWords) label(d entity.CoachDest) string {
+func (w coachWords) label(d entity.CoachDest) string { return w.labelTagged(d, "") }
+
+// labelTagged is label with tag after the place's name (a quest's stop's " ?":
+// questcoachway.go).
+func (w coachWords) labelTagged(d entity.CoachDest, tag string) string {
+	if n, ok := w.Names[d.Name]; ok && w.Dest != "" {
+		d.Name = n
+	}
+	d.Name += tag
 	if w.Dest == "" {
 		return destLabel(d)
-	}
-	if n, ok := w.Names[d.Name]; ok {
-		d.Name = n
 	}
 	return fmt.Sprintf(w.Dest, destLabel(d))
 }

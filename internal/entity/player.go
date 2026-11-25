@@ -627,6 +627,11 @@ type CoachDest struct {
 	// to sign the player into every stable's ledger at once (handlers/
 	// coachledger.go), which asks Yes or No when picked.
 	Ledgers bool
+
+	// QuestStop marks a coachman's stop where a step of the player's quests
+	// is done, or the way there starts (handlers/questcoachway.go): the menu
+	// shows a " ?" after it.
+	QuestStop bool
 }
 
 // SparPick is a sparring dummy's menu as far as the player has gone: the

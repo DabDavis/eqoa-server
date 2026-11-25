@@ -104,17 +104,17 @@ func TestWayToAnotherWorld(t *testing.T) {
 		"dockmaster killeron": {spotAt(2, "Dockmaster Killeron", 2, 50, 50)},
 		"dockmaster bibbin":   {spotAt(3, "Dockmaster Bibbin", 2, 70, 70)},
 	}
-	h, ok := q.wayToLocked(spots, 0, 2, 0, 0)
+	h, ok := q.wayToLocked(spots, wayNode{world: 0}, wayNode{world: 2}, 0, 0, nil)
 	if !ok || h.from.ID != 1 || h.to != 2 {
 		t.Fatalf("Freeport's dockmaster to Odus: %+v %v", h, ok)
 	}
 	if got := wayLine(h, ""); got != "Travel with Dockmaster Yarnning to Arcadin" {
 		t.Errorf("its line %q", got)
 	}
-	if _, ok := q.wayToLocked(spots, 0, 9, 0, 0); ok {
+	if _, ok := q.wayToLocked(spots, wayNode{world: 0}, wayNode{world: 9}, 0, 0, nil); ok {
 		t.Errorf("no trip to world 9: no way")
 	}
-	if _, ok := q.wayToLocked(spots, 0, 0, 0, 0); ok {
+	if _, ok := q.wayToLocked(spots, wayNode{world: 0}, wayNode{world: 0}, 0, 0, nil); ok {
 		t.Errorf("the player's own world: no way")
 	}
 }

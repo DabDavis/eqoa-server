@@ -156,25 +156,41 @@ def harpy(slot, name, npc, death, chance_note):
                 f"spawn)'. Fired where the {death} fell (npcdeath, {chance_note}); eight at most of a kind within 300 (ours).", world=-1)
 
 
+# Quest 101306 (Night 1) steps 4-6: (step, the imported journal, the journal naming the wait: petition 3021).
+NIGHT1_JOURNALS = (
+    (4, "Kill the three ancient vassals.", "Kill the three ancient vassals: they come five minutes after the peasants fall."),
+    (5, "Kill the three ancient denizens.", "Kill the three ancient denizens: they rise three minutes after the vassals fall."),
+    (6, "Kill the ancient squire by the exit portal.",
+     "Kill the ancient squire by the exit portal: he comes five minutes after the denizens fall."),
+)
+
+
 def spec():
     for_world = lambda st: [{k: v for k, v in s.items() if not (k == "world" and v is None)} for s in st]
     t = []
     t.append(trig(201, "Night 1: Voice of the Ancients", 220, 4160.0, 612.38, 6235.0, [
-        {"do": "lock", "lock": "night 1 voice", "text": "The Voice of the Ancients is silent: the ancients already walk the isle."},
+        # the lock's line and the three waits' lines: petition 3021 (Night 1 waited between waves with no word),
+        # applied by the panel 2026-11-25 (petfix3021) and kept here so a re-run writes the same
+        {"do": "lock", "lock": "night 1 voice", "text": "The Voice of the Ancients is silent: the ancients already walk the isle, "
+                                                        "or will soon rise again. Stay on the isle: each wave comes a few "
+                                                        "minutes after the last falls."},
         {"do": "awaittalk", "npc": "Voice of the Ancients", "start": True, "radius": 220,
          "text": "You would wake those who sleep beneath the night? Then see them rise."},
         {"do": "clock", "seconds": 3600, "empty": 600},
         {"do": "broadcast", "text": "The ground of the isle stirs. Ancient peasants rise from it."},
         spawn("#119680", 4164.5, 612.38, 6123.3, count=4, spread=8),
         {"do": "awaitdead"},
+        {"do": "broadcast", "text": "The peasants lie still. Their vassals will come to avenge them in five minutes: wait on the isle."},
         {"do": "wait", "seconds": 300},
         {"do": "broadcast", "text": "Ancient vassals come to avenge their peasants."},
         spawn("#119684", 4164.35, 612.38, 6149.5, count=3, spread=7),
         {"do": "awaitdead"},
+        {"do": "broadcast", "text": "The vassals lie still. The ancient denizens will rise in three minutes: wait on the isle."},
         {"do": "wait", "seconds": 180},
         {"do": "broadcast", "text": "The ancient denizens of the isle rise."},
         spawn("#119687", 4167.65, 612.38, 6175.7, count=3, spread=7),
         {"do": "awaitdead"},
+        {"do": "broadcast", "text": "The denizens lie still. In five minutes an ancient squire will stand by the exit portal."},
         {"do": "wait", "seconds": 300},
         {"do": "broadcast", "text": "An ancient squire stands by the exit portal."},
         spawn("#119690", 4161.0, 612.38, 6390.0, spread=2),
@@ -353,6 +369,10 @@ def spec():
     sql = [["INSERT INTO npcspawnonly (name, note, source) VALUES (?, ?, ?)",
             [f"#{rid}", f"{name}: brought by the Plane of Sky's scripted events (tools/sky_events_20261114.py)", src]]
            for rid, name in sorted(ROWS.items())]
+    # quest 101306 (Night 1) steps 4-6 name the wait before each wave (petition 3021, applied by the panel
+    # 2026-11-25): written only over the imported line, so a step already changed is left as it is
+    sql += [["UPDATE queststeps SET journal = ? WHERE questid = 101306 AND step = ? AND journal = ?", [new, step, old]]
+            for step, old, new in NIGHT1_JOURNALS]
     sql += [["INSERT OR REPLACE INTO npctemplate (name, template, note, source) VALUES (?, 'sky escort', ?, ?)", [n, note, src]]
             for n, note in (("ryini", "Snow 1's escort (trigger 206)"), ("aviak elder", "Deso 2's defended elder (trigger 214)"))]
     return {

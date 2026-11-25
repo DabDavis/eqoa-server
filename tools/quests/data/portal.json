@@ -2438,19 +2438,19 @@
      "kind": "kill",
      "target": "ancient vassal",
      "count": 3,
-     "journal": "Kill the three ancient vassals."
+     "journal": "Kill the three ancient vassals: they come five minutes after the peasants fall."
     },
     {
      "kind": "kill",
      "target": "ancient denizen",
      "count": 3,
-     "journal": "Kill the three ancient denizens."
+     "journal": "Kill the three ancient denizens: they rise three minutes after the vassals fall."
     },
     {
      "kind": "kill",
      "target": "ancient squire",
      "count": 1,
-     "journal": "Kill the ancient squire by the exit portal."
+     "journal": "Kill the ancient squire by the exit portal: he comes five minutes after the denizens fall."
     },
     {
      "kind": "kill",

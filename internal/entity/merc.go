@@ -981,9 +981,12 @@ func (w *World) rekitMercLocked(ms *mercState, kit MercKit) {
 	// is summoned at the merc's next turn (mercpet.go's mercSummonTurnLocked);
 	// a charmed creature is let go only for a new pick
 	if ps := w.mercPetOutLocked(ms); ps != nil && (picked || ps.npc.Charm == nil) {
-		if want := ms.mercPetSpell(); want != nil && want.SpellID != ps.spell {
+		if want := w.mercPetWantLocked(ms); want != nil && want.SpellID != ps.spell {
 			log.Printf("Merc: %s's %q's pet %q (spell %d) gives way to %q (spell %d)", ms.owner.Name, n.Name, ps.npc.Name,
 				ps.spell, want.Name, want.SpellID)
+			w.mercPetGoesLocked(ms, time.Now())
+		} else if want == nil && w.mercIdlePetLocked(ps.spell) { // one that does nothing (mercpet.go's mercPetWantLocked)
+			log.Printf("Merc: %s's %q's pet %q (spell %d) goes: it does nothing", ms.owner.Name, n.Name, ps.npc.Name, ps.spell)
 			w.mercPetGoesLocked(ms, time.Now())
 		}
 	}

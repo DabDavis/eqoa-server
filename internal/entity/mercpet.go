@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -134,6 +135,31 @@ func (ms *mercState) mercPetSpell() *CastSpell {
 	return best
 }
 
+// mercPetWantLocked is the summoning the merc casts (mercPetSpell), nil when
+// that one's pet would do nothing (mercIdlePetLocked): a merc of a book with
+// no other summoning summons no racial pet of the workbook's non-combat sort
+// (Heirloom petition 3127, a troll bard merc's "Swamp Friend" out at level
+// 30: "my merc troll bard has the cm troll pet and the pet is attacking"; the
+// troll's Swamp Friends and the gnome's Invention, 90 HP, never fighting, no
+// ability, recast 3 s at a time whenever a splash took it). Must be called
+// with the lock held.
+func (w *World) mercPetWantLocked(ms *mercState) *CastSpell {
+	s := ms.mercPetSpell()
+	if s == nil || w.mercIdlePetLocked(s.SpellID) {
+		return nil
+	}
+	return s
+}
+
+// mercIdlePetLocked is whether a summoning's pet is a workbook non-combat pet
+// with no ability of its own (petstats.go: it fights nothing and casts
+// nothing; a Crazy Contraption's buff is something). Must be called with the
+// lock held.
+func (w *World) mercIdlePetLocked(spellID int) bool {
+	sh := w.templates.sheets[spellID]
+	return sh != nil && sh.Type == database.PetTypeNonCombat && len(sh.abilities) == 0
+}
+
 // mercPetUsualKeep is the share of the book's best summoning's level a class's
 // usual kind's best keeps up with to be taken (ours, ticket 2020): the
 // magician's earth line from 16 on (Earth Elementalkin of 16 beside Water
@@ -208,7 +234,7 @@ func (w *World) mercSummonTurnLocked(ms *mercState, now time.Time) bool {
 			return false // one on its way
 		}
 	}
-	s := ms.mercPetSpell()
+	s := w.mercPetWantLocked(ms)
 	if s == nil || !ms.mercReady(s, now) {
 		return false
 	}
@@ -331,6 +357,13 @@ func (w *World) mercPetTurnLocked(ms *mercState, sess *session.Session, fight bo
 // the lock held.
 func (w *World) mercPetChooseTargetLocked(ms *mercState, ps *petState) {
 	pet, m, owner := ps.npc, ms.npc, ms.owner
+	if !pet.petFights() { // a workbook non-combat pet fights nothing (petstats.go; Heirloom petition 3127)
+		if ps.target != 0 {
+			ps.target = 0
+			pet.endRound()
+		}
+		return
+	}
 	valid := func(id EntityID) *NPC {
 		t := w.NPCs[id]
 		if id == 0 || t == nil || !mercMayFight(pet, t) || !w.mercGuardsLocked(ms, t.X, t.Z, petLeash) || w.walledOffLocked(owner, pet, t) {

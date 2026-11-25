@@ -201,7 +201,7 @@ func (w *World) restoreMercPetLocked(ms *mercState, k *KeptPet, now time.Time) {
 	if k == nil {
 		return
 	}
-	s := ms.mercPetSpell()
+	s := w.mercPetWantLocked(ms)
 	if s == nil || s.SpellID != k.Spell {
 		log.Printf("Keep: %s's %q's pet %q: its summoning %d is not its book's now", ms.owner.Name, ms.npc.Name, k.Name, k.Spell)
 		return

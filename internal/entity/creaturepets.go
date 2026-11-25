@@ -171,7 +171,8 @@ func (w *World) creaturePetsForLocked(owner *NPC, now time.Time) []*NPC {
 		w.cpets.owners[owner.ServerID] = st
 	}
 	have := w.creaturePetsOfLocked(owner.ServerID)
-	away := owner.SpawnOnly || owner.hiddenAt(now)
+	// out of the world, or about to be (one back outside its hours: corpseSystem holds it after respawnNPCLocked)
+	away := owner.SpawnOnly || owner.hiddenAt(now) || w.offHoursLocked(owner, now)
 	// the ones no rule wants (or every one, its owner out of the world)
 	want := map[EntityID]int{}
 	for _, r := range rules {
@@ -310,9 +311,15 @@ func (w *World) creaturePetsSystem(now time.Time) {
 	}
 	w.cpets.last = now
 	for id, st := range w.cpets.owners {
-		if n := w.NPCs[id]; n == nil {
+		n := w.NPCs[id]
+		switch {
+		case n == nil:
 			w.creaturePetsGoneLocked(&NPC{ServerID: id})
-		} else if !st.made || st.gen != n.spawnGen || n.SpawnOnly || n.hiddenAt(now) {
+		case n.SpawnOnly || n.hiddenAt(now):
+			if len(st.pets) > 0 {
+				w.creaturePetsForLocked(n, now) // out of the world: its pets with it
+			}
+		case !st.made || st.gen != n.spawnGen:
 			w.creaturePetsForLocked(n, now)
 		}
 	}

@@ -231,6 +231,9 @@ type NPC struct {
 	// (gmcompanions.go), 0 none.
 	GMSpawn       bool
 	gmCompanionOf EntityID
+	// petOf is the creature whose own pet this is, made beside it from its npcpets rule (creaturepets.go): a copy
+	// (Temporary) of the rule's template row, paired with it alone. 0 for any other NPC.
+	petOf EntityID
 	// corpseLeft is a corpse a row's creature left where it fell (corpselinger.go)
 	// whose loot the handlers have not taken over yet: no one's to open until then
 	corpseLeft bool

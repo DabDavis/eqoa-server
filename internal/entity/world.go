@@ -354,6 +354,8 @@ type World struct {
 	// for the next (companion.go)
 	companionRules   map[string]companionRule
 	companionScratch []*NPC
+	// cpets are the pets creatures summon (table npcpets) and those made (creaturepets.go)
+	cpets creaturePetsState
 	// Every item's use, and the hooks that give and take potions (potion.go)
 	potions potionTable
 	// A ranged weapon's shot's power (rangedpower.go)

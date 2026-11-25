@@ -132,7 +132,7 @@ func (w *World) KeepDungeons(now time.Time) *KeptDungeons {
 			Group: in.group, Opened: in.opened, LastIn: in.lastIn, Creatures: in.creatures, Killable: true}
 		for _, cid := range in.npcs {
 			c := w.NPCs[cid]
-			if c == nil || !c.Temporary || c.Instance != in.id || c.CopyOf == 0 {
+			if c == nil || !c.Temporary || c.Instance != in.id || c.CopyOf == 0 || c.petOf != 0 {
 				continue
 			}
 			if c.Dead && !c.corpseLies(now, w.corpseDecay) {

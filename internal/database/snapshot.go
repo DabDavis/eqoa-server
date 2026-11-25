@@ -189,6 +189,11 @@ var snapshotRules = map[string]snapshotRule{
 	// A player's own setting, no person's data: kept whole, said here so a snapshot's reader knows it.
 	"charprefarm": {why: "each character's /prefarm choice (on or off: quest items dropped ahead on its kills) and when (handlers/prefarm.go)"},
 
+	// The pets creatures summon (npcpets.go, entity/creaturepets.go): game data, no person's; kept whole, said here
+	// so a snapshot's reader knows it.
+	"npcpets": {why: "the pets each creature summons, by its name or its row: a template npcs row, how many, their level " +
+		"against the owner's (npcpets.go)"},
+
 	// Named like a secret, holding none: the content tools' provenance (their
 	// --undo, and what the real-data tests read). A key column is a row's key
 	// in the table the tool changed, a meta table's key the name of a fact.
@@ -200,6 +205,7 @@ var snapshotRules = map[string]snapshotRule{
 	"eqoadata_extra_import_rows":  {allow: []string{"key", "key2"}, why: "tools/import_eqoadata_mastery_spells.py's log"},
 	"eqoadata_spell_import_meta":  {allow: []string{"key"}, why: "tools/import_eqoadata_spells.py's facts"},
 	"eqoadata_spell_import_rows":  {allow: []string{"key", "key2"}, why: "tools/import_eqoadata_spells.py's log"},
+	"creature_pets_1125_log":      {allow: []string{"rowkey"}, why: "tools/creature_pets_20261125.py's log"},
 	"cmcatalog_eqoaemu_chars_log": {allow: []string{"key"}, why: "tools/import_eqoaemu_cms.py's log of the characters' rows it changed (spells, charcms)"},
 	"eqoaemu_followup_log":        {allow: []string{"key"}, why: "tools/fix_eqoaemu_followup.py's log"},
 	"eqoaemu_followup_meta":       {allow: []string{"key"}, why: "tools/fix_eqoaemu_followup.py's facts"},

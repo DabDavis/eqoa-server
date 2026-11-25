@@ -2143,6 +2143,28 @@ var catalog = map[string]tableNote{
 			"source": {Label: "Source", Help: "gm, or seed for tools/seed_npc_move.py's rows (its --undo deletes those)"},
 		},
 	},
+	"npcpets": {
+		Label: "Creature pets", Group: "World", Title: "owner", Sort: "owner",
+		Help: "The pets a creature summons (entity/creaturepets.go; the owner, 2026-11-25: \"any mob with a pet should " +
+			"summon their own pets so dont need any pets placed\"), by the OWNER: its name as in NPCs (lower case, no " +
+			"trailing space or $), or #<row> for one creature of an npcs row (and its copies: a dungeon instance's, a GM's " +
+			"#spawn) whose pets are its own, ahead of its name's. Each pet is a copy of the template row (its name, body, " +
+			"faction, loot and its row's own rules), held out of the world by Spawn-only NPCs' #<row>; count of them, its " +
+			"level its owner's plus level_offset (at least 1). They are made beside it at each of its spawns, fight with " +
+			"it, walk with it and die with it; one killed alone comes back at its owner's next spawn; its owner gone, they " +
+			"go. tools/creature_pets_20261125.py moved the placed pet rows here.",
+		Live:   "At once: an owner standing now gets its new pets within a second, its old rule's taken away; the rest at their next spawn.",
+		Search: []string{"owner", "pet", "note", "source"},
+		Cols: map[string]colNote{
+			"owner":        {Label: "Owner", Help: "the owner's name (lower case), or #<npcs row> for one creature"},
+			"pet":          {Label: "Pet", Help: "the pet's name (lower case), for reading: its template row's name is the one it bears"},
+			"template_row": {Label: "Template row", Ref: "npcs", Help: "the npcs row each pet is a copy of (spawn-only by its #row)"},
+			"count":        {Label: "Count", Help: "how many of it (1-8)"},
+			"level_offset": {Label: "Level offset", Help: "its level against its owner's (-3: three below); at least 1"},
+			"note":         {Label: "Note"},
+			"source":       {Label: "Source", Help: "gm, or the tool that wrote it (creaturepets-1125)"},
+		},
+	},
 	"npcwander": {
 		Label: "Creature wander (by spawn)", Group: "World", Title: "npcid", Sort: "npcid",
 		Help: "One creature's own wander, by its npcs row, ahead of its name's Creature movement (npcmove) row and its " +

@@ -70,7 +70,7 @@ type KeptCopy struct {
 // keepsCopyCorpse reports a copy whose corpse a restart carries (the file's
 // doc) at now.
 func (w *World) keepsCopyCorpse(npc *NPC, now time.Time) bool {
-	return npc.Temporary && npc.CopyOf != 0 && npc.Instance == 0 && npc.Owner == 0 && npc.Charm == nil &&
+	return npc.Temporary && npc.CopyOf != 0 && npc.Instance == 0 && npc.Owner == 0 && npc.Charm == nil && npc.petOf == 0 &&
 		npc.GenieOf == 0 && npc.PortalOf == 0 && npc.Dummy == NotDummy && !npc.DuelSpawn() && !npc.CorpseOfNothing() &&
 		npc.corpseLies(now, w.corpseDecay)
 }

@@ -284,7 +284,7 @@ Each system's file is its long form; its tests document the edge cases. `world.<
 | Hogarth's gem setting (Gems of Khalimet in the Khal weapons) | `handlers/gemsetter.go`, `database/gemsetting.go` (table `gemsetting`), `tools/harbingers_20261122.py` |
 | Races and classes past the game's; custom race options | `entity/creation.go`, `entity/raceoptions.go`, `database/charlook.go`, `world.open_races`, `world.all_classes` |
 | Guilds | `entity/guild.go`, `database/guilds.go` |
-| Creatures with companions | `entity/companion.go` |
+| Creatures with companions; the pets creatures summon (table `npcpets`, `tools/creature_pets_20261125.py`) | `entity/companion.go`, `entity/creaturepets.go`, `database/npcpets.go` |
 | Genie's Lamp, Fang of the Wolf, Summoning Portal, Barrel of Monkeys, Rock of Freeport | `handlers/genie.go`, `wolffang.go`, `summonportal.go`, `monkeybarrel.go`, `rockfreeport.go` |
 | Safe mode, hiding others' mercenaries, the welcome guide (daily box, /tutorial: the guide's pages and the Commands/features topics, one 0x0034 window at a time, CLIENT's Close the exit; the topics' words all in `welcometopics.go`) | `handlers/safemode.go`, `hidemercs.go`, `welcome.go`, `welcometopics.go` |
 | The Teleporter | `handlers/teleporter.go`, `world.teleporter` |

@@ -212,7 +212,7 @@ func (w *World) TemporaryNPCs() []NPCState {
 	w.mu.RLock()
 	var out []NPCState
 	for _, npc := range w.NPCs {
-		if npc.Temporary {
+		if npc.Temporary && npc.petOf == 0 { // a creature's summoned pet is no GM's spawn (creaturepets.go)
 			out = append(out, w.npcStateLocked(npc))
 		}
 	}

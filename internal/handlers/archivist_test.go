@@ -548,22 +548,34 @@ func TestTheArchivistGrantsUpToSixtyAndWhatFits(t *testing.T) {
 }
 
 // "Clear my spellbook" says what it takes and asks Yes or No: No keeps the
-// book; Yes takes every row but Return Home's (both its records, its bar slot
-// kept) and sends 0x00B8 by each row's index (a spell with two rows of one
-// index twice, a memorized one too: the bar is drawn from the records), but not
-// for a spell sharing Return Home's index or one past 251, which the player is
-// told leave at the next login; then a box. A book holding only Return Home
-// has nothing to clear.
+// book; Yes takes every row of a spell he can write back (a merchant's scroll
+// here: clearable), and sends 0x00B8 by each row's index (a spell with two
+// rows of one index twice, a memorized one too: the bar is drawn from the
+// records), but not for one sharing the index of a spell kept, nor one past
+// 251, which the player is told leave at the next login; then a box. Return
+// Home stays (both its records, its bar slot kept), and so does what he cannot
+// write back (Heirloom petition 2952: a mastery's ability, a vampire's, a
+// spell another quest gave, on the bar or not). A book holding nothing he can
+// write back has nothing to clear.
 func TestTheArchivistClearsTheBook(t *testing.T) {
 	f := newArchivistFixture(t, nil)
+	const wiz = 1 << archivistWizard
 	for _, s := range []struct {
-		id    int
-		name  string
-		level int
-	}{{1623, "Return Home", 1}, {2300, "Return Home", 1}, {101, "Fire Bolt", 5}, {102, "Frost Bolt", 10},
-		{113, "Shared Shield", 20}, {115, "Arcane Veil", 12}, {120, "Ward of Hope", 15}} {
+		id     int
+		name   string
+		level  int
+		source string
+	}{{1623, "Return Home", 1, "dump"}, {2300, "Return Home", 1, ""}, {101, "Fire Bolt", 5, "dump"}, {102, "Frost Bolt", 10, "vendor"},
+		{113, "Shared Shield", 20, "dump"}, {115, "Arcane Veil", 12, "dump"}, {120, "Ward of Hope", 15, "dump"},
+		{130, "Mastered Bolt +", 20, "eqoa-data cm"}, {131, "Vampiric Strike", 20, ""}, {132, "Quest Gift", 12, ""},
+		{133, "Ward of Hope +", 15, "eqoa-data cm"}} {
 		f.spell(s.id, s.name, s.level, "")
+		if s.source != "" {
+			f.classSpell(archivistWizard, s.id, s.source)
+		}
 	}
+	f.shop("Scroll Merchant", 0x81, 41, f.scroll("Fire Bolt", wiz, 5), f.scroll("Frost Bolt", wiz, 10),
+		f.scroll("Shared Shield", wiz, 20), f.scroll("Arcane Veil", wiz, 10), f.scroll("Ward of Hope", wiz, 15))
 	f.shop(SpellArchivistName, 0x81, archivistShop)
 	f.know(1623, 0, 0)
 	f.know(101, 1, 1)
@@ -573,6 +585,11 @@ func TestTheArchivistClearsTheBook(t *testing.T) {
 	f.know(2300, 5, -1)
 	f.know(113, 5, -1) // sharing Return Home's index
 	f.know(115, 300, -1)
+	f.know(130, 6, 2)  // a mastery's ability, on the bar
+	f.know(131, 7, -1) // a vampire's
+	f.know(132, 8, -1) // another quest's gift
+	f.know(133, 9, -1) // a mastery's "+" record of a sold spell
+	f.know(101, 9, -1) // sharing a kept spell's index
 	before := f.book()
 
 	ask := func() uint32 {
@@ -590,14 +607,14 @@ func TestTheArchivistClearsTheBook(t *testing.T) {
 	box := ask()
 	f.wantMsgs("a close of the question", f.pick(box, 255))
 	f.wantMsgs("Yes", f.pick(box, 0), "remove:1", "remove:2", "remove:3", "remove:3",
-		"box:Spell Archivist: Your book is clear but for Return Home: 5 spells gone.",
-		"yellow:Shared Shield, Arcane Veil will be gone from your book at your next login.")
-	if got, want := f.book(), []string{"1623@0/0", "2300@5"}; strings.Join(got, " ") != strings.Join(want, " ") {
+		"box:Spell Archivist: Your book is clear of what I can write back: 5 spells gone.",
+		"yellow:Shared Shield, Fire Bolt, Arcane Veil will be gone from your book at your next login.")
+	if got, want := f.book(), []string{"1623@0/0", "2300@5", "130@6/2", "131@7", "132@8", "133@9"}; strings.Join(got, " ") != strings.Join(want, " ") {
 		t.Errorf("the book after: %v, want %v", got, want)
 	}
 
-	f.wantMsgs("a book of Return Home alone", f.pick(ask(), 0),
-		"box:Spell Archivist: Your book holds nothing but Return Home: there is nothing to clear.")
+	f.wantMsgs("a book of what he cannot write back", f.pick(ask(), 0),
+		"box:Spell Archivist: Your book holds nothing I can write back: there is nothing to clear.")
 }
 
 // His words fit CLIENT's boxes (a question 127 characters, an answer 63, a box

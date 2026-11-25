@@ -40,8 +40,14 @@ import (
 //   - Grant path spells: one path of the class's at a time, the spells its
 //     path quests give at 20, 30, 40 and 49 (archivistpaths.go: petitions
 //     1325 and 1361), another path's taken out for it;
-//   - Clear my spellbook: every spell and ability out of the book but Return
-//     Home (any record so named; its bar slot stays), asked Yes or No first.
+//   - Clear my spellbook: every spell out of the book he can write back
+//     (clearable: the basic grant's and the class's paths' to the player's
+//     level), asked Yes or No first. Return Home stays (any record so named;
+//     its bar slot too), and so does everything he cannot write back: the
+//     masteries' abilities, a were's or a vampire's, what other quests, items
+//     and GMs gave (Heirloom petition 2952, 2026-11-24: a level 60
+//     necromancer cleared his book to change his path and lost 37 such
+//     spells, his masteries' and his vampire's, which nothing gave back).
 //     The client's book loses each at once by 0x00B8, which erases the FIRST
 //     ability of a display index (Msg00B8), so one sharing an index with
 //     Return Home is not sent (it could take Return Home instead), nor one at
@@ -94,7 +100,7 @@ const (
 // answer 63 and a box 217 (questBoxChars), his name included.
 const (
 	archivistQuestion       = SpellArchivistName + ": 'Your calling's scrolls and paths are in my keeping. I can write their spells into your book, or clear it.'"
-	archivistClearIs        = "I take every spell and ability out of your book but Return Home, those your quests and masteries gave too. What the merchants sell and your calling's quests teach I can grant again, and one path."
+	archivistClearIs        = "I take out of your book every spell I can write back: what the merchants sell, your calling's quests teach and its paths. Return Home stays, and what your masteries and nature gave."
 	archivistClearAsk       = SpellArchivistName + ": 'Shall I clear your book?'"
 	archivistClearYes       = "Yes, clear it"
 	archivistClearNo        = "No"
@@ -102,8 +108,8 @@ const (
 	archivistGrantedSome    = "There: %s written into your book, which has no room for %d more. Make room in it and ask again."
 	archivistHasAll         = "Your book holds every spell of your calling the merchants sell or its quests teach up to level %d already."
 	archivistBookFull       = "Your book has no room for another spell."
-	archivistCleared        = "Your book is clear but for Return Home: %s gone."
-	archivistNothingToClear = "Your book holds nothing but Return Home: there is nothing to clear."
+	archivistCleared        = "Your book is clear of what I can write back: %s gone."
+	archivistNothingToClear = "Your book holds nothing I can write back: there is nothing to clear."
 	archivistKept           = "As you wish: your book stays as it is."
 	archivistTrouble        = "Something went wrong with my books. Try again."
 	archivistAway           = "You are too far from the " + SpellArchivistName + "."
@@ -378,7 +384,34 @@ func (a *Archivist) askClear(sess *session.Session, id uint32) {
 	a.ask(sess, p, archivistAskClear, id, archivistClearAsk, []string{archivistClearYes, archivistClearNo})
 }
 
-// clear takes every spell but Return Home out of the book and out of the
+// clearable is the spells a clear takes, by record and by exact name (a
+// book's record of a name he writes under another): those he writes back for
+// a character of the class and race at the level, the basic grant's
+// (basicSpells) and every path's of the class to the level (classPaths), so
+// a clear followed by a grant and a path loses nothing.
+func clearable(qe *QuestEngine, arch *spellArchive, class, race, level int) (map[int]bool, map[string]bool) {
+	ids, names := map[int]bool{}, map[string]bool{}
+	add := func(id int, name string) { ids[id], names[exactKey(name)] = true, true }
+	for _, s := range basicSpells(qe, arch, class, race, level) {
+		add(s.SpellID, s.Name)
+	}
+	if qe != nil && arch != nil {
+		paths, common := classPaths(qe, arch, class)
+		for _, s := range common {
+			if s.level <= level {
+				add(s.id, s.name)
+			}
+		}
+		for _, pa := range paths {
+			for _, s := range pa.upTo(level) {
+				add(s.id, s.name)
+			}
+		}
+	}
+	return ids, names
+}
+
+// clear takes the spells he can write back out of the book and out of the
 // client's (the notes at the top).
 func (a *Archivist) clear(sess *session.Session, id uint32) {
 	p, _, ok := a.here(sess, id)
@@ -387,34 +420,46 @@ func (a *Archivist) clear(sess *session.Session, id uint32) {
 	}
 	a.book.Lock()
 	defer a.book.Unlock()
+	arch, err := a.archived()
+	if err != nil {
+		log.Printf("Archivist: %s's clear, the archive: %v", p.Name, err)
+		a.say(sess, archivistTrouble)
+		return
+	}
 	book, err := a.spells.GetCharacterSpells(p.CharServerID)
 	if err != nil {
 		log.Printf("Archivist: %s's clear, the book: %v", p.Name, err)
 		a.say(sess, archivistTrouble)
 		return
 	}
-	home := map[int]bool{} // the display indices Return Home holds
+	ids, names := clearable(a.quests(), arch, p.Class, p.Race, min(p.Level, archivistLevelCap))
+	home := map[int]bool{} // the display indices a spell kept holds
 	var gone []database.CharSpellEntry
+	kept := 0
 	for _, e := range book {
-		if database.IsReturnHome(e.Pattern.SpellName) {
+		switch {
+		case database.IsReturnHome(e.Pattern.SpellName):
 			home[e.AddedOrder] = true
-		} else {
+		case ids[e.Pattern.SpellID] || names[exactKey(e.Pattern.SpellName)]:
 			gone = append(gone, e)
+		default:
+			home[e.AddedOrder] = true
+			kept++
 		}
 	}
 	if len(gone) == 0 {
 		a.say(sess, archivistNothingToClear)
 		return
 	}
-	var ids []int
+	var take []int
 	seen := map[int]bool{}
 	for _, e := range gone {
 		if !seen[e.Pattern.SpellID] {
 			seen[e.Pattern.SpellID] = true
-			ids = append(ids, e.Pattern.SpellID)
+			take = append(take, e.Pattern.SpellID)
 		}
 	}
-	rows, err := a.spells.RemoveSpells(p.CharServerID, ids)
+	rows, err := a.spells.RemoveSpells(p.CharServerID, take)
 	if err != nil {
 		log.Printf("Archivist: %s's clear: %v (nothing taken)", p.Name, err)
 		a.say(sess, archivistTrouble)
@@ -423,9 +468,9 @@ func (a *Archivist) clear(sess *session.Session, id uint32) {
 	// one 0x00B8 a row (takeRows, archivistpaths.go), none at an index
 	// Return Home holds
 	later := takeRows(sess, gone, home)
-	log.Printf("Archivist: %s cleared %d spells (%d rows) from the book, %d of them gone from the client at the next login",
-		p.Name, len(ids), rows, len(later))
-	a.say(sess, fmt.Sprintf(archivistCleared, spellCount(len(ids))))
+	log.Printf("Archivist: %s cleared %d spells (%d rows) from the book, %d of them gone from the client at the next login, %d rows kept he cannot write back",
+		p.Name, len(take), rows, len(later), kept)
+	a.say(sess, fmt.Sprintf(archivistCleared, spellCount(len(take))))
 	if len(later) > 0 {
 		what := strings.Join(later, ", ")
 		if len(later) > 4 {

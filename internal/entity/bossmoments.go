@@ -68,6 +68,7 @@ func (w *World) bossMomentsLocked(npc *NPC, f *templateFight, now time.Time) {
 		}
 	}
 	w.unreachedListLocked(npc, f, now) // who is on its hate list since when (unreached.go)
+	w.swarmDueLocked(npc, f, now)      // a swarm under way (swarm.go)
 	for i := range ms {
 		if now.Before(f.momentNext[i]) {
 			continue
@@ -100,6 +101,8 @@ func momentName(m *database.TemplateAbility) string {
 		return "Riptide"
 	case database.AbilityPortFoe:
 		return "Banishment"
+	case database.AbilitySwarm:
+		return swarmName(m)
 	}
 	return "Mind Drain"
 }
@@ -158,6 +161,8 @@ func (w *World) bossMomentLocked(npc *NPC, m *database.TemplateAbility, now time
 		w.portNearLocked(npc, m, now) // portnear.go
 	case database.AbilityPortFoe:
 		w.portFoeLocked(npc, m) // portfoe.go
+	case database.AbilitySwarm:
+		w.swarmStartLocked(npc, m, now) // swarm.go
 	}
 }
 

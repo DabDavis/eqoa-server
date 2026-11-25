@@ -301,7 +301,31 @@ const (
 	// percent of its melee's (0: 100); Name its lines' (DefaultRampageName), FX its swing's look
 	// (0: its own round's), Say its line in /say as it goes.
 	AbilityRampage = "rampage"
+	// AbilitySwarm: a boss's announced wind-up (entity/swarm.go; Packmaster's petition 3122, the owner
+	// 2026-11-25, "do the Festering Jack proposal": Festering Jack's Swarm Mentality): on a clock of its
+	// fight (Every, First, Chance, as a moment's) it roots itself where it stands and says Say in /say
+	// (none: its Name and "!"); Hold seconds later (0: DefaultSwarmHold) it lands Count of its melee
+	// hits (0: DefaultSwarmHits, a quad) on the one it fights, and then every player within Radius
+	// (0: DefaultSwarmRadius) of it that it has a clear line to (sight.go) is killed outright, no resist
+	// and no mitigation. A spell of the players' named in Breaks (none: DefaultSwarmBreaks, the rogue's
+	// Harass) landing on it while it is rooted ends it with no quad and no death. The root ends with it.
+	AbilitySwarm = "swarm"
 )
+
+// A swarm's figures with none of its own, and their bounds.
+const (
+	DefaultSwarmHold   = 5
+	DefaultSwarmHits   = 4
+	DefaultSwarmRadius = 20
+	DefaultSwarmName   = "Swarm Mentality"
+	MostSwarmHold      = 30
+	MostSwarmHits      = 10
+	MostSwarmRadius    = 60
+)
+
+// DefaultSwarmBreaks are the spells that break a swarm with none of its own: the rogue's Harass
+// (Packmaster: "a rogue could use harrass on him to stop the deathtouch").
+var DefaultSwarmBreaks = []string{"Harass"}
 
 // An area rampage's radius with none of its own (the owner's 10 m: a unit is a metre, a man 1.83
 // tall) and the widest one.
@@ -337,7 +361,7 @@ const MostSetHPRadius = 200
 var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot, AbilityDebuff,
 	AbilityStrip, AbilityHealShield, AbilityMeleeKind, AbilityDoT, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage,
 	AbilityProc, AbilityVeil, AbilityKillSay, AbilityLastStand, AbilityWard, AbilityDeathHold, AbilitySelfDoT, AbilityRaidHeal,
-	AbilityPowerZero, AbilitySetHP, AbilityUnreached, AbilityDeathTouch, AbilityPortNear, AbilityPortFoe, AbilityKickZone, AbilityRampage}
+	AbilityPowerZero, AbilitySetHP, AbilityUnreached, AbilityDeathTouch, AbilityPortNear, AbilityPortFoe, AbilityKickZone, AbilityRampage, AbilitySwarm}
 
 // passiveKind is whether an ability of the kind casts nothing on a clock of its
 // own: what it does is a rule its creature keeps (a heal shield, a melee kind,
@@ -626,6 +650,41 @@ type TemplateAbility struct {
 	// (work board 709, the Anvil of Sarek: "a death touch on whoever rushes in
 	// before the pop-up").
 	SpareQuest bool `json:"spare_quest,omitempty"`
+	// Breaks are a swarm's (AbilitySwarm): the names (any case) of the players' spells that, landing
+	// on its creature while it is rooted for it, break it; none: DefaultSwarmBreaks.
+	Breaks []string `json:"breaks,omitempty"`
+}
+
+// SwarmHoldOr is a swarm's wind-up: its own (Hold), else DefaultSwarmHold.
+func (a TemplateAbility) SwarmHoldOr() float64 {
+	if a.Hold <= 0 {
+		return DefaultSwarmHold
+	}
+	return a.Hold
+}
+
+// SwarmHitsOr is a swarm's hits before its death: its own (Count), else DefaultSwarmHits.
+func (a TemplateAbility) SwarmHitsOr() int {
+	if a.Count <= 0 {
+		return DefaultSwarmHits
+	}
+	return a.Count
+}
+
+// SwarmRadiusOr is a swarm's reach: its own (Radius), else DefaultSwarmRadius.
+func (a TemplateAbility) SwarmRadiusOr() float64 {
+	if a.Radius <= 0 {
+		return DefaultSwarmRadius
+	}
+	return a.Radius
+}
+
+// SwarmBreaksOr is the spells that break a swarm: its own, else DefaultSwarmBreaks.
+func (a TemplateAbility) SwarmBreaksOr() []string {
+	if len(a.Breaks) == 0 {
+		return DefaultSwarmBreaks
+	}
+	return a.Breaks
 }
 
 // UnhitOr is an unreached moment's wait: its own, else DefaultUnhitSeconds.
@@ -864,6 +923,15 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 			}
 			continue
 		}
+		if len(a.Breaks) > 0 && a.Kind != AbilitySwarm {
+			return fmt.Errorf("ability %d: breaks are a swarm's", n)
+		}
+		if a.Kind == AbilitySwarm {
+			if err := checkSwarm(n, a); err != nil {
+				return err
+			}
+			continue
+		}
 		if BossMomentKind(a.Kind) {
 			if err := checkBossMoment(n, a); err != nil {
 				return err
@@ -1065,6 +1133,46 @@ func checkKindFields(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: a visual (fx) is an ability's that pins no spell (its spell's is its look), or a proc's or a veil's hit's", n)
 	case a.FX != 0 && k != AbilityStrip && !(k == AbilityHeal && a.HealPct > 0) && (a.Damage == 0 || k == AbilityWard) && k != AbilityProc && k != AbilityVeil:
 		return fmt.Errorf("ability %d: a visual (fx) is a named strip's, heal of its share's, fixed hit's, proc's or veil's", n)
+	}
+	return nil
+}
+
+// checkSwarm holds a swarm (AbilitySwarm) to its fields: its clock (longer than its wind-up), its
+// wind-up, hits and reach within bounds, its say, name and breaks; nothing of a cast's.
+func checkSwarm(n int, a TemplateAbility) error {
+	finite := func(v float64) bool { return !math.IsNaN(v) && !math.IsInf(v, 0) }
+	switch {
+	case !finite(a.Every) || !finite(a.First) || !finite(a.Radius) || !finite(a.Hold):
+		return fmt.Errorf("ability %d: a number that is not one", n)
+	case a.Hold < 0 || a.Hold > MostSwarmHold:
+		return fmt.Errorf("ability %d: a swarm's hold %.1f: 0 (%d) to %d seconds rooted before it", n, a.Hold, DefaultSwarmHold, MostSwarmHold)
+	case a.Every < 2 || a.Every > 3600 || a.Every <= a.SwarmHoldOr():
+		return fmt.Errorf("ability %d: every %.1f: 2 to 3600 seconds, longer than its hold (%.1f)", n, a.Every, a.SwarmHoldOr())
+	case a.First < 0 || a.First > 3600:
+		return fmt.Errorf("ability %d: first %.1f: 0 to 3600 seconds into a fight", n, a.First)
+	case a.Chance < 0 || a.Chance > 100:
+		return fmt.Errorf("ability %d: chance %d: 1 to 100 percent of its due times (0: every one)", n, a.Chance)
+	case a.Count < 0 || a.Count > MostSwarmHits:
+		return fmt.Errorf("ability %d: a swarm's count %d: 0 (%d) to %d hits", n, a.Count, DefaultSwarmHits, MostSwarmHits)
+	case a.Radius < 0 || a.Radius > MostSwarmRadius:
+		return fmt.Errorf("ability %d: a swarm's radius %.1f: 0 (%d) to %d", n, a.Radius, DefaultSwarmRadius, MostSwarmRadius)
+	case len(a.Say) > SayMost || strings.ContainsAny(a.Say, "|\n\r"):
+		return fmt.Errorf("ability %d: a say of more than %d characters, or with a | or a line break", n, SayMost)
+	case len(a.Name) > StripNameMost:
+		return fmt.Errorf("ability %d: a name of more than %d characters", n, StripNameMost)
+	case len(a.Breaks) > MostFoes:
+		return fmt.Errorf("ability %d: a swarm's breaks: up to %d spell names", n, MostFoes)
+	case a.Damage != 0 || a.SetHP != 0 || a.Tick != 0 || a.TickAtCap != 0 || a.TickFor != 0 || a.Unhit != 0 || len(a.Foes) > 0 || a.Top ||
+		len(a.To) > 0 || a.PlayersOnly:
+		return fmt.Errorf("ability %d: a swarm takes none of the other moments' fields (damage, set_hp, tick, unhit, foes, top, to, players_only)", n)
+	case a.Chain || a.Spell != "" || a.SpellID != 0 || a.Line != "" || a.DamagePct != 0 || a.Below != 0 || a.HealPct != 0 ||
+		a.NPC != "" || a.Cooldown != 0 || a.Cast != 0:
+		return fmt.Errorf("ability %d: a swarm takes none of a cast's fields (chain, spell, line, damage_pct, below, cast, cooldown)", n)
+	}
+	for _, b := range a.Breaks {
+		if strings.TrimSpace(b) == "" || len(b) > StripNameMost*2 {
+			return fmt.Errorf("ability %d: a swarm's break %q: a spell's name", n, b)
+		}
 	}
 	return nil
 }

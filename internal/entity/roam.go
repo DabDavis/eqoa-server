@@ -578,6 +578,9 @@ func (w *World) roamRand() *rand.Rand {
 
 // rooted reports a spell holding it where it stands.
 func (n *NPC) rooted(now time.Time) bool {
+	if n.swarmRooted() {
+		return true // rooted for its swarm (swarm.go)
+	}
 	for _, e := range n.Effects {
 		if e.Root && now.Before(e.Until) {
 			return true

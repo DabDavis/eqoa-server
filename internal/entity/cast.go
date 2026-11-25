@@ -1999,6 +1999,7 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 		w.updateAggro(npc, caster.ServerID, 1) // resisted, it is angered all the same
 		return
 	}
+	w.swarmBreakLocked(npc, caster, cs.spell.Name, now) // a Harass on a boss rooted for its swarm (swarm.go)
 	for _, e := range cs.spell.Def.Effects {
 		switch e.Kind {
 		case EffectHP:

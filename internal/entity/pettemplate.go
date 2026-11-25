@@ -416,10 +416,10 @@ func (w *World) petWantsLocked(ps *petState, a *templateAbility, now time.Time) 
 	switch a.Kind {
 	case database.AbilityHeal:
 		owner := func() bool {
-			o := ps.owner
-			top := o.MaxHPNow()
-			return top > 0 && !o.IsDead() && o.HP*100 < top*a.BelowOr() &&
-				w.npcSeesLocked(ps.npc, o.World, o.X, o.Y, o.Z) // in its sight (sight.go)
+			o := ps.petOwnerMate() // a merc's pet's merc (mercpetowner.go)
+			hp, top := o.hp()
+			return top > 0 && o.alive() && hp*100 < top*a.BelowOr() &&
+				w.petSeesMateLocked(ps.npc, o) // in its sight (sight.go)
 		}
 		switch w.petHealTargetLocked(ps, a) {
 		case database.AbilityOnOwner:
@@ -438,7 +438,7 @@ func (w *World) petWantsLocked(ps *petState, a *templateAbility, now time.Time) 
 			return false
 		}
 		if a.TargetOr() == database.AbilityOnOwner {
-			return !buffOn(ps.owner.Effects, s)
+			return !buffOn(ps.petOwnerMate().effects(), s) // a merc's pet's merc's (mercpetowner.go)
 		}
 		return !buffOn(ps.npc.Effects, s)
 	case database.AbilityRoot:
@@ -541,17 +541,19 @@ func (w *World) petCastLocked(ps *petState, i int, t *NPC, now time.Time) bool {
 			return false
 		}
 	case on == database.AbilityOnOwner:
-		if o := ps.owner; !w.npcSeesLocked(pet, o.World, o.X, o.Y, o.Z) {
+		o := ps.petOwnerMate() // a merc's pet's merc (mercpetowner.go)
+		if !w.petSeesMateLocked(pet, o) {
 			return false // its owner out of its sight: it waits (sight.go)
 		}
-		c.target = ps.owner.ServerID
+		c.target = o.id()
 	case on == database.AbilityOnEither:
-		// its owner or itself, the lower share of its hit points
+		// its owner (a merc's pet's merc: mercpetowner.go) or itself, the lower share of its hit points
 		c.target = pet.ServerID
-		if o := ps.owner; !o.IsDead() && o.MaxHPNow() > 0 && pet.MaxHP > 0 &&
-			float64(o.HP)/float64(o.MaxHPNow()) < float64(pet.HP)/float64(pet.MaxHP) &&
-			w.npcSeesLocked(pet, o.World, o.X, o.Y, o.Z) { // its owner in its sight (sight.go)
-			c.target = o.ServerID
+		o := ps.petOwnerMate()
+		if hp, top := o.hp(); o.alive() && top > 0 && pet.MaxHP > 0 &&
+			float64(hp)/float64(top) < float64(pet.HP)/float64(pet.MaxHP) &&
+			w.petSeesMateLocked(pet, o) { // its owner in its sight (sight.go)
+			c.target = o.id()
 		}
 	default:
 		c.target = pet.ServerID
@@ -1089,7 +1091,11 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 			w.petMemberHealLocked(ps, c, n) // the one it was cast at, still of its side (petmemberheal.go)
 			return
 		}
-		if c.target == ps.owner.ServerID {
+		if ms := ps.merc; ms != nil && ms.npc != nil && c.target == ms.npc.ServerID {
+			w.mercPetHealsMercLocked(ps, c, n) // a merc's pet's heal of its owner: its merc's (mercpetowner.go)
+			return
+		}
+		if c.target == ps.owner.ServerID && ps.merc == nil {
 			o := ps.owner
 			if a.HealPct > 0 {
 				n = petShareAmount(o.MaxHPNow(), a.HealPct)
@@ -1128,6 +1134,12 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 		if c.target == pet.ServerID {
 			w.petBuffItselfLocked(ps, c.spell, now)
 			return
+		}
+		if ps.merc != nil {
+			if ms := ps.merc; ms.npc != nil && c.target == ms.npc.ServerID {
+				w.mercPetBuffsMercLocked(ps, c, now) // a merc's pet's buff of its owner: its merc's (mercpetowner.go)
+			}
+			return // never its hirer (petition 3133)
 		}
 		o := ps.owner
 		if o.IsDead() || buffOn(o.Effects, c.spell) {

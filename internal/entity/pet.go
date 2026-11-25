@@ -672,6 +672,12 @@ func (w *World) petBuffsGoLocked(ps *petState) {
 			continue
 		}
 		s := a.spellFor(petSpellClass(a, ps.npc), ps.npc.Level)
+		if s != nil && ps.merc != nil && ps.merc.npc != nil {
+			if w.mercPetBuffGoesLocked(ps, s.SpellID) { // its merc's (mercpetowner.go)
+				log.Printf("Pet: %s's %q goes, and its %q with it", o.Name, ps.npc.Name, s.Name)
+			}
+			continue
+		}
 		if s != nil && w.removeEffectLocked(o, s.SpellID) {
 			log.Printf("Pet: %s's %q goes, and its %q with it", o.Name, ps.npc.Name, s.Name)
 		}

@@ -205,6 +205,9 @@ type MercLook struct {
 // mercState is one merc, kept by its owner's id and its slot.
 type mercState struct {
 	owner *Player
+	// arenaWait: its owner is in an arena duel and was told it waits
+	// (mercArenaWaitLine)
+	arenaWait bool
 	// slot is its hire's (1 to MercSlots: charmerc.slot, /merc 2): its follow
 	// place (followslot.go) and its non-collide entry
 	slot int
@@ -363,6 +366,10 @@ type MercNote struct {
 	// and MercNoteBrewed name
 	ItemID, PatternID, Count int
 }
+
+// mercArenaWaitLine is told the owner as it goes into an arena duel without
+// its merc (mercSystem).
+const mercArenaWaitLine = "%s waits for you outside the duel."
 
 // MercNoteFunc hears a merc's events (handlers/merc.go: its row, its kit).
 type MercNoteFunc func(MercNote)
@@ -1130,6 +1137,25 @@ func (w *World) mercSystem(now time.Time) {
 			w.mercPetTurnLocked(ms, sess, false, dt, now)
 			continue
 		}
+		if owner.arenaStay != nil {
+			// its owner in a Neriak arena duel (duelarena.go): a duel is its two
+			// alone, no merc's (duel.go), so it waits where it was, out of every
+			// fight of its own, until its owner is back (Heirloom petition 3100:
+			// "Mercenaries followed into an instanced duel?")
+			if !ms.arenaWait {
+				ms.arenaWait = true
+				if sess != nil {
+					w.sendChatToSession(sess, fmt.Sprintf(mercArenaWaitLine, n.Name))
+				}
+			}
+			ms.target, ms.ordered = 0, 0
+			ms.combatReady = time.Time{}
+			n.endRound()
+			n.stopMoving()
+			w.mercPetTurnLocked(ms, sess, false, dt, now)
+			continue
+		}
+		ms.arenaWait = false
 		w.mercCampUpkeepLocked(ms, sess) // a camp its owner left breaks (merccamp.go)
 		if n.World != owner.World || distXZ(n.X, n.Z, owner.X, owner.Z) > w.mercLostLocked(ms) {
 			// a teleport, another world, a coach: it comes along, as a pet does

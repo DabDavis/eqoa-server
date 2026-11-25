@@ -327,15 +327,21 @@ func TestACorpseWaitsForItsQuestDrops(t *testing.T) {
 		t.Fatal("the corpse went with its kill's quest drops still to come")
 	}
 
-	// the quests work the kill: the ring on the corpse, shown in the waiting window
+	// the quests work the kill: the ring on the corpse, and no window opened on
+	// the looter, whose window the Take all closed (Heirloom petition 2980: it
+	// came back seconds later on a player who had walked on)
 	f.h.AddCorpseQuestDrop(f.npc.ServerID, f.npc.DeathTime, f.dropOf(f.bait), true)
 	f.h.QuestDropsPlaced(f.npc.ServerID, f.npc.DeathTime)
-	got := f.sent()
-	if len(got) != 2 || opOf(got[0]) != protocol.OpcodeClientCloseLoot || opOf(got[1]) != protocol.OpcodeLoot {
-		t.Fatalf("the drop placed: %s, want the window sent again", ops(got))
+	if got := f.sent(); len(got) != 0 {
+		t.Fatalf("the drop placed: %s sent to a looter whose window was closed, want nothing", ops(got))
 	}
-	if n := lootCount(t, got[1]); n != 1 {
-		t.Fatalf("the waiting window shows %d records, want the drop", n)
+	if len(f.cleared) != 0 {
+		t.Fatal("the corpse went with its quest drop on it")
+	}
+	// opened again, the drop is there
+	f.h.OpenCorpse(f.sess, f.npc)
+	if n := lootCount(t, f.sent()[0]); n != 1 {
+		t.Fatalf("opened again, the corpse shows %d records, want the drop", n)
 	}
 	f.send(protocol.OpcodeLootTakeAll, nil)
 	f.sent()
@@ -388,5 +394,66 @@ func TestACorpseClosedWhileItsKillWaitsGoesWhenWorked(t *testing.T) {
 	g.sent()
 	if len(g.cleared) != 1 {
 		t.Fatalf("past the hold, the emptied corpse did not go: cleared %v", g.cleared)
+	}
+}
+
+// Heirloom petitions 2980 and 2981 (2026-11-25, Matonxwiz in Guk): with the
+// quests' queue behind, a fungal's Flavored Mushroom and the Elder Froglok Guk
+// Diviner's second page of pardon came onto their corpses one to ten seconds
+// after the windows opened, the windows sent again then. A corpse whose kill
+// waits in the queue now has it worked as it opens (workKill): the first window
+// lists the quest drop, and nothing is sent after. The control: a kill worked
+// already is not worked again.
+func TestACorpseOpensWithItsQuestDropsOnIt(t *testing.T) {
+	f := newCorpseFixture(t, 1)
+	f.h.lootNow = func() time.Time { return f.npc.DeathTime.Add(time.Second) }
+	worked := 0
+	f.h.workKill = func(id entity.EntityID, died time.Time) {
+		worked++
+		f.h.AddCorpseQuestDrop(id, died, f.dropOf(f.bait), true)
+		f.h.QuestDropsPlaced(id, died)
+	}
+	f.h.QuestDropsPending(f.npc.ServerID, f.npc.DeathTime) // the kill in the queue
+	f.h.OpenCorpse(f.sess, f.npc)
+	got := f.sent()
+	if worked != 1 || len(got) != 1 || opOf(got[0]) != protocol.OpcodeLoot {
+		t.Fatalf("opened: worked %d, sent %s; want the kill worked and one window", worked, ops(got))
+	}
+	if n := lootCount(t, got[0]); n != 2 {
+		t.Fatalf("the window opened with %d records, want the corpse's 1 and the quest drop", n)
+	}
+	f.send(protocol.OpcodeClientCloseLoot, nil)
+	f.sent()
+	f.h.OpenCorpse(f.sess, f.npc)
+	if worked != 1 {
+		t.Fatalf("opened again, the kill was worked %d times", worked)
+	}
+	if n := lootCount(t, f.sent()[0]); n != 2 {
+		t.Fatalf("opened again, %d records, want 2", n)
+	}
+}
+
+// The quests' queue and a corpse's opening work a kill once between them,
+// whichever comes first (workKill): the queue skips one an opening worked.
+func TestAQueuedKillIsWorkedOnce(t *testing.T) {
+	q := &QuestEngine{}
+	died := time.Now()
+	k := entity.KillCredit{NPCID: 77, Died: died, NPCName: "fungal adept"}
+	var pend, placed int
+	q.pending = func(entity.EntityID, time.Time) { pend++ }
+	q.placed = func(entity.EntityID, time.Time) { placed++ }
+	q.kills = make(chan entity.KillCredit, 2)
+	q.heardKill(k)
+	if pend != 1 || len(q.kills) != 1 {
+		t.Fatalf("heard: pending %d, queue %d; want 1 and 1", pend, len(q.kills))
+	}
+	if !q.workKill(77, died) || placed != 1 {
+		t.Fatalf("the opening did not work the queued kill (placed %d)", placed)
+	}
+	if q.workKill((<-q.kills).NPCID, died) || placed != 1 {
+		t.Fatalf("the queue worked the kill again (placed %d)", placed)
+	}
+	if q.workKill(78, died) {
+		t.Fatal("a kill never queued was worked")
 	}
 }

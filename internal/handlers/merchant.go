@@ -101,6 +101,9 @@ type NPCWindowHandler struct {
 	// refreshCorpse is the World's RefreshCorpse: a corpse opened lies on
 	// (petition 2590)
 	refreshCorpse func(entity.EntityID, time.Time) bool
+	// workKill is the quests' WorkKill: a corpse's kill still in their queue
+	// worked as it opens (questloot.go's workPendingKill); nil, none
+	workKill func(entity.EntityID, time.Time)
 	// guardsKill is the World's GuardsKill: a corpse the town guards made
 	// is no one's to loot (entity/guards.go)
 	guardsKill func(entity.EntityID) bool

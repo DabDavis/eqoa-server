@@ -287,6 +287,22 @@ func (h *NPCWindowHandler) QuestDropsPlaced(id entity.EntityID, died time.Time) 
 	}
 }
 
+// workPendingKill has the quests work the kill of NPC id's death died now when
+// it still waits in their queue (QuestDropsPending; the quests' WorkKill), so a
+// corpse's window opens with its loot steps' drops on it, never a moment after
+// (Heirloom petitions 2980 and 2981, 2026-11-25: a Flavored Mushroom and a
+// second page of pardon came onto corpses one to ten seconds after their windows
+// opened, the windows sent again then, one on a player who had walked away).
+// Called with no lock held: the quests take theirs, then the loot's.
+func (h *NPCWindowHandler) workPendingKill(ls *lootState, id entity.EntityID, died time.Time) {
+	if h.workKill == nil {
+		return
+	}
+	if v, ok := ls.pending.Load(id); ok && v.(time.Time).Equal(died) {
+		h.workKill(id, died)
+	}
+}
+
 // pendingLocked is whether the corpse c of NPC id waits at now for its kill's
 // quest drops (QuestDropsPending). Must be called with ls.mu held.
 func (ls *lootState) pendingLocked(id entity.EntityID, c *corpse, now time.Time) bool {

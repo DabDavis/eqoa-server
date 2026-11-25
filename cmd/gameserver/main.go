@@ -466,6 +466,10 @@ func main() {
 	if _, _, err := gameWorld.LoadSpawnOnly(db); err != nil {
 		log.Printf("WARNING: %v; every NPC stands in the world", err)
 	}
+	// the pets creatures summon (table npcpets, entity/creaturepets.go)
+	if _, _, err := gameWorld.LoadCreaturePets(db); err != nil {
+		log.Printf("Creature pets: %v (no creature summons a pet)", err)
+	}
 	log.Printf("Creatures: %s", gameWorld.SpawnOnlySummary())
 	// The NPCs that stand only by day or only by night (entity/npctime.go,
 	// table npctime): after a keep restart the clock decides again

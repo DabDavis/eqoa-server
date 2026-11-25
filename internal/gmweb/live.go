@@ -55,6 +55,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveSocial()
 	case "npcspawnonly", "npcstands":
 		return s.liveSpawnOnly()
+	case "npcpets":
+		return s.liveCreaturePets()
 	case "gmseasons", "npcseason", "lighttemplates", "lightstrings", "decorart", "decorassets":
 		handlers.Rewards().Refresh() // a season turned: its currency (seasonrewards.go)
 		return s.liveSeasons()       // live_seasons.go
@@ -330,6 +332,20 @@ func (s *Server) liveSpawnOnly() string {
 	}
 	return fmt.Sprintf("at once: %d NPC(s) changed, %d out of the world in all; the quests' and triggers' spawns copy them as before",
 		changed, held)
+}
+
+// liveCreaturePets reads the pets creatures summon again (entity/creaturepets.go; the change is committed: the
+// database is free).
+func (s *Server) liveCreaturePets() string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: at the next start"
+	}
+	owners, pets, err := s.d.World.LoadCreaturePets(s.d.DB)
+	if err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	return fmt.Sprintf("at once: %d owner(s) summon %d pet(s); an owner standing now gets its new pets within a second, "+
+		"the rest at their next spawn", owners, pets)
 }
 
 // liveTitles reads the NPCs' titles again (entity/npctitle.go; the change is

@@ -226,9 +226,11 @@ func companionNamesOwner(named, owner string) bool {
 //
 // A GM's spawn (SpawnGMCopy) takes part too, but only in the pair its spawning
 // made (gmCompanionOf: gmcompanions.go), never one read off the spawns.
+//
+// A pet a creature summoned (creaturepets.go: petOf) takes part too, in the pair its making made alone.
 func companionFighter(n *NPC) bool {
 	return n != nil && n.Owner == 0 && n.Charm == nil && n.NPCType&0x80 == 0 && n.Dummy == NotDummy &&
-		(!n.Temporary || n.Instance != 0 || n.GMSpawn) && !n.SpawnOnly
+		(!n.Temporary || n.Instance != 0 || n.GMSpawn || n.petOf != 0) && !n.SpawnOnly
 }
 
 // companionPetRuleLocked is whether a creature called name is a pet by its name
@@ -312,6 +314,14 @@ func (w *World) linkCompanionsLocked() {
 	others := w.companionScratch[:0] // the other fighters, in the map's order
 	for _, n := range w.NPCs {
 		if !companionFighter(n) {
+			continue
+		}
+		if n.petOf != 0 {
+			// a pet its owner summoned: its owner's, no other (creaturepets.go)
+			if o := w.NPCs[n.petOf]; o != nil && companionFighter(o) {
+				w.companionOf[n.ServerID] = o.ServerID
+				w.companions[o.ServerID] = append(w.companions[o.ServerID], n.ServerID)
+			}
 			continue
 		}
 		if n.GMSpawn {

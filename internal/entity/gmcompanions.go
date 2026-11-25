@@ -38,6 +38,7 @@ import (
 	"math"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/eqoa/server/internal/database"
 )
@@ -68,7 +69,8 @@ func companionOriginal(n *NPC) bool {
 
 // companionsOfOriginalLocked is t's companions as its copies bring them (the
 // file's doc): the rows in its world within companionNamedReach of its spawn
-// whose best owner, spawn-only originals counted, is t. Nil for none, or for t
+// whose best owner, spawn-only originals counted, is t (a creature pets'
+// template row is none: its pets are made by its rule, creaturepets.go). Nil for none, or for t
 // no original. Must be called with the lock held.
 func (w *World) companionsOfOriginalLocked(t *NPC) []*NPC {
 	if !companionOriginal(t) {
@@ -79,7 +81,7 @@ func (w *World) companionsOfOriginalLocked(t *NPC) []*NPC {
 	}
 	var near, pets []*NPC
 	for _, n := range w.NPCs {
-		if n == t || !companionOriginal(n) || n.World != t.World || n.Instance != t.Instance ||
+		if n == t || !companionOriginal(n) || w.cpets.templates[n.ServerID] || n.World != t.World || n.Instance != t.Instance ||
 			distXZ(n.SpawnX, n.SpawnZ, t.SpawnX, t.SpawnZ) > 2*companionNamedReach {
 			continue
 		}
@@ -186,6 +188,10 @@ func (w *World) SpawnGMCopy(name string, x, y, z, facing float32, world uint8) (
 		}
 		p := w.spawnCopyLocked(o, s.X, s.Y, s.Z, s.Facing, world)
 		p.GMSpawn, p.gmCompanionOf = true, c.ServerID
+		pets = append(pets, p.ServerID)
+	}
+	// and the pets it summons (creaturepets.go)
+	for _, p := range w.creaturePetsForLocked(c, time.Now()) {
 		pets = append(pets, p.ServerID)
 	}
 	if len(pets) > 0 {

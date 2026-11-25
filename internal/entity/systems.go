@@ -96,6 +96,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.potionSystem(now)
 	t.mark(tsPotions)
 	gone := w.corpseSystem(now)
+	w.creaturePetsSystem(now) // the pets creatures summon (creaturepets.go)
 	t.mark(tsCorpses)
 	w.roamSystem(now)
 	t.mark(tsRoam)

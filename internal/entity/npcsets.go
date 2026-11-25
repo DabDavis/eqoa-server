@@ -110,6 +110,7 @@ func (w *World) putNPCLocked(npc *NPC) {
 	if known {
 		w.sets.n = len(w.NPCs)
 	}
+	w.creaturePetPutLocked(npc) // its pets, if it summons any (creaturepets.go)
 }
 
 // npcChangedLocked is npc new in the world, or made again in place (the GM
@@ -139,6 +140,7 @@ func (w *World) dropNPCLocked(npc *NPC) {
 	if known {
 		w.sets.n = len(w.NPCs)
 	}
+	w.creaturePetsGoneLocked(npc) // its pets leave with it (creaturepets.go)
 }
 
 // setMember is the NPC a set's entry under id stands for now: the map's own

@@ -440,7 +440,8 @@ func (w *World) dungeonOpenLocked(def int, p *Player, now time.Time) *dungeonIns
 	d := &w.dungeons.defs[def]
 	var ts []*NPC
 	for _, npc := range w.NPCs {
-		if w.dungeonTemplateLocked(npc) && d.has(npc.SpawnX, npc.SpawnZ) {
+		// a creature pets' template row is copied only as an owner's pet (creaturepets.go)
+		if w.dungeonTemplateLocked(npc) && d.has(npc.SpawnX, npc.SpawnZ) && !w.cpets.templates[npc.ServerID] {
 			ts = append(ts, npc)
 		}
 	}
@@ -450,6 +451,10 @@ func (w *World) dungeonOpenLocked(def int, p *Player, now time.Time) *dungeonIns
 		c.Instance = in.id
 		c.RespawnTime = t.RespawnTime
 		in.npcs = append(in.npcs, c.ServerID)
+		// and the pets it summons, in the instance with it (creaturepets.go)
+		for _, p := range w.creaturePetsForLocked(c, now) {
+			in.npcs = append(in.npcs, p.ServerID)
+		}
 	}
 	in.creatures = w.dungeonKillableCountLocked(in) // none a player cannot kill (dungeonKillable)
 	w.companionOf = nil                             // its shamans and their pets pair within it (companion.go), read again

@@ -352,6 +352,8 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 	w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.SpawnX, npc.SpawnZ)
 	w.wakeNPCLocked(npc)        // a new life: its last fight put away, its calm counted (npcsets.go)
 	w.companionsBackLocked(npc) // the pets that went with it, back with it (companion.go)
+	// and the pets it summons, made for its new life (creaturepets.go)
+	w.creaturePetsForLocked(npc, time.Now())
 }
 
 // runCorpsesGone tells the hooks which corpses were left as copies (corpselinger.go)

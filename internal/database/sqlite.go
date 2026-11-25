@@ -651,6 +651,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureNPCRespawn(); err != nil { // npcrespawn.go
 		return err
 	}
+	if err := db.ensureNPCPets(); err != nil { // npcpets.go: the pets creatures summon
+		return err
+	}
 	if err := db.ensureRaidBossList(); err != nil { // raidbosslist.go: #raidboss's bosses
 		return err
 	}

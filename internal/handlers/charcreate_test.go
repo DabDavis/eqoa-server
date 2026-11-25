@@ -114,3 +114,15 @@ func TestCreateCharacterAtTheServersLevel(t *testing.T) {
 		t.Errorf("book %+v (%v)", rows, err)
 	}
 }
+
+// A character's name is 3 to 15 letters (CharNameMax, the owner 2026-11-25;
+// 12 before): 15 is taken, 16 refused, as are 2.
+func TestNameLength15(t *testing.T) {
+	var h *CharacterHandler
+	for n, want := range map[string]bool{"Bob": true, "Abcdefghijkl": true, "Abcdefghijklm": true,
+		"Abcdefghijklmno": true, "Abcdefghijklmnop": false, "Bo": false} {
+		if got := h.isValidName(n); got != want {
+			t.Errorf("isValidName(%q) = %v, want %v", n, got, want)
+		}
+	}
+}

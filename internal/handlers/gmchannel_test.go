@@ -434,18 +434,22 @@ func (r renames) Rename(id uint32, name string) error {
 }
 
 // Change Name: a free name is kept and the world takes it at once, the
-// first letter up; the controls: a taken name, one too long for the client,
-// one with a digit.
+// first letter up, 15 letters at most (CharNameMax); the controls: a taken
+// name, one of 16 letters, one with a digit.
 func TestGMRename(t *testing.T) {
 	c, gs, _, _, pp := gmWorld(t)
 	kept := renames{pp.CharServerID: "Player", 99: "Taken"}
 	c.h.SetGMStores(nil, kept)
 	target := gmU32(0x7F000000 | uint32(pp.ServerID))
-	for _, bad := range []string{"taken", "Abcdefghijklm", "Bob2"} {
+	for _, bad := range []string{"taken", "Abcdefghijklmnop", "Bob2"} {
 		c.gm(gs, "21"+target+gmText(bad))
 		if pp.Name != "Player" || kept[pp.CharServerID] != "Player" {
 			t.Fatalf("%q renamed it: %q / %q", bad, pp.Name, kept[pp.CharServerID])
 		}
+	}
+	c.gm(gs, "21"+target+gmText("aBCDEFGHIJKLMNO"))
+	if pp.Name != "Abcdefghijklmno" || kept[pp.CharServerID] != "Abcdefghijklmno" {
+		t.Fatalf("a rename to 15 letters: %q / %q", pp.Name, kept[pp.CharServerID])
 	}
 	c.gm(gs, "21"+target+gmText("bOBBY"))
 	if pp.Name != "Bobby" || kept[pp.CharServerID] != "Bobby" {

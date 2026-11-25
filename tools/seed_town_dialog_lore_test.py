@@ -46,10 +46,10 @@ BANNED = [
     "Tserrina", "Nagafen's Lair", "Bloodsaber", "Circle of Unseen Hands", "Shadow Haven", "Taelosia",
     "Age of Turmoil", "EverQuest",
 ]
-# what a line's words are filled with, at their longest: a character's name is 12 at most (CLIENT's
-# name box), "barbarian", "shadowknight", "Muniel's Tea Garden", and a speaker's name (25 covers the
+# what a line's words are filled with, at their longest: a character's name is 15 at most
+# (handlers.CharNameMax; 12, CLIENT's name box, before 2026-11-25), "barbarian", "shadowknight", "Muniel's Tea Garden", and a speaker's name (25 covers the
 # longest on the production server, 23)
-FILLS = {"%p": "P" * 12, "%r": "R" * 9, "%c": "C" * 12, "%t": "T" * 19, "%n": "N" * 25}
+FILLS = {"%p": "P" * 15, "%r": "R" * 9, "%c": "C" * 12, "%t": "T" * 19, "%n": "N" * 25}
 BOX, NAME = 217, 25
 # the characters the town lines are written in: letters, digits, the space and these marks
 CHARS = re.compile(r"[A-Za-z0-9 !',.:;?-]+")

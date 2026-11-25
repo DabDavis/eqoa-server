@@ -1751,10 +1751,20 @@ func (h *CharacterHandler) generateRandomName() string {
 	return prefix + suffix
 }
 
+// CharNameMin and CharNameMax are a character's name's length, in letters:
+// 15 at most (the owner, 2026-11-25; 12 before, CLIENT's own name box). Every
+// name buffer CLIENT has holds 23 (the channel's name at 116 is 24 bytes with
+// its NUL), so a PS2 shows 15; it only types 12 (VIWndCharCreateName::Activate,
+// SetMaxLength(13) counting the NUL) and 4 at least (its Validate).
+const (
+	CharNameMin = 3
+	CharNameMax = 15
+)
+
 // isValidName checks if a name is valid.
 func (h *CharacterHandler) isValidName(name string) bool {
 	// Check length
-	if len(name) < 3 || len(name) > 15 {
+	if len(name) < CharNameMin || len(name) > CharNameMax {
 		return false
 	}
 

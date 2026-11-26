@@ -51,15 +51,18 @@ func (d *duelists) petTicks(a, b time.Duration) {
 	}
 }
 
-// yield leaves Alpha's pet at a hit point, out of the duel.
+// yield kills Alpha's pet, out of the duel (petition 3193: a duel's pet dies
+// of it), and the pet system takes it away.
 func (d *duelists) yield(t *testing.T, duel *Duel, pet *NPC, at time.Duration) {
 	t.Helper()
 	d.w.mu.Lock()
 	d.w.duelHurtPetLocked(duel, d.b, pet, 10_000_000, d.at(at), numberMelee)
 	out := duel.petOut[d.a.ServerID]
+	d.w.petSystem(d.at(at + 100*time.Millisecond))
+	gone := d.w.petOfLocked(d.a) == nil
 	d.w.mu.Unlock()
-	if pet.HP != 1 || !out {
-		t.Fatalf("the yield: HP %d, out %v", pet.HP, out)
+	if !pet.Dead || !out || !gone {
+		t.Fatalf("the death: dead %v (HP %d), out %v, gone %v", pet.Dead, pet.HP, out, gone)
 	}
 }
 

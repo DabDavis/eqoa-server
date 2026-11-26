@@ -1776,6 +1776,12 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 			log.Printf("Quests: %s picked %q at %q step %d: the step stays", p.Name, opt.Answer, qu.Name, st.Step)
 			return
 		}
+		// another path than the one the Spell Archivist wrote: the step stays to do (questpathpick.go)
+		if line, refused := q.pathPickRefusedLocked(p, opt); refused {
+			q.tellLocked(c, sess, st.Target, fmt.Sprintf(questPathHeld, line))
+			log.Printf("Quests: %s picked %q at %q step %d: the book holds the archivist's path of %q", p.Name, opt.Answer, qu.Name, st.Step, line)
+			return
+		}
 		// a bribe the player cannot pay: the step stays to do
 		if opt.Cost > 0 && p.Tunar < opt.Cost {
 			q.tellLocked(c, sess, st.Target, fmt.Sprintf(questChoiceCost, opt.Cost))

@@ -168,6 +168,12 @@ func (q *QuestEngine) spellsKeptBut(serverID uint32, class int, questID, step in
 	}
 	q.mu.Lock()
 	defer q.mu.Unlock()
+	return q.spellsKeptButLocked(serverID, class, questID, step)
+}
+
+// spellsKeptButLocked is spellsKeptBut with q.mu held.
+func (q *QuestEngine) spellsKeptButLocked(serverID uint32, class int, questID, step int) map[int]bool {
+	out := map[int]bool{}
 	c := q.charLocked(serverID)
 	for id, cq := range c.quests {
 		qu := q.cat.byID[id]

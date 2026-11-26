@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"math"
 	"net"
-	"strings"
 	"testing"
 	"time"
 	"unicode/utf16"
@@ -89,6 +88,20 @@ func duelLines(msgs [][]byte) []string {
 		out = append(out, string(utf16.Decode(u)))
 	}
 	return out
+}
+
+// msgsCarry is whether any of msgs carries text, in ASCII or UTF-16LE.
+func msgsCarry(msgs [][]byte, text string) bool {
+	u := make([]byte, 0, 2*len(text))
+	for _, c := range []byte(text) {
+		u = append(u, c, 0)
+	}
+	for _, m := range msgs {
+		if bytes.Contains(m, []byte(text)) || bytes.Contains(m, u) {
+			return true
+		}
+	}
+	return false
 }
 
 func ofOp(msgs [][]byte, op protocol.GameOpcode) [][]byte {
@@ -726,7 +739,7 @@ func TestDuelLiveWindowDeclines(t *testing.T) {
 
 // A duelist's pet: defensive, it joins once the opponent has struck its
 // owner, and its hits on the opponent land at half; the opponent's hits on it
-// land at half too, and one it cannot take leaves it at a hit point, out of
+// land at half too, and one it cannot take kills it (petition 3193), out of
 // the duel, its owner told. The pet is shown to the opponent as a creature
 // while it is in the duel.
 func TestDuelPet(t *testing.T) {
@@ -768,18 +781,20 @@ func TestDuelPet(t *testing.T) {
 	}
 	duelDrain(d.sa)
 	d.w.duelHurtPetLocked(duel, d.b, pet, 5000, d.at(7*time.Second), numberMelee)
-	if pet.HP != 1 || pet.Dead || !duel.petOut[d.a.ServerID] {
+	if pet.HP != 0 || !pet.Dead || !duel.petOut[d.a.ServerID] {
 		t.Fatalf("the pet's last hit: HP %d, dead %v, out %v", pet.HP, pet.Dead, duel.petOut[d.a.ServerID])
 	}
 	if d.w.duelFoeLocked(d.b, pet.ServerID) || d.w.duelPetLocked(ps, 0.1, d.at(8*time.Second)) {
 		t.Fatal("a pet out of the duel is still in it")
 	}
-	if b := d.w.serializeEntityForChannel(d.sb, pet.ServerID, 0x00018877)[142]; b != 3 {
-		t.Errorf("a pet out of the duel is shown with %d, want a pet's 3", b)
-	}
+	d.w.petSystem(d.at(8 * time.Second))
+	gone := d.w.pets[d.a.ServerID] == nil
 	d.w.mu.Unlock()
-	if got := duelLines(duelDrain(d.sa)); len(got) != 1 || !strings.Contains(got[0], "pet yields") {
-		t.Fatalf("the owner was told %q", got)
+	if !gone {
+		t.Fatal("the slain pet is still its owner's")
+	}
+	if !msgsCarry(duelDrain(d.sa), "Your pet has died.") {
+		t.Fatal("the owner was not told the pet died")
 	}
 }
 

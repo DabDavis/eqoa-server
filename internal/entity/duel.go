@@ -1087,10 +1087,9 @@ func (w *World) duelHitterLocked(attacker *Player, src EntityID) string {
 
 // duelHurtPetLocked lands n of attacker's duel damage (before the halving)
 // on the opponent's pet: told to the attacker as kind (numbertags.go); a hit
-// it cannot take leaves it at one hit point, out of the duel (its owner
-// told), as nothing dies of a duel. In a PvP fight it is a foe's pet
-// (pvp.go): both flags held, and a hit it cannot take kills it
-// (pvpPetDeathLocked), out of the fight.
+// it cannot take kills it (pvpPetDeathLocked), out of the duel (its owner
+// told): a duel's players yield, its pets die (petition 3193). In a PvP fight
+// it is a foe's pet (pvp.go): both flags held.
 func (w *World) duelHurtPetLocked(d *Duel, attacker *Player, pet *NPC, n int, now time.Time, kind numberKind) {
 	dmg := d.hit(n)
 	attacker.LastCombatTime = now
@@ -1114,21 +1113,15 @@ func (w *World) duelHurtPetLocked(d *Duel, attacker *Player, pet *NPC, n int, no
 	}
 	d.petOut[pet.Owner] = true
 	d.pets[pet.Owner] = false
-	if d.pvp {
-		w.pvpPetDeathLocked(attacker, pet, now) // pvp.go: a pet's death
-		return
+	// A duel's pet dies of it as a PvP fight's does (petition 3193, 2026-11-26: "in a duel the
+	// necro pet should die if it is killed"): its owner told by petSystem ("Your pet has died."),
+	// free to summon another, which joins the duel fresh (duelNewPetLocked); the players
+	// themselves still yield at a hit point (duelHurtLocked). Until then it yielded at a hit
+	// point, out of the duel.
+	if !d.pvp {
+		log.Printf("%s: %s's pet %q is slain", d.tag(), w.nameOfLocked(pet.Owner), pet.Name)
 	}
-	pet.HP = 1
-	pet.endRound()
-	pet.stopMoving()
-	if ps := w.pets[pet.Owner]; ps != nil {
-		ps.target = 0
-	}
-	log.Printf("%s: %s's pet %q yields", d.tag(), w.nameOfLocked(pet.Owner), pet.Name)
-	w.duelSayLocked(w.Players[pet.Owner], "Your pet yields and leaves the duel.", duelOrange)
-	if attacker.AttackTarget == pet.ServerID {
-		attacker.disengage()
-	}
+	w.pvpPetDeathLocked(attacker, pet, now) // pvp.go: a pet's death, in a duel or a PvP fight
 }
 
 // duelNewPetLocked is a new pet of owner's (a summoning, a charm, the animal

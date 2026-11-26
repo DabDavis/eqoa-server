@@ -410,6 +410,8 @@ type Gate struct {
 	Every time.Duration
 	// Page is the account page as a player types it.
 	Page string
+	// reminderURL opens the account page's E-mail tab.
+	reminderURL string
 }
 
 // ParseCutoff reads mail.require_after: a date (UTC midnight) or an RFC 3339
@@ -446,7 +448,13 @@ func NewGate(db interface {
 		return nil, err
 	}
 	cfg = Filled(cfg)
-	return &Gate{DB: db, Cutoff: cut, Every: cfg.RemindEvery, Page: Short(cfg)}, nil
+	return &Gate{
+		DB:          db,
+		Cutoff:      cut,
+		Every:       cfg.RemindEvery,
+		Page:        Short(cfg),
+		reminderURL: cfg.BaseURL + cfg.PagePath + "#email",
+	}, nil
 }
 
 // unverified is whether the account has no verified address; a read that
@@ -498,7 +506,7 @@ func (g *Gate) Reminder(accountID int, now time.Time) string {
 	if g == nil || g.Enforced(now) || !g.unverified(accountID) {
 		return ""
 	}
-	t := "Your account has no verified e-mail address. Add one at " + g.Page +
+	t := "Your account has no verified e-mail address. Add one at " + g.reminderURL +
 		" (the E-mail tab) so you can never lose your account"
 	if !g.Cutoff.IsZero() {
 		t += ": from " + g.Cutoff.Format("January 2, 2006") + " an account without one cannot log in"

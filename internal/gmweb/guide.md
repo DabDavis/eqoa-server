@@ -356,7 +356,9 @@ goes on the work board above; a personal board is for talking about it.
   vampire, whom the sun burns by day: the vampire quest's bats), `classquest` (a quest's, on `finish`, with
   `level`: the character's own city class quest of that level, any city's it could take, is finished too with no
   reward and no word: a homeland's starter quest stands for its city's, so leave these on the homelands'
-  quests); one popup at a time (the
+  quests), `die` (a step's, `npc` or none for the step's target: the nearest of that name within 40 of the
+  player dies where it stands, its death played, no loot, experience, faction or kill credit, back on its own
+  respawn: Delwin at the Assassination quests' poisoned chocolates); one popup at a time (the
   client shows one question box at once). The journal holds eight quests. Keep a quest
   a draft (`enabled` 0) until it is right; `quest_try` gives it to your own character in the world to play.
 - **Hundreds of quests** (the city quests imported whole, `tools/import_quests.py`): `quest_list` with `status`

@@ -261,6 +261,11 @@ const (
 	// 2026-11-20: "spawning as Level 63 separate mobs and the original NPC is still standing there in human
 	// form"). A step's.
 	EventHide = "hide"
+	// EventDie: the NPC named NPC (none: the step's target) nearest the player within HideReach laid down
+	// dead (entity.World.DieNear): its death played, a corpse of nothing, no experience, faction or kill
+	// credit to anyone, back on its own respawn (Live petition 5638, the owner 2026-11-26: Delwin
+	// Stitchfinger eats Ilenar's poisoned chocolates in the Assassination quests). A step's.
+	EventDie = "die"
 )
 
 // HideReach is how far from the player a hide event finds its NPCs.
@@ -275,7 +280,7 @@ const TeleportMainland = "mainland"
 var (
 	QuestEventWhens   = []string{EventAccept, EventFinish}
 	StepEventWhens    = []string{EventStart, EventDone}
-	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventAttack, EventVisual, EventTeleport, EventVampire, EventTrigger, EventDoStep, EventClassQuest, EventCast, EventHide}
+	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventAttack, EventVisual, EventTeleport, EventVampire, EventTrigger, EventDoStep, EventClassQuest, EventCast, EventHide, EventDie}
 )
 
 // DoesStep reports a step tried at once when it starts (EventDoStep).
@@ -499,6 +504,10 @@ func EventProblems(s string, step bool) []string {
 			}
 			if e.Minutes < 0 || e.Minutes > 120 {
 				add(i, "hide's minutes %g is not 0 to 120", e.Minutes)
+			}
+		case EventDie:
+			if !step {
+				add(i, "a die is a step's: the NPC near the player then, its target unless named")
 			}
 		case EventAttack:
 			if !step {

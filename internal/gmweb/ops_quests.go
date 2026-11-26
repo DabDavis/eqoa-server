@@ -39,7 +39,9 @@ type questUnlock struct {
 const eventsHelp = `a JSON list of events, each {"on", "do", ...}: popup {text, answer} a window the player closes ` +
 	`(one answer, "OK" when none); say {npc, text} an NPC's words; give {items: "patternid*count, ..."}; ` +
 	`spawn {npc, hostile} a copy of that NPC before the player for the step (hostile: it may be attacked and attacks); ` +
-	`visual {fx: "0x1DAEB5B6", seconds} a spell visual on the player; teleport {world, x, y, z}. ` +
+	`visual {fx: "0x1DAEB5B6", seconds} a spell visual on the player; teleport {world, x, y, z}; ` +
+	`die {npc} (a step's) the NPC of that name (none: the step's target) nearest the player within 40 dies where it stands: ` +
+	`its death played, no loot, no experience, faction or kill credit, back on its own respawn. ` +
 	`text may hold %p, the player's name. Empty: none`
 
 func (s *Server) registerQuestOps() {

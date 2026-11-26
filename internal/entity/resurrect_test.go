@@ -645,3 +645,73 @@ func TestARezTakesNoMoreThanIsOwed(t *testing.T) {
 		t.Errorf("Bran told %q", linesOf(toB))
 	}
 }
+
+// Live petition 5665 (2026-11-26), a player: "when sent rez before left where
+// i died was sent rez and when got back to spiritmaster was unable to get
+// rez". Gnolie's rez lands on Bran 3 s before his respawn: the offer and its
+// prompt (the hook), the chance spent. The respawn's dump closes CLIENT's
+// prompt (Msg000D's SetMode(1)); RezOfferDumped, which the dump's sender runs,
+// shows the offer again by Gnolie's name, its time as it was, and a Yes then
+// leads back to the body, Bran standing. A dump after the Yes shows nothing.
+// Controls: a dump once the offer's time is over shows nothing, nor one for a
+// fallen Hardcore character (hardcore.go), whose offer stays gone; and a
+// second rez is still refused (once per death).
+func TestTheRespawnsDumpShowsTheRezOfferAgain(t *testing.T) {
+	r := newRezRig(t)
+	var offered []string
+	r.w.OnRezOffer(func(s *session.Session, caster string) {
+		if s == r.sb {
+			offered = append(offered, caster)
+		}
+	})
+	r.die(r.b, r.sb, 0)
+	if !r.cast(r.sa, revive(), rezB, 5*time.Second) || len(offered) != 1 {
+		t.Fatalf("the rez: offered %q", offered)
+	}
+	until := r.b.RezReturn.Until
+	r.respawn(PlayerRespawnDelay)
+	if r.b.respawnPending() {
+		t.Fatal("Bran did not respawn")
+	}
+	if r.b.RezReturn.Until != until {
+		t.Fatalf("the respawn moved the offer: %+v", r.b.RezReturn)
+	}
+	r.w.RezOfferDumped(r.sb, r.at(PlayerRespawnDelay))
+	if len(offered) != 2 || offered[1] != "Gnolie" || r.b.RezReturn.Until != until {
+		t.Fatalf("after the dump: offered %q, offer %+v (until %v)", offered, r.b.RezReturn, until)
+	}
+	drain(r.sa)
+	if began := r.w.StartCast(r.sa, revive(), rezB, r.at(20*time.Second)); began {
+		t.Error("a second rez began: once per death")
+	}
+	world, x, _, z, ok := r.w.TakeRezReturn(r.sb, true, r.at(30*time.Second))
+	if !ok || world != 0 || x != 106 || z != 100 || r.b.respawnPending() {
+		t.Fatalf("the Yes: %v (%v, %v) world %d", ok, x, z, world)
+	}
+	r.w.RezOfferDumped(r.sb, r.at(31*time.Second))
+	if len(offered) != 2 {
+		t.Errorf("the Yes's dump showed the prompt again: %q", offered)
+	}
+
+	late := newRezRig(t)
+	n := 0
+	late.w.OnRezOffer(func(*session.Session, string) { n++ })
+	late.die(late.b, late.sb, 0)
+	late.cast(late.sa, revive(), rezB, 2*time.Second)
+	late.respawn(PlayerRespawnDelay)
+	late.w.RezOfferDumped(late.sb, late.b.RezReturn.Until)
+	if n != 1 {
+		t.Errorf("a dump after the offer's time showed it: %d prompts", n)
+	}
+
+	hc := newRezRig(t)
+	m := 0
+	hc.w.OnRezOffer(func(*session.Session, string) { m++ })
+	hc.die(hc.b, hc.sb, 0)
+	hc.cast(hc.sa, revive(), rezB, 2*time.Second)
+	hc.b.Fallen = true
+	hc.w.RezOfferDumped(hc.sb, hc.at(3*time.Second))
+	if m != 1 {
+		t.Errorf("a fallen character's dump showed the offer: %d prompts", m)
+	}
+}

@@ -28,6 +28,9 @@ type EntityEnterCallback func(sess *session.Session, objectID uint32, ent Entity
 type World struct {
 	// chanScratch is the channel passes' buffers (visibility.go)
 	chanScratch chanScratch
+	// chanCache is entityChannelSyncSystem's pass's entities' own parts
+	// (chancache.go)
+	chanCache chanCache
 	// a tick's route searches (chaseroute.go): its tick, the points they
 	// tried, and the floors a leg found
 	routeTick    uint64

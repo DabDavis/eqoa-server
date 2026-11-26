@@ -104,6 +104,11 @@ import (
 // player is one cast on a friend or a self spell: Reckless Force's line reads
 // as harmful, "Decrease AGI by 10", and is a buff.)
 func BuffLine(s *CastSpell) string {
+	return spellLinesOf(s).buff // made once while the spell is unchanged (linecache.go)
+}
+
+// buffLineOf is BuffLine made from the spell's figures.
+func buffLineOf(s *CastSpell) string {
 	if isDrunkUncleProtection(s.SpellID, s.Name) {
 		return "" // recasting the same effect refreshes it by spell ID
 	}
@@ -281,7 +286,11 @@ const stackLinePrefix = "stack"
 // BuffLine, a plain line tagged with its scope's workbook stack type (the doc
 // above).
 func EffectLine(s *CastSpell) string {
-	l := BuffLine(s)
+	return spellLinesOf(s).effect // made once while the spell is unchanged (linecache.go)
+}
+
+// effectLineOf is EffectLine made from the spell's figures, l its BuffLine.
+func effectLineOf(s *CastSpell, l string) string {
 	if l == "" || strings.HasPrefix(l, stackLinePrefix) || strings.HasPrefix(l, recastLinePrefix) {
 		return l
 	}
@@ -316,10 +325,15 @@ type lineParts struct {
 	bearer string
 	keys   []string
 	as     int
+	// resist is resistLine(keys), nonResist keys without their resists
+	// (categoryKeys' strip): categoryParts' (parseLine's, set as it reads)
+	resist    bool
+	nonResist []string
 }
 
-// parseLine reads a line; ok is false for "" or a line too short.
-func parseLine(line string) (lp lineParts, ok bool) {
+// parseLineText is parseLine read from the text (parseLine keeps what it
+// reads: linecache.go).
+func parseLineText(line string) (lp lineParts, ok bool) {
 	f := strings.Fields(line)
 	if len(f) < 2 {
 		return lp, false
@@ -333,6 +347,7 @@ func parseLine(line string) (lp lineParts, ok bool) {
 			return lp, false
 		}
 		lp.stack, lp.bearer, lp.keys = n, f[1], f[2:]
+		lp.categorize()
 		return lp, true
 	}
 	lp.bearer = f[0]
@@ -343,7 +358,19 @@ func parseLine(line string) (lp lineParts, ok bool) {
 		}
 		lp.keys = append(lp.keys, k)
 	}
+	lp.categorize()
 	return lp, len(lp.keys) > 0
+}
+
+// categorize sets lp's resist and nonResist from its keys.
+func (lp *lineParts) categorize() {
+	lp.resist = resistLine(lp.keys)
+	lp.nonResist = make([]string, 0, len(lp.keys))
+	for _, k := range lp.keys {
+		if !isResistKey(k) {
+			lp.nonResist = append(lp.nonResist, k)
+		}
+	}
 }
 
 // lineFamily reports two read lines of one family (the doc above): one
@@ -381,7 +408,7 @@ func sameLine(a, b string) bool {
 	if !oka || !okb || !lineFamily(pa, pb) {
 		return false
 	}
-	pa.keys, pb.keys = categoryKeys(pa.keys, pb.keys)
+	pa.keys, pb.keys = categoryParts(pa, pb)
 	if pa.stack > 0 && pb.stack > 0 {
 		for _, k := range pa.keys {
 			if slices.Contains(pb.keys, k) {
@@ -401,7 +428,7 @@ func nestedLines(a, b string) bool {
 	if !oka || !okb || !lineFamily(pa, pb) {
 		return false
 	}
-	pa.keys, pb.keys = categoryKeys(pa.keys, pb.keys)
+	pa.keys, pb.keys = categoryParts(pa, pb)
 	if len(pa.keys) == 0 || len(pb.keys) == 0 || slices.Equal(pa.keys, pb.keys) {
 		return false
 	}
@@ -464,6 +491,19 @@ func categoryKeys(a, b []string) ([]string, []string) {
 		return a, strip(b)
 	}
 	return strip(a), b
+}
+
+// categoryParts is categoryKeys of two read lines, from what parseLine kept
+// of each (lineParts' resist and nonResist: the same test and the same strip,
+// made once a line, not once a pair weighed: linecache.go).
+func categoryParts(a, b lineParts) ([]string, []string) {
+	if a.resist == b.resist {
+		return a.keys, b.keys
+	}
+	if a.resist {
+		return a.keys, b.nonResist
+	}
+	return a.nonResist, b.keys
 }
 
 // keysWithin reports every key of a among b's.
@@ -563,7 +603,16 @@ func sumEffectMods(effects []*ActiveEffect) StatMods {
 	for _, e := range effects {
 		m.sum(e.Mods)
 	}
-	keys := make([][]string, len(effects))
+	if len(effects) < 2 {
+		return m // no stat two effects share
+	}
+	var keysRoom [16][]string // a bearer's effects, mostly, without a new slice
+	keys := keysRoom[:0]
+	if len(effects) <= len(keysRoom) {
+		keys = keysRoom[:len(effects)]
+	} else {
+		keys = make([][]string, len(effects))
+	}
 	any := false
 	for i, e := range effects {
 		if lp, ok := parseLine(e.Line); ok {
@@ -574,13 +623,14 @@ func sumEffectMods(effects []*ActiveEffect) StatMods {
 	if !any {
 		return m
 	}
+	var onRoom, groupRoom [16]int
 	for st := Stat(1); int(st) < len(statLineNames)-1; st++ {
 		if st == StatRanged {
 			continue
 		}
-		var on []int // the effects raising st, by their line
+		on := onRoom[:0] // the effects raising st, by their line
 		for i, e := range effects {
-			if e.Mods.get(st) > 0 && slices.Contains(keys[i], "+"+statLineNames[st]) {
+			if e.Mods.get(st) > 0 && slices.Contains(keys[i], statPlusKeys[st]) {
 				on = append(on, i)
 			}
 		}
@@ -588,9 +638,12 @@ func sumEffectMods(effects []*ActiveEffect) StatMods {
 			continue
 		}
 		// the nested ones linked: each group's st its largest once
-		group := make([]int, len(on))
-		for i := range group {
-			group[i] = i
+		group := groupRoom[:0]
+		if len(on) > len(groupRoom) {
+			group = make([]int, 0, len(on))
+		}
+		for i := range on {
+			group = append(group, i)
 		}
 		var root func(int) int
 		root = func(i int) int {
@@ -606,16 +659,21 @@ func sumEffectMods(effects []*ActiveEffect) StatMods {
 				}
 			}
 		}
-		total, top := map[int]int{}, map[int]int{}
-		count := map[int]int{}
+		// by each group's root (an index of on): its sum, its largest, its
+		// count; the groups' order is no matter, their changes added up
+		var totalRoom, topRoom, countRoom [16]int
+		total, top, count := totalRoom[:], topRoom[:], countRoom[:]
+		if len(on) > len(totalRoom) {
+			total, top, count = make([]int, len(on)), make([]int, len(on)), make([]int, len(on))
+		}
 		for i, at := range on {
 			r, v := root(i), effects[at].Mods.get(st)
 			total[r] += v
 			top[r] = max(top[r], v)
 			count[r]++
 		}
-		for r, n := range count {
-			if n > 1 {
+		for r := range on {
+			if count[r] > 1 {
 				m.add(st, top[r]-total[r])
 			}
 		}
@@ -717,11 +775,10 @@ func lineStrength(a, b *ActiveEffect) int {
 	if !oka || !okb {
 		return 0
 	}
-	pa.keys, pb.keys = categoryKeys(pa.keys, pb.keys)
+	pa.keys, pb.keys = categoryParts(pa, pb)
 	n := 0
 	for st := Stat(1); int(st) < len(statLineNames)-1; st++ {
-		k := "+" + statLineNames[st]
-		if hasStatKey(pa.keys, k) && hasStatKey(pb.keys, k) {
+		if hasStatKeyOf(pa.keys, st) && hasStatKeyOf(pb.keys, st) {
 			n += max(a.Mods.get(st), 0)
 		}
 	}
@@ -736,6 +793,23 @@ func lineStrength(a, b *ActiveEffect) int {
 func hasStatKey(keys []string, k string) bool {
 	return slices.Contains(keys, k) || slices.Contains(keys, k+"@self")
 }
+
+// hasStatKeyOf is hasStatKey of the stat's key ("+" and its line name), its
+// two keys made once (statPlusKeys): lineStrength asks it of every stat of
+// every pair of lines weighed.
+func hasStatKeyOf(keys []string, st Stat) bool {
+	return slices.Contains(keys, statPlusKeys[st]) || slices.Contains(keys, statPlusSelfKeys[st])
+}
+
+// statPlusKeys and statPlusSelfKeys are each stat's raise as a line names it,
+// on its bearer ("+STR") and as a self share ("+STR@self"), by Stat.
+var statPlusKeys, statPlusSelfKeys = func() (plus, self []string) {
+	for _, n := range statLineNames {
+		plus = append(plus, "+"+n)
+		self = append(self, "+"+n+"@self")
+	}
+	return plus, self
+}()
 
 // lineOutranks reports a, of b's line, keeping b off (the doc above): a gives
 // more of the stats they share, or as much and is of a higher rank.

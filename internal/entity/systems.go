@@ -531,6 +531,11 @@ func (w *World) entityChannelSyncSystem() {
 		return
 	}
 
+	// each entity's own part made once this pass, every viewer's laid over
+	// it (chancache.go: the owner 2026-11-26, "cache the other items like
+	// mercs"; pprof: entity channel sync 13% of a shard's CPU)
+	cache := &w.chanCache
+	cache.reset()
 	w.SessionManager.ForEach(func(sess *session.Session) bool {
 		if !sess.CharacterInWorld() {
 			return true
@@ -550,7 +555,7 @@ func (w *World) entityChannelSyncSystem() {
 			objectID := vis.ChannelObjectID[i]
 
 			// made in the pass's buffers, copied onto the channel
-			stateData := w.serializeEntityForChannelIn(&w.chanScratch, sess, id, objectID)
+			stateData := w.serializeEntityChannelCached(cache, &w.chanScratch, sess, id, objectID)
 			if stateData != nil {
 				SetEntityState(conn.GetServerObject(i+1), stateData)
 			}

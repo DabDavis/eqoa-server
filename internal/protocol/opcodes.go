@@ -1131,6 +1131,23 @@ const (
 	OpcodeFactionTrackData GameOpcode = 0x7E88
 )
 
+// Characters' surnames on the name plates of a client that draws them
+// (handlers/surname.go; Live petition 5648). A PS2 ignores the offer: its
+// players see a surname in /who alone.
+const (
+	// OpcodeSurnameOffer both ways. Server to client once the player is in
+	// the world: a u8, the layout of OpcodeSurnames (1). Client to server: a
+	// u8, 1 to be sent the surnames, 0 to stop.
+	OpcodeSurnameOffer GameOpcode = 0x7EF8
+	// OpcodeSurnames server to client, to one that answered 1: a u8 layout
+	// (1), a u16 count, and each: a character's name (its own, no tag), then
+	// its surname ("" none: forget the one held), each a u8 byte count and its
+	// UTF-8 bytes. Sent whole once after the answer (every character in the
+	// world with one), then a character at a time: its login with one, a
+	// surname taken, changed or cleared.
+	OpcodeSurnames GameOpcode = 0x7EF9
+)
+
 // A monster's name and level when the player talks to it (□, Q on vanilla's
 // keyboard) and it has nothing to say, for a client that shows them in the
 // target's details box (handlers/mobinfo.go, world.mob_info; a GM's
@@ -2012,6 +2029,10 @@ func (op GameOpcode) String() string {
 		return "FactionTrackAnswer"
 	case OpcodeFactionTrackData:
 		return "FactionTrackData"
+	case OpcodeSurnameOffer:
+		return "SurnameOffer"
+	case OpcodeSurnames:
+		return "Surnames"
 	case OpcodeStatFiguresData:
 		return "StatFiguresData"
 	case OpcodePetDyesOffer:

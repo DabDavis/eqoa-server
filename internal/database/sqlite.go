@@ -1006,6 +1006,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureHardcore(); err != nil { // hardcore.go: [HC] Hardcore characters and their falls
 		return err
 	}
+	if err := db.ensureSurname(); err != nil { // surname.go: a character's surname (Live petition 5648)
+		return err
+	}
 	if err := db.ensureCharOG(); err != nil { // ogchar.go: [OG] characters, chosen when new
 		return err
 	}

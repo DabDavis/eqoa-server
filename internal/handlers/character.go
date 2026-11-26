@@ -1049,6 +1049,9 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// and one faction's standing on the HUD (factiontrack.go, petition 3216):
 	// a client that draws a tracker names its faction, a PS2 ignores it
 	SendFactionTrackOffer(sess)
+	// and the characters' surnames (surname.go, Live petition 5648): a client
+	// that draws them on its name plates asks, a PS2 ignores it
+	SendSurnameOffer(sess)
 	// and the NPCs' body tints (npctint.go): a client that draws them asks,
 	// a PS2 ignores it
 	SendNPCTintsOffer(sess)

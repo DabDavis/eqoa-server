@@ -149,6 +149,10 @@ var snapshotRules = map[string]snapshotRule{
 		why: "the links mailed to the accounts (verify, password reset): each token's hash and the address it went to"},
 	"pwreset_meta": {clear: true, scan: []string{"value"},
 		why: "the salt the password reset form's senders' addresses are hashed with, as spellfx_meta's"},
+	"characters": {allow: []string{"surname", "surname_at"},
+		why: "the characters, kept whole (the game's own rows); a surname (surname.go, Live petition 5648) is a name a " +
+			"player chose for the character in the game, held to the pets' and mercs' name rules, as public as its " +
+			"first name (shown in /who and over its head), and surname_at when it was taken: no person's name"},
 	"tokenshop": {allow: []string{"token"},
 		why: "the token shops' stock (handlers/tokenshop.go, the Toy Shoppe): a token is the item a ware is paid in, by " +
 			"its name (Holly Token), no secret"},

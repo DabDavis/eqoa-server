@@ -27,6 +27,7 @@ var qolOffers = []protocol.GameOpcode{
 	protocol.OpcodeQuestHeadMarksOffer, protocol.OpcodeGroupEffects, protocol.OpcodeNPCDebuffs,
 	protocol.OpcodeStatFigures,       // its stat caps the game's (QoLStatCaps): no Stat Window
 	protocol.OpcodeFactionTrackOffer, // the faction tracker (factiontrack.go)
+	protocol.OpcodeSurnameOffer,      // the surnames on the name plates (surname.go)
 }
 
 // worldEntryOps is what a world entry (two 0x0014s, as a client sends) queues,

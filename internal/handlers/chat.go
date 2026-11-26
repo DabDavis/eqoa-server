@@ -448,6 +448,12 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		h.mercs.PetCommand(sess, player, rest)
 		return
 	}
+	// /surname [name|clear] (or #surname; a PS2's "/t surname ..."): its surname,
+	// everyone's from level 20, a GM's #surname clear <character> (surname.go)
+	if rest, ok := surnameLine(message); ok {
+		surnamesH.Load().Command(sess, player, rest, h.isGM(sess))
+		return
+	}
 
 	// /marks (or #marks; a PS2's "/t marks", below): the character's Heirloom Marks, and
 	// /relive [end] (#relive, "/t relive end"): a Relive's state or its end, everyone's (marks.go)
@@ -636,6 +642,12 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		}
 		// and the mercenary's and the familiar's words (merc.go, familiar.go): "/t
 		// merc" alone or with one of them; anything else to a "merc" is a tell
+		// and /surname (surname.go): "/t surname <name>", "/t surname clear",
+		// "/t surname" alone; a surname is one word, so a longer body is a tell
+		if b := strings.TrimSpace(body); strings.EqualFold(name, "surname") && !strings.Contains(b, " ") && surnamesH.Load() != nil {
+			surnamesH.Load().Command(sess, player, b, h.isGM(sess))
+			return
+		}
 		if strings.EqualFold(name, "merc") && mercWords(body) {
 			h.mercs.Command(sess, player, body)
 			return
@@ -1904,13 +1916,23 @@ func sendTeleportGM(sess *session.Session, x, y, z, facing float32, world byte) 
 // and how many: anyone's /who. Where each stands is a GM's #who alone. A hidden GM is left
 // out for anyone but a GM, as in the who window (whoShows).
 func (h *ChatHandler) whoList(sess *session.Session) {
-	var lines []string
+	type shown struct {
+		name         string
+		id           uint32
+		level, class int
+	}
+	var who []shown
 	viewer := h.gameWorld.SessionPlayer(sess)
 	h.gameWorld.ForEachPlayer(func(p *entity.Player) {
 		if whoShows(viewer, p) {
-			lines = append(lines, fmt.Sprintf("%s: level %d %s", p.ShownName(), p.Level, entity.ClassName(p.Class)))
+			who = append(who, shown{p.ShownName(), p.CharServerID, p.Level, p.Class})
 		}
 	})
+	// each one's surname after its name (surname.go), read outside the World's lock
+	var lines []string
+	for _, w := range who {
+		lines = append(lines, fmt.Sprintf("%s: level %d %s", surnameAfter(w.name, w.id), w.level, entity.ClassName(w.class)))
+	}
 	sort.Slice(lines, func(i, j int) bool { return strings.ToLower(lines[i]) < strings.ToLower(lines[j]) })
 	for _, l := range lines {
 		sess.Queue().AddWithSequence(buildClientMessage(l))
@@ -1947,6 +1969,7 @@ var gmHelpLines = []string{
 	"  #grpsummon - bring every other member of your group or raid to you",
 	"  #spawn <name> - a copy of that NPC beside you; #despawn takes the target away",
 	"  #hide gmtag, #show gmtag - your [GM] tag off your name, or back (kept)",
+	"  " + surnameGMUsage,
 	"  #monstersearch <start of a name> - up to ten NPC names",
 	"  " + weatherUsage + " - the regional weather: status, a GM's weather (heavy, 10 min, here unless given), end it",
 	"  #nearby - NPCs within 200",

@@ -422,6 +422,7 @@ var playerHelpLines = []string{
 	"  /hide mercs, /show mercs - other players' mercenaries out of your view, or back",
 	"  /prefarm off (or on) - no quest items on your kills for steps no one is on; a leader's is the group's",
 	"  /afk [message] - [AFK] over your head; tells answered with the message (on|off too)",
+	"  /surname <name> - a surname after your name, from level 20 (/surname clear takes it off; a change waits a week)",
 }
 
 // playerHelp is /help: playerHelpLines, and to a GM where its own commands are.

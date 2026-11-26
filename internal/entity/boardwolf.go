@@ -16,8 +16,9 @@ import (
 // movement buff's run speed (speedBuff, Spirit of the Wolf's own) for an
 // hour of play, its icon the spell's; a talk with one on puts it back to its
 // whole hour. It ends at the player's own hostile act: auto-attack engaged or
-// a swing, a harmful spell cast, a potion thrown (breakBoardWolfLocked); not
-// at a hit taken, nor at a friendly spell. Its time runs only in the world
+// a swing that reaches its target, a harmful spell cast, a potion thrown
+// (breakBoardWolfLocked); not at a press or a swing at nothing in reach
+// (petition 3253), nor at a hit taken, nor at a friendly spell. Its time runs only in the world
 // and it is kept over a logout, as every effect's (buffsave.go).
 
 // BoardWolfEffectID keys it among a player's effects (the boon is -1003).

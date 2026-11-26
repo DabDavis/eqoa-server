@@ -24,12 +24,33 @@ import (
 // the mastery window, each from its level and after the one before, as ever.
 // No rank is given and no point spent. A trial not in the game bars no one
 // already and is left; one finished already is left as it is. The four other
-// stat lines (Avoid Danger, Unrivaled Grace, Sages Wit, Razzle Dazzle) keep
-// their trials.
+// stat lines (AGI, DEX, WIS and CHA: Avoid Danger, Unrivaled Grace, Sages Wit,
+// Razzle Dazzle) were added at the owner's word (petition 3147, 2026-11-26:
+// "can we unlock the other stat quest cms?"), so he opens all seven.
 
 // archivistUnlockLines are the lines he opens, by their ranks' names less the
-// rank's number (cmcatalog's mastery column spells the first "Buldging").
-var archivistUnlockLines = []string{"Bulging Muscles", "Intestinal Fortitude", "Superior Intellect"}
+// rank's number (cmcatalog's mastery column spells the first "Buldging"; its
+// rank names say "Sages Wit", the quests "Sage's Wit").
+var archivistUnlockLines = []string{"Bulging Muscles", "Intestinal Fortitude", "Superior Intellect",
+	"Avoid Danger", "Unrivaled Grace", "Sages Wit", "Razzle Dazzle"}
+
+// unlockNames is the lines in his words: named, up to three; past that (seven
+// names run past a box's 217 characters) "all seven stat masteries" when they
+// are every one of archivistUnlockLines, else "these N stat masteries".
+func unlockNames(lines []string) string {
+	if len(lines) <= 3 {
+		return joinAnd(lines)
+	}
+	words := map[int]string{4: "four", 5: "five", 6: "six", 7: "seven"}
+	n, ok := words[len(lines)]
+	if !ok {
+		n = fmt.Sprint(len(lines))
+	}
+	if len(lines) == len(archivistUnlockLines) {
+		return "all " + n + " stat masteries"
+	}
+	return "these " + n + " stat masteries"
+}
 
 // reRankNumber is a rank's number at the end of its name ("Bulging Muscles 2").
 var reRankNumber = regexp.MustCompile(`\s+\d+$`)
@@ -119,7 +140,7 @@ func (a *Archivist) unlockMasteries(sess *session.Session, id uint32) {
 		return
 	}
 	if len(mark) == 0 {
-		a.say(sess, fmt.Sprintf(archivistUnlockedAll, joinAnd(lines)))
+		a.say(sess, fmt.Sprintf(archivistUnlockedAll, unlockNames(lines)))
 		return
 	}
 	var done []int
@@ -136,5 +157,5 @@ func (a *Archivist) unlockMasteries(sess *session.Session, id uint32) {
 		a.say(sess, archivistTrouble)
 		return
 	}
-	a.say(sess, fmt.Sprintf(archivistUnlocked, joinAnd(lines)))
+	a.say(sess, fmt.Sprintf(archivistUnlocked, unlockNames(lines)))
 }

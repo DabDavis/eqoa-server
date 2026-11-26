@@ -11,11 +11,11 @@ import (
 
 // "Unlock my masteries" (petition 1391) on a real server's data (EQOA_REAL_DB
 // names its database, a copy of which is opened): for every class he opens
-// the three lines and marks their twelve trials (the stat-boost quests,
-// Misc/stat-boost-quests/str1-4, sta1-4 and int1-4), every one in the game, a
+// the seven lines and marks their 28 trials (the stat-boost quests,
+// Misc/stat-boost-quests, 101195-101222: four a stat), every one in the game, a
 // trial a character finished left; and in a level 60 character's mastery
 // window each line's first rank is refused for its trial before, and no rank
-// of the three is refused for a trial after (their levels and the ranks
+// of the seven is refused for a trial after (their levels and the ranks
 // before them still asked, the points aside). Skipped without a database.
 func TestRealArchivistUnlocksTheStatMasteries(t *testing.T) {
 	db := realRehabDB(t)
@@ -28,7 +28,10 @@ func TestRealArchivistUnlocksTheStatMasteries(t *testing.T) {
 		t.Fatal(err)
 	}
 	inGame := qe.InGame()
-	want := []int{101195, 101196, 101197, 101198, 101199, 101200, 101201, 101202, 101215, 101216, 101217, 101218}
+	var want []int
+	for id := 101195; id <= 101222; id++ {
+		want = append(want, id)
+	}
 	var names []string
 	for _, id := range want {
 		name, in := inGame[id]
@@ -43,7 +46,7 @@ func TestRealArchivistUnlocksTheStatMasteries(t *testing.T) {
 		if fmt.Sprint(lines) != fmt.Sprint(archivistUnlockLines) || fmt.Sprint(mark) != fmt.Sprint(want) {
 			t.Errorf("%s: lines %v, trials %v; want %v and %v", database.TransferClassSlugs[class], lines, mark, archivistUnlockLines, want)
 		}
-		if _, mark := unlockQuests(arch, inGame, map[int]bool{101195: true, 101215: true}, class, 0); fmt.Sprint(mark) != fmt.Sprint(append(append([]int{}, want[1:8]...), want[9:]...)) {
+		if _, mark := unlockQuests(arch, inGame, map[int]bool{101195: true, 101215: true}, class, 0); fmt.Sprint(mark) != fmt.Sprint(append(append([]int{}, want[1:20]...), want[21:]...)) {
 			t.Errorf("%s: with two trials finished, trials %v", database.TransferClassSlugs[class], mark)
 		}
 	}
@@ -79,7 +82,7 @@ func TestRealArchivistUnlocksTheStatMasteries(t *testing.T) {
 			t.Errorf("%s after: %q, still refused for a trial", r.Name, n.Text)
 		}
 	}
-	if ranks != 12 {
-		t.Errorf("%d ranks of the three lines, want 12", ranks)
+	if ranks != 28 {
+		t.Errorf("%d ranks of the seven lines, want 28", ranks)
 	}
 }

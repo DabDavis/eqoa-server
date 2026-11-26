@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"reflect"
 	"slices"
 	"sort"
 	"strings"
@@ -442,8 +443,12 @@ func (w *World) namedTemplateLocked(npc *NPC) *ClassTemplate {
 // one away: its class (the template's, else its own) and its maximum hit
 // points (hp_pct of its own), its hit points at the new maximum when it is
 // not fighting, else in the same share, and a fresh fight by it. An NPC whose
-// template has not changed is left as it is. Must be called with the lock
-// held.
+// template has not changed is left as it is, its fight going on: the same
+// object, or a reload's new one of the same content (sameTemplateContent) —
+// every GM edit of a classtemplates or spell row reloads them all, and a
+// pointer compare had ended every templated creature's fight in progress
+// (its clocks back to first; enrage, summons, last stand, ward forgotten).
+// Must be called with the lock held.
 func (w *World) applyTemplateLocked(npc *NPC) {
 	if npc.Charm != nil {
 		npc.Charm.resists = w.charmResistsLocked(npc)
@@ -452,7 +457,8 @@ func (w *World) applyTemplateLocked(npc *NPC) {
 		return // an add of a share keeps its creature's template it was called with (summon.go)
 	}
 	t := w.templateForLocked(npc)
-	if t == npc.tmpl {
+	if t == npc.tmpl || sameTemplateContent(t, npc.tmpl) {
+		npc.tmpl = t                 // a reload's copy: its fight, kick zones and hit points go on
 		w.kinHealWatchLocked(npc, t) // a copy made with its row's template (kinheal.go)
 		return
 	}
@@ -488,6 +494,29 @@ func (w *World) applyTemplateLocked(npc *NPC) {
 	if t == nil {
 		npc.tbase = templateBase{}
 	}
+}
+
+// sameTemplateContent is whether two templates are one in all a fight by them
+// reads: the same row (its name, figures and abilities; the GM's note aside),
+// a were's copy or not alike, and the same number of each list a fight's
+// state is indexed by (templateFight.next, summoned, buffNext, momentNext; the
+// kick zones' clocks), which a spell row's edit can change without the
+// template's row (a proc or a veil whose spell went, a buff that came). Then
+// the fight state of one is good for the other, place for place. Never for nil.
+func sameTemplateContent(a, b *ClassTemplate) bool {
+	if a == nil || b == nil || a.were != b.were {
+		return false
+	}
+	if len(a.abilities) != len(b.abilities) || len(a.summons) != len(b.summons) || len(a.moments) != len(b.moments) ||
+		len(a.selfBuffs) != len(b.selfBuffs) || len(a.kickZones) != len(b.kickZones) || len(a.procs) != len(b.procs) ||
+		len(a.veils) != len(b.veils) || (a.enrage == nil) != (b.enrage == nil) || (a.lastStand == nil) != (b.lastStand == nil) ||
+		(a.ward == nil) != (b.ward == nil) || (a.deathHold == nil) != (b.deathHold == nil) ||
+		(a.areaRampage == nil) != (b.areaRampage == nil) {
+		return false
+	}
+	ra, rb := a.ClassTemplate, b.ClassTemplate
+	ra.Note, rb.Note = "", ""
+	return reflect.DeepEqual(ra, rb)
 }
 
 // templateKindTakes reports whether a spell is of an ability's kind (the

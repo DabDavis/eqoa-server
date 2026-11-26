@@ -280,6 +280,14 @@ var femaleFormBodies = map[uint32]uint32{
 	bodyFledglingVampire: bodyHumanFemale,
 }
 
+// SetVampireFemaleBody is world.vampire_female_body: the body a female
+// vampire wears in Vampire Form. 0 keeps femaleFormBodies' (the human woman's).
+func (w *World) SetVampireFemaleBody(model uint32) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.vampireFemaleBody = model
+}
+
 // bodyFledglingVampire is the fledgling vampires' body (CHAR.ESF's DictID;
 // the workbook's sprite 0x83801BCE read the other way round), Vampire Form's
 // (vampire.go).
@@ -295,6 +303,9 @@ func (w *World) femaleFormBodyLocked(model uint32, sex int) (body uint32, race i
 	b, has := femaleFormBodies[model]
 	if !has {
 		return model, 0, false
+	}
+	if model == bodyFledglingVampire && w.vampireFemaleBody != 0 {
+		b = w.vampireFemaleBody // world.vampire_female_body
 	}
 	if _, race, isRace := w.raceBodyLocked(b, sex); isRace {
 		return b, race, true

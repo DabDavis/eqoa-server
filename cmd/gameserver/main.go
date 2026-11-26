@@ -747,6 +747,7 @@ func main() {
 	formulaCtl.SetTell(func(line string) { handlers.TellGMs(sessionMgr, accountStore, nil, line) })
 	handlers.SetFormulaControl(formulaCtl, cfg.GM.AdminLevel)
 	go formulaCtl.Watch(nil)
+	gameWorld.SetVampireFemaleBody(cfg.World.VampireFemaleBody) // entity/illusion.go
 	gameWorld.SetJumps(cfg.World.Jump) // entity/jump.go, handlers/jump.go
 	handlers.SetJumps(cfg.World.Jump)
 	if cfg.World.Jump {

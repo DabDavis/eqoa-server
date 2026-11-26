@@ -268,6 +268,8 @@ type World struct {
 	dungeons dungeonsState
 	// jumpsAllowed is world.jump: whether players may jump (jump.go)
 	jumpsAllowed bool
+	// vampireFemaleBody is world.vampire_female_body (illusion.go): 0, the human woman's
+	vampireFemaleBody uint32
 
 	// The combat records' counts waiting to be written (combatrecord.go)
 	records combatRecords

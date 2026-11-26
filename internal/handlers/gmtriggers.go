@@ -845,7 +845,10 @@ func (e *TriggerEngine) advanceLocked(r *triggerRun) []string {
 		}
 		if s.Do == database.TriggerAwaitTalk || s.Do == database.TriggerAwaitDead || s.Do == database.TriggerAwaitKill || s.Do == database.TriggerAwaitNear {
 			step := s
-			r.await, r.died, r.at = &step, nil, time.Time{}
+			r.await, r.at = &step, time.Time{}
+			if s.Do != database.TriggerAwaitKill || !s.Keep {
+				r.died = nil // a keep awaitkill counts the kills heard before it too
+			}
 			if s.Seconds > 0 {
 				r.at = e.now().Add(time.Duration(s.Seconds * float64(time.Second)))
 			}

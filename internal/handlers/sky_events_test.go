@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"math"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -164,13 +165,34 @@ func TestSkyNight3MaidenRace(t *testing.T) {
 	if len(w.skyAlive("Night Maiden")) != 1 || len(w.skyAlive("night duke")) != 2 {
 		t.Fatalf("maiden %d, dukes %d", len(w.skyAlive("Night Maiden")), len(w.skyAlive("night duke")))
 	}
+	// the dukes march on her a stage at a time (Heirloom petition 3201: they stood at the mouth)
+	dukesAt := func(want float32) {
+		t.Helper()
+		for _, d := range w.skyAlive("night duke") {
+			p, ok := w.gw.NPCPathOf(d.ServerID)
+			if !ok || len(p.Points) == 0 || math.Abs(float64(p.Points[len(p.Points)-1].Z-want)) > 5 {
+				t.Fatalf("duke %d's walk %+v, want it to end at z %.0f", d.ServerID, p, want)
+			}
+		}
+	}
+	dukesAt(6608)
 	// lost: the time (thirty minutes since Heirloom petition 3144) runs out with Lancel alive
 	w.e.Killed(entity.KillCredit{NPCName: "Arch Bishop Millian", NPCID: 119705})
 	w.at(301 * time.Second)
 	if len(w.skyAlive("Night Maiden")) != 1 || len(w.skyAlive("night duke")) != 2 {
 		t.Fatal("five minutes in, the race is lost already")
 	}
-	w.at(1801 * time.Second)
+	dukesAt(6626)
+	for d := 310 * time.Second; d < 1795*time.Second; d += 10 * time.Second {
+		w.at(d)
+	}
+	if len(w.skyAlive("Night Maiden")) != 1 {
+		t.Fatal("the race lost before its thirty minutes")
+	}
+	dukesAt(6690)
+	for d := 1795 * time.Second; d <= 1830*time.Second; d += 5 * time.Second {
+		w.at(d)
+	}
 	if len(w.skyAlive("Night Maiden")) != 0 || len(w.e.Runs()) != 0 {
 		t.Fatal("the lost race kept the maiden or its run")
 	}
@@ -181,17 +203,19 @@ func TestSkyNight3MaidenRace(t *testing.T) {
 	w.e.StartNear()
 	w.e.Killed(entity.KillCredit{NPCName: "Arch Bishop Lancel", NPCID: 119712})
 	w.e.Killed(entity.KillCredit{NPCName: "Arch Bishop Millian", NPCID: 119705})
-	w.at(1810 * time.Second)
+	for d := 1831 * time.Second; d <= 1840*time.Second; d += time.Second {
+		w.at(d) // a stage met a tick: the six pass in six of the engine's seconds
+	}
 	if len(w.skyAlive("Night Maiden")) != 1 || len(w.skyAlive("night duke")) != 0 {
-		t.Fatal("won: the maiden stays, the dukes go")
+		t.Fatalf("won: the maiden stays, the dukes go: maiden %d, dukes %d, runs %+v", len(w.skyAlive("Night Maiden")), len(w.skyAlive("night duke")), w.e.Runs())
 	}
 	// her fifteen minutes for the quest's talk, then she goes and the run with her
-	w.at(1810*time.Second + 14*time.Minute)
+	w.at(1840*time.Second + 14*time.Minute)
 	if len(w.skyAlive("Night Maiden")) != 1 {
 		t.Fatal("the maiden left before her fifteen minutes")
 	}
-	w.at(1810*time.Second + 15*time.Minute + time.Second)
-	w.at(1810*time.Second + 15*time.Minute + 2*time.Second)
+	w.at(1840*time.Second + 15*time.Minute + time.Second)
+	w.at(1840*time.Second + 15*time.Minute + 2*time.Second)
 	if len(w.skyAlive("Night Maiden")) != 0 || len(w.e.Runs()) != 0 {
 		t.Fatalf("after her fifteen minutes: maiden %d, runs %d", len(w.skyAlive("Night Maiden")), len(w.e.Runs()))
 	}

@@ -93,6 +93,8 @@ func TestOnFailProblems(t *testing.T) {
 		{`[{"do":"awaitkill","npc":"a","seconds":5,"onfail":[{"do":"questset","quest":5,"step":2,"from":4}]}]`, "onfail is a fail's"},
 		{`[{"do":"awaitkill","npc":"a","seconds":5,"fail":"x","onfail":[{"do":"broadcast","text":"y"}]}]`, "questsets alone"},
 		{`[{"do":"awaitkill","npc":"a","seconds":5,"fail":"x","onfail":[{"do":"questset","quest":5,"step":2,"from":2}]}]`, "is its step"},
+		{`[{"do":"awaitkill","npc":"a","seconds":5},{"do":"awaitkill","npc":"a","seconds":5,"keep":true}]`, ""},
+		{`[{"do":"awaitdead","keep":true}]`, "keep is an awaitkill's"},
 	} {
 		got := strings.Join(database.TriggerProblems(database.GMTrigger{Slot: 40, Name: "t", Scope: "near", World: -1, Steps: tc.steps}), "|")
 		if tc.want == "" && got != "" || tc.want != "" && !strings.Contains(got, tc.want) {

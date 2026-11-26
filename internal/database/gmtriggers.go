@@ -218,6 +218,11 @@ type TriggerStep struct {
 	// quest, a death) passes it by. A talk start with no text lets the NPC answer as
 	// ever (its quests, its lines) after the firing; with text that is its answer
 	Start bool `json:"start,omitempty"`
+	// Keep (awaitkill): the kills the run heard while waiting on the steps before it count
+	// too (any other await starts its count afresh): a race in stages, Night 3's dukes
+	// walking a stage on every five minutes while the bishops' two deaths are waited for
+	// over all of them (Heirloom petition 3201)
+	Keep bool `json:"keep,omitempty"`
 	// Gone (awaitkill): met at once, too, while no living NPC of its names stands within the
 	// run's reach (a standing guardian already dead when the run came: Tallon's Zek sentry)
 	Gone bool `json:"gone,omitempty"`
@@ -673,6 +678,9 @@ func StepProblems(steps []TriggerStep) []string {
 			case !first:
 				add(i, "start is the trigger's first step (its locks before it)")
 			}
+		}
+		if s.Keep && s.Do != TriggerAwaitKill {
+			add(i, "keep is an awaitkill's")
 		}
 		if len(s.OnFail) > 0 && strings.TrimSpace(s.Fail) == "" {
 			add(i, "onfail is a fail's: the step has none")

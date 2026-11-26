@@ -139,6 +139,30 @@ GARGOYLES_AT = (5528.0, 509.7, 6396.0)
 NIGHT3_SECONDS = 1800
 NIGHT3_BACK = [{"do": "questset", "quest": 101306, "step": 11, "from": 13},
                {"do": "questset", "quest": 101437, "step": 1, "from": 3}]
+# the dukes' march (Heirloom petition 3201, 2026-11-26: "night dukes on Night 3 dont move to princess"): the race in
+# six stages of five minutes, the dukes walking up the courtyard's ramp a stage at a time to its head below her
+# pedestal (each spot's floor off cmd/campground); each later stage's awaitkill keeps the kills heard before it
+# (keep), so the bishops dead in an early stage meet each later one at once
+NIGHT3_STAGES = 6
+NIGHT3_MARCH = [(4250.0, 578.21, 6608.0), (4250.0, 583.51, 6626.0), (4250.0, 588.86, 6644.0), (4250.0, 594.2, 6662.0),
+                (4250.0, 599.55, 6680.0), (4250.0, 600.63, 6690.0)]
+NIGHT3_FAIL = "The dukes of the night reach the maiden and carry her off into the dark. When the bishops stand again, try again."
+
+
+def night3_race():
+    """The race's stages: the dukes walk a stage on, then the bishops' kills are waited for five minutes; the last
+    stage's time out fails the run, putting the bishops' steps back. No line between stages: a race won early runs
+    the stages left at once."""
+    out, stage = [], NIGHT3_SECONDS // NIGHT3_STAGES
+    for i, (x, y, z) in enumerate(NIGHT3_MARCH):
+        out.append({"do": "walk", "npc": "night duke", "pace": 2, **at(x, y, z)})
+        kill = {"do": "awaitkill", "npc": "Arch Bishop Millian, Arch Bishop Lancel", "seconds": stage}
+        if i:
+            kill["keep"] = True  # the kills of the stages before count (a run's deaths start afresh at each await)
+        if i == NIGHT3_STAGES - 1:
+            kill.update({"fail": NIGHT3_FAIL, "onfail": NIGHT3_BACK})
+        out.append(kill)
+    return out
 BRIDGE_TO_ROAD_END = [[5689.0, 484.7, 6571.0], [5689.0, 485.0, 6597.0], [5689.0, 485.2, 6623.0], [5687.0, 483.2, 6647.0],
                       [5681.0, 475.8, 6649.0], [5659.0, 473.9, 6655.0], [5651.0, 460.8, 6661.0], [5631.0, 453.7, 6663.0],
                       [5611.0, 445.2, 6671.0], [5589.0, 439.0, 6679.0]]
@@ -237,9 +261,7 @@ def spec():
                                "You have thirty minutes."},
         {"do": "spawn", "npc": "#119727", "spread": 1, "minutes": NIGHT3_SECONDS // 60 + 20, **at(4250.09, 660.62, 6743.46)},
         {"do": "spawn", "npc": "night duke", "count": 2, "spread": 3, "minutes": NIGHT3_SECONDS // 60 + 1, **at(4250.0, 571.2, 6590.0)},
-        {"do": "awaitkill", "npc": "Arch Bishop Millian, Arch Bishop Lancel", "seconds": NIGHT3_SECONDS,
-         "fail": "The dukes of the night reach the maiden and carry her off into the dark. When the bishops stand again, try again.",
-         "onfail": NIGHT3_BACK},
+        *night3_race(),
         {"do": "despawn", "npc": "night duke"},
         {"do": "broadcast", "text": "The bishops are dead, and the dukes fall back into the night. The maiden is safe: speak with her."},
         {"do": "wait", "seconds": 900},

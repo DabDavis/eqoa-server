@@ -506,3 +506,30 @@ func TestADeclinedMercsHireEnds(t *testing.T) {
 		t.Error("a login after the no brought the merc back")
 	}
 }
+
+// /merc dismiss all (petition 3204): every hire sent away, counted; none says so.
+func TestMercDismissAll(t *testing.T) {
+	r, m, db := newMercFixture(t)
+	r.drain()
+	r.say(r.anna, "/merc dismiss all")
+	if got := r.msgs(r.anna); !hasMsg(got, "red:You have no mercenaries.") {
+		t.Errorf("none hired: %q", got)
+	}
+	m.hire(r.anna, r.pa, 0, 0, 0)
+	m.hire(r.anna, r.pa, 0, 0, 0)
+	rows, _ := db.Mercs(r.pa.CharServerID)
+	if len(rows) < 2 {
+		t.Skipf("fixture hired %d", len(rows))
+	}
+	r.drain()
+	r.say(r.anna, "/merc dismiss all")
+	if got := r.msgs(r.anna); !hasMsg(got, "chat:You dismiss 2 mercenaries.*") {
+		t.Errorf("dismiss all: %q", got)
+	}
+	if rows, _ := db.Mercs(r.pa.CharServerID); len(rows) != 0 {
+		t.Errorf("hires kept: %d", len(rows))
+	}
+	if _, ok := r.gw.MercInfoOf(r.anna); ok {
+		t.Error("a merc is still out")
+	}
+}

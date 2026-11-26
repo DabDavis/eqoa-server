@@ -114,7 +114,7 @@ const (
 	mercRestLine  = "Your mercenary %s rests for %d more seconds."
 	mercBackLine  = "Your mercenary %s is back at your side."
 	mercKitFailed = "The liaison's ledger is out of order. Try again."
-	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, camp (here until you go 125 off; again breaks it), attack (your target), path, pet, master [name|none] (55+), were [form|none] (a were form your book holds), charm [off], group, revive, dismiss, give [item], inv, equip|unequip|take <item>, aoe|single (a Cocktail alchemist), helm|look [on|off] (its helm, or all its armour's look, shown or hidden), stock, claim, rename <new name> (3 to 15 letters, as a character's name): with no name, every merc out. /pet rename <new name> names your summoned pet. /familiar dismiss sends a familiar away."
+	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, camp (here until you go 125 off; again breaks it), attack (your target), path, pet, master [name|none] (55+), were [form|none] (a were form your book holds), charm [off], group, revive, dismiss [all], give [item], inv, equip|unequip|take <item>, aoe|single (a Cocktail alchemist), helm|look [on|off] (its helm, or all its armour's look, shown or hidden), stock, claim, rename <new name> (3 to 15 letters, as a character's name): with no name, every merc out. /pet rename <new name> names your summoned pet. /familiar dismiss sends a familiar away."
 )
 
 // mercRoles are the liaison's first answers, each role's classes in their
@@ -292,7 +292,7 @@ var mercLiaisonCommands = []string{
 	"/merc attack: it attacks your target.",
 	"/merc group: it joins your group.",
 	"/merc revive: it comes back after its rest.",
-	"/merc dismiss: send it away; a liaison will hire you another.",
+	"/merc dismiss: send it away; a liaison will hire you another. /merc dismiss all lets every one go.",
 	"On a PS2, type /t merc and the word (/t merc dismiss).",
 }
 
@@ -1204,6 +1204,10 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 		return
 	}
 	words := strings.Fields(strings.ToLower(args))
+	if len(words) == 2 && words[0] == "dismiss" && words[1] == "all" {
+		m.dismissAll(sess, p) // petition 3204: every hire at once
+		return
+	}
 	slot := 0
 	if len(words) > 0 && !mercVerbs[words[0]] {
 		if s, ok := mercPicked(rows, words[0]); ok {
@@ -1403,25 +1407,58 @@ func mercNoneOut(slot int, rows []database.MercRow) string {
 // (mercui.go): the merc of the slot (out, on standby, or waiting outside the
 // arena) sent away and its hire ended.
 func (m *Mercs) dismiss(sess *session.Session, p *entity.Player, slot int) {
+	name, ok := m.dismissOne(p, sess, slot)
+	if !ok {
+		SendErrorMessage(sess, "You have no mercenary out.")
+		return
+	}
+	SendClientMessage(sess, fmt.Sprintf("You dismiss %s. The Mercenary Recruitment board will hire you another.", name))
+	if m.db != nil {
+		m.claimKeeping(sess, p, false) // what it held comes back (mercinv.go)
+	}
+}
+
+// dismissOne ends the hire of the slot's merc (out, on standby, waiting
+// outside the arena, or resting after its death: its row alone), saying
+// nothing. It reports the merc's name, and whether there was one.
+func (m *Mercs) dismissOne(p *entity.Player, sess *session.Session, slot int) (string, bool) {
 	name, ok := m.gw.DismissMerc(sess, slot, m.now())
 	if !ok && m.db != nil {
-		// one resting after its death: its row alone
 		if row, kept, err := m.db.Merc(p.CharServerID, slot); err == nil && kept {
 			name, ok = row.Name, true
 		}
 	}
 	if !ok {
-		SendErrorMessage(sess, "You have no mercenary out.")
-		return
+		return "", false
 	}
 	if m.db != nil {
 		if err := m.db.DeleteMerc(p.CharServerID, slot); err != nil {
 			log.Printf("Merc: %s's dismissal of %q not kept: %v", p.Name, name, err)
 		}
 	}
-	SendClientMessage(sess, fmt.Sprintf("You dismiss %s. The Mercenary Recruitment board will hire you another.", name))
+	return name, true
+}
+
+// dismissAll is /merc dismiss all (petition 3204, Packmaster): every merc the
+// player has hired sent away through dismissOne, one line for the count.
+func (m *Mercs) dismissAll(sess *session.Session, p *entity.Player) {
+	n := 0
+	for slot := 1; slot <= database.MercSlots; slot++ {
+		if _, ok := m.dismissOne(p, sess, slot); ok {
+			n++
+		}
+	}
+	if n == 0 {
+		SendErrorMessage(sess, "You have no mercenaries.")
+		return
+	}
+	word := "mercenaries"
+	if n == 1 {
+		word = "mercenary"
+	}
+	SendClientMessage(sess, fmt.Sprintf("You dismiss %d %s. The Mercenary Recruitment board will hire you more.", n, word))
 	if m.db != nil {
-		m.claimKeeping(sess, p, false) // what it held comes back (mercinv.go)
+		m.claimKeeping(sess, p, false) // what they held comes back (mercinv.go)
 	}
 }
 

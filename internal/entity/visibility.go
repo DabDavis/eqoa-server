@@ -89,17 +89,26 @@ type entityDist struct {
 	// pin is the sort's: a quest's wall or blocker near the observer, first
 	// (visibilitySystem)
 	pin bool
+	// keep is the sort's next: the observer's fight (keeptarget.go), its
+	// pets and its tour, ahead of the nearer crowd
+	keep bool
 }
 
 // sortView sorts a view's candidates (byPinThenDistance).
 func sortView(c []entityDist) { slices.SortFunc(c, byPinThenDistance) }
 
 // byPinThenDistance is the view's order (visibilitySystem): a pinned
-// candidate first, then the nearer. Only its sign below zero is read: it is
+// candidate first, then a kept one (keeptarget.go), then the nearer. Only its sign below zero is read: it is
 // sort.Slice's less as slices.SortFunc asks it.
 func byPinThenDistance(a, b entityDist) int {
 	if a.pin != b.pin {
 		if a.pin {
+			return -1
+		}
+		return 1
+	}
+	if a.keep != b.keep {
+		if a.keep {
 			return -1
 		}
 		return 1
@@ -240,6 +249,10 @@ func (w *World) visibilitySystem() {
 		// the same order, a profile of the Live shard's 2026-11-20)
 		for i := range candidates {
 			candidates[i].pin = pinWall(candidates[i])
+		}
+		// a crowd past the slots: the player's fight ahead of it (keeptarget.go)
+		if len(candidates) > slots {
+			w.keepFightLocked(sess, player, candidates)
 		}
 		sortView(candidates)
 

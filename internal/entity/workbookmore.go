@@ -150,21 +150,12 @@ func (w *World) procSpellsOnLocked(p *Player, sess *session.Session, defense boo
 				id := procSpellID(ae.SpellID, i)
 				proc := CastSpell{SpellID: id, Name: ae.Name, Icon: ae.Icon, Level: p.Level,
 					Def: SpellDef{Effects: lasts, Duration: ps.Duration, Workbook: true}, figures: figuresProc}
-				renewing := activeHoT(p, hotSlot(&proc), now) != nil // hot.go: no tick at once over one ticking in its slot
-				w.landOnPlayerLocked(&castState{spell: proc, caster: p.ServerID}, p, sess, p, now)
 				// a renewal by a later hit (or a landing over another heal over
-				// time) keeps the running heal's next tick (placeHoTLocked) and
-				// lands nothing at once: the workbook's first tick twice is a
-				// landing at once's alone. Kept, every hit between two ticks
-				// made the next tick land twice (Live petition 5561: "Tribal
-				// Ward is heal ticking twice")
-				if renewing {
-					for _, e := range p.Effects {
-						if e.SpellID == id {
-							e.Rules.Twice = false
-						}
-					}
-				}
+				// time) keeps the running heal's next tick and lands nothing at
+				// once, that tick once (placeHoTLocked: the workbook's first tick
+				// twice is a landing at once's alone; Live petition 5561, "Tribal
+				// Ward is heal ticking twice", then 5643 for every heal)
+				w.landOnPlayerLocked(&castState{spell: proc, caster: p.ServerID}, p, sess, p, now)
 			}
 			if len(on) == 0 {
 				continue

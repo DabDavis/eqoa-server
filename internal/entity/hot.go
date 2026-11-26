@@ -11,7 +11,9 @@ import "time"
 //     then the next tick at normal time");
 //   - with a stronger one on, a weaker one does nothing;
 //   - over a weaker one with ticks left, no tick at once: the next regular
-//     tick is the new one's, and it has all its ticks.
+//     tick is the new one's, and it has all its ticks; the workbook's first
+//     tick twice is a landing at once's alone, so that tick lands once
+//     (Live petition 5643).
 //
 // The regular tick is the server's six-second regen tick (regenSystem,
 // regen.go). The reference server's recorded Minor Healing ticked at its landing and
@@ -89,6 +91,13 @@ func (w *World) placeHoTLocked(t *Player, ae *ActiveEffect, now time.Time) bool 
 	if !next.After(now) {
 		next = w.nextRegularTick(now, now)
 	}
+	// the workbook's first tick twice is a landing at once's alone: over one
+	// ticking, its first tick is the old one's next and lands once (Live
+	// petition 5643, "all healers heals stack with each other": kept, every
+	// heal cast over another, or recast, added a whole tick at the next
+	// regular one, so two healers taking turns healed half again as much as
+	// the stronger alone; petition 5561 had found it in Tribal Ward's proc)
+	ae.Rules.Twice = false
 	// an equal one of its slot is replaced; a weaker one stays on, held while
 	// this one ticks (hotHeldLocked)
 	for _, e := range append([]*ActiveEffect(nil), t.Effects...) {
@@ -188,6 +197,7 @@ func (w *World) placePetHoTLocked(pet *NPC, ae *ActiveEffect, now time.Time) boo
 	if ae.HPTick < old.HPTick {
 		return false
 	}
+	ae.Rules.Twice = false // its first tick is the old one's next, once (placeHoTLocked; Live petition 5643)
 	next := old.NextTick
 	if !next.After(now) {
 		next = w.nextRegularTick(now, now)

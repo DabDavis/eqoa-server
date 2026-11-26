@@ -231,6 +231,16 @@ func TestGlamourIsTheCastersOrTheGroups(t *testing.T) {
 	if m, _ := channelBody(c.p); m != elfMale {
 		t.Errorf("at no one: the caster is model %d, want the elf man's", m)
 	}
+
+	selfOnly := illusionSpell(504, "Glamour: Troll", "Self, Troll form, 10min", "CM: Illusion")
+	selfOnly.Scope = 0
+	c.land(t, selfOnly, 0x01312E99, 50*time.Second)
+	if m, _ := channelBody(c.p); m != trollMale {
+		t.Errorf("self-only form with a friend selected: caster model %d, want %d", m, trollMale)
+	}
+	if m, _ := channelBody(friend); m != elfFemale {
+		t.Errorf("self-only form changed the friend's model to %d, want %d", m, elfFemale)
+	}
 }
 
 // True Form takes a buff's body and leaves its stats (petition 2106: Leopard's

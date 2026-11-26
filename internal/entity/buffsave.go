@@ -56,6 +56,9 @@ type savedMods struct {
 	ProcCap      int  `json:",omitempty"`
 	// a proc for the undead alone; none on a row kept before
 	ProcUndead bool `json:",omitempty"`
+	// a proc buff's procs past the first (proc.go's MoreProc); none on a row
+	// kept before (petition 5645)
+	MoreProcs []MoreProc `json:",omitempty"`
 	// an illusion's body and its scale (illusion.go); a row kept before
 	// illusions reads as none
 	Form     uint32  `json:",omitempty"`
@@ -126,6 +129,7 @@ func effectRows(effects []*ActiveEffect, now time.Time, keep func(*ActiveEffect)
 			sm.Rules = &r
 		}
 		sm.ProcSpells = e.ProcSpells
+		sm.MoreProcs = e.MoreProcs
 		mods, _ := json.Marshal(sm)
 		flags := 0
 		for _, f := range []struct {
@@ -190,6 +194,7 @@ func effectFromRow(r database.BuffRow, now time.Time) *ActiveEffect {
 		ae.Mods, ae.Proc, ae.ProcMax = sm.StatMods, sm.Proc, sm.ProcMax
 		ae.ProcScale, ae.ProcScalePct, ae.ProcCap = sm.ProcScale, sm.ProcScalePct, sm.ProcCap
 		ae.ProcUndead = sm.ProcUndead
+		ae.MoreProcs = sm.MoreProcs
 		ae.Form, ae.FormSize = sm.Form, sm.FormSize
 		ae.Ticks = sm.Ticks
 		ae.HoTSlot = sm.HoTSlot

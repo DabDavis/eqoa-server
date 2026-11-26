@@ -38,7 +38,8 @@ func ctfHerald(t *testing.T, r *portalRig) *entity.NPC {
 }
 
 // The arenas' recipes as cmd/worldbuild carries them into the built recipe: the Spirit Ring (tools/worlds/ring.json,
-// slot 12, the default, a round field) and the Canyon of Banners (tools/worlds/arena.json, slot 11, kept): each arena
+// slot 12, the default, a round field), the Canyon of Banners (tools/worlds/arena.json, slot 11, kept) and the
+// Lightwolf Vale (tools/worlds/lightwolf.json, slot 17: Castle Lightwolf against the village south of it): each arena
 // block reads, both teams' stands and camps and every power-up inside its field, the stands as far apart as the
 // arena is meant to be, the camps facing their stands, and the composer takes the recipe (one zone of the disc).
 func TestCTFArenaRecipe(t *testing.T) {
@@ -52,6 +53,7 @@ func TestCTFArenaRecipe(t *testing.T) {
 	}{
 		{"ring.json", 12, 51, true, 250, 350, true},
 		{"arena.json", 11, 121, false, 450, 1000, false},
+		{"lightwolf.json", 17, 24, false, 850, 1000, false},
 	} {
 		r, err := worlds.ReadRecipe(filepath.Join("..", "..", "tools", "worlds", c.file))
 		if err != nil {

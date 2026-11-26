@@ -1,0 +1,171 @@
+{
+  "world": 17,
+  "name": "the Lightwolf Vale",
+  "note": "The third capture the flag arena (handlers/ctf.go, entity/ctf.go; claude-notes/ctf-lightwolf-20261126.md), asked for by a player (Heirloom petition 3194: \"Castle Lightwolf and the village south of it would make two good home bases\"): one zone of the disc where it stands, Tunaria's cell (4, 3), the North Wilderlands, whose northern edge is a snowy ridge with Castle Lightwolf under it (a walled courtyard, x 9177-9329, z 6479-6550, a gate in its south wall and two towers before it) and, about 1000 south over open rolling ground, the werewolves' village of huts and smithies round (9120, 7530). Every client's walk is open across the vale, so the field is a box (\"field\") round the castle and the village, its west, east and south sides marked by sun flags; a player of a match past it goes back to its camp (a carrier drops the banner there). The zone's own open edges are closed with the disc's rocks (lightwolf-edges.json, cmd/worldedges; -check walks them closed). Built by cmd/worldbuild from the operator's disc; the arena block is read by the server, never written into the file. Not played unless world.ctf.world names 17 (12, the Spirit Ring, is the default; 11, the Canyon of Banners, is kept).",
+  "extraFiles": [
+    "lightwolf-edges.json"
+  ],
+  "zones": [
+    {
+      "name": "Lightwolf Vale",
+      "from": "TUNARIA.ESF",
+      "zone": 24,
+      "note": "The North Wilderlands (cell 4, 3): Castle Lightwolf on the north, the werewolves' village south of it; the field is the ground between and round them. Its extras (the decoration, ours, each at the ground's floor off anything placed): each team's two guild banners of Highbourne beside its stand, a breastwork before Dusk's (the village is open; the castle's forecourt has its towers), braziers at each camp, a lean-to pair at Dusk's, a brazier by each shrine and the spring, two sun flags by the spring, staggered cover (a boulder and a broken wall) in the west, middle and east lanes, and sun flags every 160 along the field's west, east and south sides. Made by the lane's lwdecor.py.",
+      "extras": [
+        {"sprite": "0xB714B430", "from": "TUNARIA.ESF", "zone": 113, "at": [9271.1, 54.1, 6598.4], "hpr": [6.1101, 0, 0], "scale": 0.21, "note": "Ember's stand, a banner beside it (Highbourne's wizards' banner: the burning hand, red on gold)"},
+        {"sprite": "0xB714B430", "from": "TUNARIA.ESF", "zone": 113, "at": [9288.9, 54.1, 6601.6], "hpr": [6.1101, 0, 0], "scale": 0.21, "note": "Ember's stand, a banner beside it (Highbourne's wizards' banner: the burning hand, red on gold)"},
+        {"sprite": "0xF0CFEF05", "from": "TUNARIA.ESF", "zone": 113, "at": [9127.9, 52.3, 7518.3], "hpr": [2.9685, 0, 0], "scale": 0.21, "note": "Dusk's stand, a banner beside it (Highbourne's enchanters' banner: the hand on violet)"},
+        {"sprite": "0xF0CFEF05", "from": "TUNARIA.ESF", "zone": 113, "at": [9113.1, 52.3, 7513.4], "hpr": [2.9685, 0, 0], "scale": 0.21, "note": "Dusk's stand, a banner beside it (Highbourne's enchanters' banner: the hand on violet)"},
+        {"sprite": "0x17520771", "from": "TUNARIA.ESF", "zone": 108, "at": [9127.2, 52.3, 7488.9], "hpr": [4.5393, 0, 0], "note": "a breastwork before Dusk's stand: around it at either end (the Deathfist ruins' stone wall, 11.6 long and 5.3 high)"},
+        {"sprite": "0x48033ACC", "from": "TUNARIA.ESF", "zone": 80, "at": [9241.7, 54.1, 6529.4], "note": "Ember's camp in the castle's courtyard, the rising point (Highpass Hold's brazier pillar, 7.6 high)"},
+        {"sprite": "0x48033ACC", "from": "TUNARIA.ESF", "zone": 80, "at": [9268.3, 54.1, 6520.6], "note": "Ember's camp in the castle's courtyard, the rising point (Highpass Hold's brazier pillar, 7.6 high)"},
+        {"sprite": "0x48033ACC", "from": "TUNARIA.ESF", "zone": 80, "at": [9129.0, 52.5, 7620.7], "note": "Dusk's camp south of the village, the rising point (Highpass Hold's brazier pillar, 7.6 high)"},
+        {"sprite": "0x48033ACC", "from": "TUNARIA.ESF", "zone": 80, "at": [9101.0, 52.3, 7619.3], "note": "Dusk's camp south of the village, the rising point (Highpass Hold's brazier pillar, 7.6 high)"},
+        {"sprite": "0xBC9588CE", "from": "TUNARIA.ESF", "zone": 108, "at": [9085.0, 52.3, 7638.0], "hpr": [2.9685, 0, 0], "note": "Dusk's camp (a thatched lean-to, 10 across)"},
+        {"sprite": "0xBC9588CE", "from": "TUNARIA.ESF", "zone": 108, "at": [9147.0, 52.4, 7638.0], "hpr": [2.9685, 0, 0], "note": "Dusk's camp (a thatched lean-to, 10 across)"},
+        {"sprite": "0x48033ACC", "from": "TUNARIA.ESF", "zone": 80, "at": [8940.0, 60.2, 7028.0], "note": "the West Wind Shrine (Highpass Hold's brazier pillar, 7.6 high)"},
+        {"sprite": "0x48033ACC", "from": "TUNARIA.ESF", "zone": 80, "at": [9440.0, 45.3, 7038.0], "note": "the East Wind Shrine (Highpass Hold's brazier pillar, 7.6 high)"},
+        {"sprite": "0x48033ACC", "from": "TUNARIA.ESF", "zone": 80, "at": [9190.0, 50.3, 7028.0], "note": "the Mending Spring (Highpass Hold's brazier pillar, 7.6 high)"},
+        {"sprite": "0x37F613AF", "from": "TUNARIA.ESF", "zone": 136, "at": [9030.0, 52.3, 6900.0], "hpr": [0.5236, 0, 0], "scale": 0.7, "note": "cover in the west lane, Ember's side (Fort Alliance's grey boulder, 21 by 17, 6 high)"},
+        {"sprite": "0x17520771", "from": "TUNARIA.ESF", "zone": 108, "at": [9010.0, 80.6, 7200.0], "hpr": [1.5708, 0, 0], "note": "cover in the west lane, Dusk's side: a broken wall across it (the Deathfist ruins' stone wall)"},
+        {"sprite": "0x17520771", "from": "TUNARIA.ESF", "zone": 108, "at": [9215.0, 54.4, 6880.0], "hpr": [0.0, 0, 0], "note": "cover in the middle lane, Ember's side: a broken wall across it (the Deathfist ruins' stone wall)"},
+        {"sprite": "0x37F613AF", "from": "TUNARIA.ESF", "zone": 136, "at": [9170.0, 59.1, 7210.0], "hpr": [2.0944, 0, 0], "scale": 0.7, "note": "cover in the middle lane, Dusk's side (Fort Alliance's grey boulder)"},
+        {"sprite": "0x37F613AF", "from": "TUNARIA.ESF", "zone": 136, "at": [9381.7, 52.3, 6871.0], "hpr": [1.0472, 0, 0], "scale": 0.7, "note": "cover in the east lane, Ember's side (Fort Alliance's grey boulder)"},
+        {"sprite": "0x17520771", "from": "TUNARIA.ESF", "zone": 108, "at": [9350.0, 69.3, 7230.0], "hpr": [1.5708, 0, 0], "note": "cover in the east lane, Dusk's side: a broken wall across it (the Deathfist ruins' stone wall)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [9176.0, 50.3, 7046.0], "note": "by the Mending Spring: a sun flag (the Deathfist sun flag on its pole, 9 high)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [9204.0, 58.6, 7046.0], "note": "by the Mending Spring: a sun flag (the Deathfist sun flag on its pole, 9 high)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [8824.0, 93.4, 6520.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [9616.0, 95.9, 6520.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [8824.0, 67.3, 6680.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [9616.0, 64.4, 6680.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [8824.0, 64.5, 6840.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [9616.0, 80.6, 6840.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [8824.0, 65.7, 7000.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [9616.0, 75.3, 7000.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [8824.0, 59.5, 7160.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [9616.0, 77.0, 7160.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [8824.0, 54.8, 7320.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [9616.0, 73.6, 7320.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [8824.0, 67.6, 7480.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [9616.0, 50.2, 7480.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [8824.0, 55.6, 7640.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [9616.0, 49.2, 7640.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [8900.0, 55.2, 7716.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [9060.0, 43.4, 7716.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [9220.0, 63.1, 7716.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [9380.0, 54.1, 7716.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [9540.0, 76.4, 7716.0], "note": "the field's edge: past it a player of a match goes back to its camp (the Deathfist sun flag on its pole)"}
+      ]
+    }
+  ],
+  "arena": {
+    "game": "ctf",
+    "name": "the Lightwolf Vale",
+    "note": "Castle Lightwolf against the village south of it. Ember's stand is in the castle's forecourt, between the two towers before its south gate, its camp inside the courtyard (out through the gate); Dusk's stand is in the village's middle behind a breastwork, its camp south of the huts. Stand to stand about 930 straight and 980 walked (the Canyon of Banners' 932); the West and East Wind Shrines out on the flanks (each 520-600 from either stand), the Mending Spring midway. The field's edge is the box: the castle's courtyard and the ridge's foot on the north, the vale 280-480 either side of the line between the bases, the ground just past the village's camp on the south. Banners: Highbourne's guild banners the decoration copies into the zone (the wizards' for Ember, the enchanters' for Dusk) at 0.17; built without the decoration, the CHAR.ESF orbs (fallback_body).",
+    "speed_body": "0x8143DC70",
+    "heal_body": "0xC5F3788D",
+    "teams": [
+      {
+        "name": "the Ember Band",
+        "short": "Ember",
+        "flag": "Ember Banner",
+        "flag_body": "0xB714B430",
+        "flag_size": 0.17,
+        "fallback_body": "0xF97FD9FC",
+        "fallback_size": 1.5,
+        "stand": {
+          "x": 9280,
+          "y": 54.1,
+          "z": 6600,
+          "toward": [
+            9120,
+            7515
+          ]
+        },
+        "camp": {
+          "x": 9255,
+          "y": 54.1,
+          "z": 6525,
+          "toward": [
+            9280,
+            6600
+          ]
+        }
+      },
+      {
+        "name": "the Dusk Band",
+        "short": "Dusk",
+        "flag": "Dusk Banner",
+        "flag_body": "0xF0CFEF05",
+        "flag_size": 0.17,
+        "fallback_body": "0x4446A60B",
+        "fallback_size": 1.5,
+        "stand": {
+          "x": 9120,
+          "y": 52.3,
+          "z": 7515,
+          "toward": [
+            9280,
+            6600
+          ]
+        },
+        "camp": {
+          "x": 9115,
+          "y": 52.6,
+          "z": 7620,
+          "toward": [
+            9120,
+            7515
+          ]
+        }
+      }
+    ],
+    "powerups": [
+      {
+        "kind": "speed",
+        "name": "West Wind Shrine",
+        "at": {
+          "x": 8940,
+          "y": 60.9,
+          "z": 7040
+        }
+      },
+      {
+        "kind": "speed",
+        "name": "East Wind Shrine",
+        "at": {
+          "x": 9440,
+          "y": 49.0,
+          "z": 7050
+        }
+      },
+      {
+        "kind": "heal",
+        "name": "Mending Spring",
+        "at": {
+          "x": 9190,
+          "y": 52.7,
+          "z": 7040
+        }
+      }
+    ],
+    "field": [
+      [
+        8820,
+        6440
+      ],
+      [
+        9620,
+        6440
+      ],
+      [
+        9620,
+        7720
+      ],
+      [
+        8820,
+        7720
+      ]
+    ]
+  }
+}

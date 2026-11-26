@@ -972,7 +972,8 @@ type HomesConfig struct {
 // its default (entity.DefaultCTFSettings; claude-notes/ctf-world-20261110.md has the table).
 type CTFConfig struct {
 	// Enabled turns the arena on; World is its slot (unset: 12, the Spirit Ring, tools/worlds/ring.json; 11 is the
-	// Canyon of Banners, tools/worlds/arena.json), which must be in world.server_worlds.
+	// Canyon of Banners, tools/worlds/arena.json; 17 the Lightwolf Vale, tools/worlds/lightwolf.json), which must be in
+	// world.server_worlds.
 	Enabled bool `yaml:"enabled"`
 	World   int  `yaml:"world"`
 

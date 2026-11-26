@@ -217,6 +217,34 @@ func dpsSplitMercs(rows []dpsRow, f *dpsFight, p *Player) []dpsRow {
 	return rows
 }
 
+// dpsMercRows puts each merc's own line of f on its owner's row (layout 5:
+// rows[i].mercs, the most damage first), flagged as dpsSplitMercs flags it; the
+// owner's row keeps its merc shares (layout 4's). Must be called with the lock
+// held.
+func dpsMercRows(rows []dpsRow, f *dpsFight, p *Player) {
+	if len(f.mercs) == 0 {
+		return
+	}
+	at := map[EntityID]int{}
+	for i, r := range rows {
+		at[r.id] = i
+	}
+	for id, ml := range f.mercs {
+		i, ok := at[ml.owner]
+		if !ok {
+			continue
+		}
+		flags := byte(4) | rows[i].flags&2
+		if ml.owner == p.ServerID {
+			flags |= 8
+		}
+		rows[i].mercs = append(rows[i].mercs, dpsRow{id: id, line: ml.dpsLine, flags: flags, owner: ml.ownerName})
+	}
+	for i := range rows {
+		sortDPSRows(rows[i].mercs)
+	}
+}
+
 // sortDPSRows orders rows as a message sends them: the most damage first, then
 // by name, then by id.
 func sortDPSRows(rows []dpsRow) {

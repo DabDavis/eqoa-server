@@ -335,3 +335,114 @@ func TestMercBloodPathHealsTheGroup(t *testing.T) {
 		t.Fatalf("the owner's line: healing %d (merc share %d), want %d", h, hp, want)
 	}
 }
+
+// Layout 5 (Heirloom petition 3136) is layout 4 byte for byte, then each merc
+// line of the rows sent (flags, class, five u32s, its owner's place, its name),
+// the most damage first; a merc whose owner's row is not sent is not either,
+// and a raid's rows are chosen with room for their mercs.
+func TestDPSMeterLayoutFiveMercRows(t *testing.T) {
+	rows := []dpsRow{
+		{id: 1, line: dpsLine{name: "Dab", class: 3, damage: 1000, pet: 420, heal: 950, healPet: 910, power: 40, merc: [3]int64{300, 900, 40}}, flags: 1,
+			mercs: []dpsRow{
+				{id: 50, line: dpsLine{name: "Kel", class: 9, damage: 200, heal: 900, power: 40}, flags: 4 | 8, owner: "Dab"},
+				{id: 51, line: dpsLine{name: "Ord", class: 0, damage: 100, pet: 10}, flags: 4 | 8, owner: "Dab"},
+			}},
+		{id: 2, line: dpsLine{name: "Jib", class: 9, damage: 300, heal: 120, power: 10}, flags: 2},
+	}
+	four := encodeDPSMeterLayout(4, 0x01020304, true, 1500*time.Millisecond, rows)
+	got := encodeDPSMeterLayout(5, 0x01020304, true, 1500*time.Millisecond, rows)
+	if got[0] != 5 || !bytes.Equal(got[1:len(four)], four[1:]) {
+		t.Fatalf("layout 5's start is not layout 4's:\n got % X\nfour % X", got, four)
+	}
+	want := []byte{2,
+		4 | 8, 9, 200, 0, 0, 0, 0, 0, 0, 0, 0x84, 3, 0, 0, 0, 0, 0, 0, 40, 0, 0, 0, 0, 3, 'K', 'e', 'l',
+		4 | 8, 0, 100, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 'O', 'r', 'd',
+	}
+	if tail := got[len(four):]; !bytes.Equal(tail, want) {
+		t.Fatalf("the merc lines:\n got % X\nwant % X", tail, want)
+	}
+	// the control: no mercs, a zero count after layout 4's rows
+	if b := encodeDPSMeterLayout(5, 1, false, time.Second, rows[1:]); b[len(b)-1] != 0 || len(b) != len(encodeDPSMeterLayout(4, 1, false, time.Second, rows[1:]))+1 {
+		t.Fatalf("no mercs: % X", b)
+	}
+
+	// a raid of 30 players, three mercs each of long names: what fits
+	long := "Abcdefghijklmnopqrstuvw"
+	raid := make([]dpsRow, 30)
+	for i := range raid {
+		raid[i] = dpsRow{id: EntityID(100 + i), line: dpsLine{name: long, damage: int64(3000 - i), merc: [3]int64{30}}}
+		for k := range 3 {
+			raid[i].mercs = append(raid[i].mercs, dpsRow{id: EntityID(1000 + 3*i + k), line: dpsLine{name: long, damage: int64(10 + k)}, flags: 4})
+		}
+	}
+	raid[29].flags = 1
+	b := encodeDPSMeterLayout(5, 9, false, time.Second, raid)
+	if len(b) > dpsMeterBodyMost {
+		t.Fatalf("%d bytes, most %d", len(b), dpsMeterBodyMost)
+	}
+	sent, at := int(b[48]), 49
+	own := false
+	for range sent {
+		row := b[at:]
+		own = own || row[0]&1 != 0
+		at += 23 + int(row[22])
+		if row[0]&4 != 0 {
+			at += 12
+		}
+	}
+	n, at := int(b[at]), at+1
+	if !own || sent == 0 || n != 3*sent {
+		t.Fatalf("%d rows (own %t), %d merc lines: want every row's three", sent, own, n)
+	}
+	last := uint32(1 << 31)
+	for range n {
+		d := binary.LittleEndian.Uint32(b[at+2:])
+		if d > last || int(b[at+22]) >= sent {
+			t.Fatalf("a merc line out of order (%d after %d) or of an owner not sent (%d of %d)", d, last, b[at+22], sent)
+		}
+		last = d
+		at += 24 + int(b[at+23])
+	}
+	if at != len(b) {
+		t.Fatalf("%d bytes past the merc lines", len(b)-at)
+	}
+}
+
+// Layout 5's rows from the World: each merc's own line on its owner's row
+// (flag 4, 8 the receiver's own), the owner's row whole (its merc share kept,
+// as layout 4's).
+func TestDPSMeterLayoutFiveRowsOfTheWorld(t *testing.T) {
+	r := newMercRig(t)
+	k := r.kit(11, 0, 0)
+	k.Name = "Peleth"
+	ms := r.hireSlot(1, k)
+	crab := r.creature("a crab", 30, 3)
+	vs := GetOrCreateVisibility(r.sess)
+	vs.ChannelEntity[1], vs.ChannelObjectID[1] = crab.ServerID, 0x01312E98
+	r.w.mu.Lock()
+	defer r.w.mu.Unlock()
+	crab.MaxHP, crab.HP = 1_000_000, 1_000_000
+	now := r.at(time.Second)
+	meterClock(t, now)
+	r.p.dps = &dpsMeter{layout: 5}
+	r.w.dpsCountLocked(r.p, 10, false, now)
+	r.w.mercDamageLocked(ms, crab, 40, numberSpell, now)
+	f := fightOf(r.w, r.p)
+	rows := r.w.dpsRowsForLocked(r.p, f, 5)
+	if len(rows) != 1 {
+		t.Fatalf("layout 5's rows %+v: want the owner's alone", rows)
+	}
+	o := rows[0]
+	if o.line.damage != 50 || o.line.merc[dpsDamage] != 40 || len(o.mercs) != 1 {
+		t.Fatalf("the owner's row %+v", o)
+	}
+	if m := o.mercs[0]; m.line.name != "Peleth" || m.line.damage != 40 || m.flags != 4|8 {
+		t.Errorf("its merc's line %+v", m)
+	}
+	// the control: layout 4's rows carry no merc lines
+	for _, row := range r.w.dpsRowsForLocked(r.p, f, 4) {
+		if len(row.mercs) != 0 {
+			t.Errorf("layout 4's row %+v carries merc lines", row)
+		}
+	}
+}

@@ -306,6 +306,13 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
+	// One of a people who will not speak to the player's red standing
+	// (talkrefusal.go, factionrefusetalk: Graumord's citizens, petition
+	// 3111): its refusal, and none of its business, quests included.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.talkRefuses(sess, player, npc) {
+		return nil
+	}
+
 	// A tour's stand-in says where its host is while he is out (npctour.go):
 	// the Holiday Elf's "Santa's out on his sleigh", before its own talk.
 	if npc, ok := targetEntity.(*entity.NPC); ok {

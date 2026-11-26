@@ -216,6 +216,10 @@ type factionTable struct {
 	npcs   map[string][]npcFactionRow // by NPCClassKey, the most specific first
 	nStart int                        // starts kept
 	nNPC   int                        // npcfaction rows kept
+	// talkRefuse is the factions whose people will not speak to a player in
+	// their red bands (factionrefusetalk), by faction: its refusal line, ""
+	// the default (talkrefusal.go)
+	talkRefuse map[string]string
 
 	// what was worked out from starts and npcs (cacheMu: the world's read
 	// lock may be all a caller holds): a combo's starts, a raw NPC name's rows
@@ -563,6 +567,10 @@ func (w *World) LoadFactions(db *database.SQLiteDB) error {
 	if err != nil {
 		return fmt.Errorf("factionhitareas: %w", err)
 	}
+	silent, err := db.FactionTalkRefusals()
+	if err != nil {
+		return fmt.Errorf("factionrefusetalk: %w", err)
+	}
 	if len(defaults) > 0 {
 		w.SetFactionDefaults(defaults)
 	}
@@ -571,6 +579,9 @@ func (w *World) LoadFactions(db *database.SQLiteDB) error {
 	nKept, nUnknown := w.SetNPCFactions(members)
 	if aKept, aUnknown := w.SetFactionHitAreas(areas); aKept+aUnknown > 0 {
 		log.Printf("Factions: %d kill hits by place (%d naming no faction)", aKept, aUnknown)
+	}
+	if rKept, rUnknown := w.SetFactionTalkRefusals(silent); rKept+rUnknown > 0 {
+		log.Printf("Factions: %d whose people will not speak to the red bands (%d naming no faction)", rKept, rUnknown)
 	}
 	log.Printf("Factions: %d factions, %d kill hits on %d NPC names (%d naming no faction); %d starts by race, class and home city (%d naming no faction); %d npcfaction rows (%d naming no faction): %s",
 		len(defaults), kept, w.factionHitNames(), unknown, sKept, sUnknown, nKept, nUnknown, w.FactionMembersSummary())

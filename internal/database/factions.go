@@ -522,6 +522,31 @@ func (db *SQLiteDB) FactionHitAreas() ([]FactionHitAreaRow, error) {
 	return out, rows.Err()
 }
 
+// FactionTalkRefusalRow is one row of factionrefusetalk: a faction whose
+// people will not speak to a player in its red bands, and its refusal line
+// ("" the default; entity/talkrefusal.go).
+type FactionTalkRefusalRow struct {
+	Faction, Line string
+}
+
+// FactionTalkRefusals is the factionrefusetalk table.
+func (db *SQLiteDB) FactionTalkRefusals() ([]FactionTalkRefusalRow, error) {
+	rows, err := db.Query(`SELECT faction, line FROM factionrefusetalk ORDER BY faction`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []FactionTalkRefusalRow
+	for rows.Next() {
+		var r FactionTalkRefusalRow
+		if err := rows.Scan(&r.Faction, &r.Line); err != nil {
+			return nil, err
+		}
+		out = append(out, r)
+	}
+	return out, rows.Err()
+}
+
 // FactionStarts is the factionstart table.
 func (db *SQLiteDB) FactionStarts() ([]FactionStartRow, error) {
 	rows, err := db.Query(`SELECT race, class, humtype, faction, standing FROM factionstart ORDER BY id`)

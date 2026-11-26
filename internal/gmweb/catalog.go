@@ -1220,6 +1220,24 @@ var catalog = map[string]tableNote{
 			"source":   {Label: "Source", Help: "gm, or seed for tools/seed_faction_starts.py's rows (its --undo takes those out)"},
 		},
 	},
+	"factionrefusetalk": {
+		Label: "Factions that will not speak", Group: "World", Title: "faction", Sort: "faction",
+		Help: "Factions whose people will not speak to a player whose standing with them is -350 or below (the red " +
+			"faces): every NPC of the faction (NPC factions) answers a talk with one refusal line and nothing else (no " +
+			"town line, talk tree, quest offer, step or hand-in) and opens no bank or blacksmith window; a GM is always " +
+			"spoken to. The line is the NPC's own hostile npcdialog line if it has one, else this row's, else \"%n " +
+			"regards you coldly and will not speak with you.\" Opt-in by faction (petition 3111, Graumord's citizens): " +
+			"for every faction it would refuse every character the opposite cities' people (entity/talkrefusal.go). " +
+			"Merchants and coachmen of any faction refuse the red bands already.",
+		Live:   "At once: the next talk uses it.",
+		Search: []string{"faction", "line", "note", "source"},
+		Cols: map[string]colNote{
+			"faction": {Label: "Faction (key)", Ref: "factions"},
+			"line":    {Label: "Refusal line", Help: "empty: the default; %n the NPC's name, %p the player's"},
+			"note":    {Label: "Note", Help: "why"},
+			"source":  {Label: "Source", Help: "gm, or the petition or tool that wrote the row"},
+		},
+	},
 	"npcfaction": {
 		Label: "NPC factions", Group: "World", Title: "name", Sort: "name",
 		Help: "Which faction an NPC is of, by NPC NAME as NPC classes key it (lower case, no trailing space or $). Its " +

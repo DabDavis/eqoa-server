@@ -1723,21 +1723,37 @@ func (w *World) coachDestinations(excludeName string, keep func(*NPC) bool) []Co
 	return dests
 }
 
+// coachLandAround is where around a coachman a rider may be set down, in turn:
+// in front of him, then at his right, his left and behind him (turns of his
+// facing), each coachLandOut out.
+var coachLandAround = [...]float64{0, math.Pi / 2, -math.Pi / 2, math.Pi}
+
 // coachDestLocked is the stop a coachman's stable is in the other coachmen's
-// menus: his town, and where a rider is set down (in front of him, else his
-// own spot). Set down in front of him, the rider faces him, the camera behind
+// menus: his town, and where a rider is set down (in front of him; where there
+// is no floor in front, beside or behind him; with floor at none of those, his
+// own spot). Set down around him, the rider faces him, the camera behind
 // (CLIENT's Respawn: SetLocation with the 0x00B2's heading, then
 // SetOrbitAngleBehind), so his menu is a press away (Heirloom petition 3091:
 // "when you arrive at a coach you are not facing the coachman"); on his own
-// spot, his way, as before. Must be called with the lock held.
+// spot, his way, as before. Heirloom petition 3301 (2026-11-26: "when i coach
+// to guk im inside the coachman ... stuck between him and the mushroom"): the
+// Homelands' Guk's Coachman Inkcap has no floor in front of him (petition
+// 2229), so his riders were set down on his own spot, inside him (a creature is
+// solid: creature-collision-20261024.md), and walked out behind him into the
+// mushroom; now beside him where the floor is. Must be called with the lock
+// held.
 func (w *World) coachDestLocked(npc *NPC) CoachDest {
 	label, _ := coachLabel(npc)
-	f := float64(npc.SpawnFacing)
-	x, z := npc.SpawnX+coachLandOut*float32(math.Sin(f)), npc.SpawnZ+coachLandOut*float32(math.Cos(f))
-	facing := faceBack(npc.SpawnFacing)
-	if !w.coachFloorLocked(npc.World, x, npc.SpawnY, z) && w.coachFloorLocked(npc.World, npc.SpawnX, npc.SpawnY, npc.SpawnZ) {
-		x, z = npc.SpawnX, npc.SpawnZ // no floor in front of him: his own spot
-		facing = npc.SpawnFacing
+	x, z, facing := npc.SpawnX, npc.SpawnZ, npc.SpawnFacing
+	for i, turn := range coachLandAround {
+		f := float64(npc.SpawnFacing) + turn
+		ax, az := npc.SpawnX+coachLandOut*float32(math.Sin(f)), npc.SpawnZ+coachLandOut*float32(math.Cos(f))
+		// in front is taken unless the floor is missing there but under his own
+		// spot (as before); around him only where the floor is
+		if (i == 0 && !w.coachFloorLocked(npc.World, npc.SpawnX, npc.SpawnY, npc.SpawnZ)) || w.coachFloorLocked(npc.World, ax, npc.SpawnY, az) {
+			x, z, facing = ax, az, faceBack(float32(math.Mod(f+4*math.Pi, 2*math.Pi)))
+			break
+		}
 	}
 	return CoachDest{
 		Name:     label,

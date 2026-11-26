@@ -418,6 +418,11 @@ func (w *World) runMercNotes() {
 	}
 }
 
+// RunMercNotes hands the merc events queued so far to the hook now, not at the
+// tick (a handler's move that used a carried record: MercUse). Must be called
+// WITHOUT the lock.
+func (w *World) RunMercNotes() { w.runMercNotes() }
+
 // mercHiredByLocked reports id a merc whose owner is owner (dead or not: a
 // heal over time it laid is still its own). Must be called with the lock held.
 func (w *World) mercHiredByLocked(id, owner EntityID) bool {

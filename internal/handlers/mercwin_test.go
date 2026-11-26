@@ -39,8 +39,8 @@ type mercWinRec struct {
 
 func readMercWinState(t *testing.T, d []byte) mercWinState {
 	t.Helper()
-	if len(d) < 3 || binary.LittleEndian.Uint16(d) != uint16(protocol.OpcodeMercWindowState) || d[2] != mercWindowLayout {
-		t.Fatalf("not a state of layout 1: % x", d[:min(len(d), 8)])
+	if len(d) < 3 || binary.LittleEndian.Uint16(d) != uint16(protocol.OpcodeMercWindowState) || (d[2] != mercWindowLayout && d[2] != mercWindowLayoutUse) {
+		t.Fatalf("not a state of layout 1 or 2: % x", d[:min(len(d), 8)])
 	}
 	r := buffer.NewReader(d[3:])
 	b := func() byte { v, _ := r.ReadByte(); return v }
@@ -167,7 +167,7 @@ func TestMercWindowOfferAndAnswer(t *testing.T) {
 	for _, a := range []struct {
 		in   []byte
 		want uint8
-	}{{[]byte{1}, 1}, {nil, 1}, {[]byte{9}, 1}, {[]byte{0}, 0}} {
+	}{{[]byte{1}, 1}, {nil, 1}, {[]byte{2}, 2}, {[]byte{9}, 2}, {[]byte{0}, 0}} {
 		h.HandleAnswer(s, incoming(protocol.OpcodeMercWindowOffer, a.in))
 		if s.MercWindow() != a.want {
 			t.Errorf("after % x: layout %d, want %d", a.in, s.MercWindow(), a.want)
@@ -312,7 +312,7 @@ func TestMercWindowStateBytes(t *testing.T) {
 	pat := database.ItemPatternRecord{PatternID: itBreastplate, ItemName: "Mithril Breastplate", EquipSlot: 5}
 	recs := []mercWindowRec{{id: 77, kind: mercRecWorn, e: database.CharInventoryEntry{StackLeft: 1, RemainHP: 50, EquipLoc: 5, Pattern: pat}},
 		{kind: mercRecHeir, e: database.CharInventoryEntry{StackLeft: 1, EquipLoc: 0, Pattern: database.ItemPatternRecord{PatternID: 714188, ItemName: "Heirloom head"}}}}
-	d := buildMercWindowState(mercStateOpen, 2, sh, recs, false)
+	d := buildMercWindowState(1, mercStateOpen, 2, sh, recs, false)
 	head := []byte{0x74, 0x7E, 1, 1, 2, 3, 'K', 'e', 'l', 13, 2, 30}
 	if !bytes.Equal(d[:len(head)], head) {
 		t.Fatalf("head % x, want % x", d[:len(head)], head)

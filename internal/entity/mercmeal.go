@@ -1,12 +1,14 @@
 package entity
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/protocol"
+	"github.com/eqoa/server/internal/session"
 )
 
 // mercmeal.go — a merc's food and drink as its hirer's, shown, and its word when its power
@@ -76,7 +78,17 @@ func (w *World) mercGrocerDrinkTurnLocked(ms *mercState, now time.Time) bool {
 	if drink == nil {
 		return false
 	}
+	w.mercGrocerDrinkLocked(ms, *drink, now)
+	return true
+}
+
+// mercGrocerDrinkLocked puts a carried grocer's drink on the merc (its turn's,
+// or its owner's Use: MercUse): the last drink's place taken, its first tick
+// at once, one used, shown. Must be called with the lock held.
+func (w *World) mercGrocerDrinkLocked(ms *mercState, drink MercCarried, now time.Time) {
+	m := ms.npc
 	name, pot, id := drink.Name, max(drink.PoT, 1), drink.ID
+	w.dropNPCEffect(m, DrinkEffectID)
 	ae := &ActiveEffect{SpellID: DrinkEffectID, Name: name, Icon: mercMealIcon, Caster: m.ServerID, Until: now.Add(ConsumableDuration)}
 	ae.Mods.PoT = pot
 	m.Effects = append(m.Effects, ae)
@@ -85,7 +97,60 @@ func (w *World) mercGrocerDrinkTurnLocked(ms *mercState, now time.Time) bool {
 	w.mercUsedLocked(ms, id, false, 0)
 	w.broadcastNPCCastLocked(m, m.ServerID, 0, fxConsumed)
 	log.Printf("Merc: %s's %q drinks %q: %d power a tick (%d/%d power)", ms.owner.Name, m.Name, name, pot, m.Power, m.MaxPower)
-	return true
+}
+
+// Why a Use of a merc's carried food or drink was refused (MercUse).
+var (
+	// ErrMercUseNotOut: the merc of the slot is not out, or is dead
+	ErrMercUseNotOut = errors.New("merc not out")
+	// ErrMercUseNone: it carries no record of the id
+	ErrMercUseNone = errors.New("merc carries none")
+	// ErrMercUseNotFood: the record is neither a meal nor a grocer's drink
+	ErrMercUseNotFood = errors.New("not food or drink")
+	// ErrMercUseNoPower: a drink for a merc with no power to fill
+	ErrMercUseNoPower = errors.New("merc has no power")
+)
+
+// MercUse is the owner's Use of a meal or a grocer's drink the merc of the slot
+// carries (petition 3285, 2026-11-26: food and drink traded to a merc "Use"d
+// from its inventory window, so it eats or drinks it now; the owner approved):
+// the same effect its own turn would put on it (mercMealLocked,
+// mercGrocerDrinkLocked), whatever its health or power, the last meal's or
+// drink's place taken. As a player's (consumable.go) a meal is eaten in a fight
+// too, its first tick at once, and the fight ends it at the merc's next turn;
+// a drink runs on. It reports whether the record was a drink.
+func (w *World) MercUse(sess *session.Session, slot, itemID int, now time.Time) (drink bool, err error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	ms := w.mercAtLocked(w.sessionPlayerLocked(sess), slot)
+	if ms == nil {
+		return false, ErrMercUseNotOut
+	}
+	var c *MercCarried
+	for i := range ms.kit.Carried {
+		if ms.kit.Carried[i].ID == itemID && ms.kit.Carried[i].Count > 0 {
+			c = &ms.kit.Carried[i]
+			break
+		}
+	}
+	switch {
+	case c == nil:
+		return false, ErrMercUseNone
+	case c.Drink:
+		if ms.npc.MaxPower <= 0 {
+			return true, ErrMercUseNoPower
+		}
+		w.mercGrocerDrinkLocked(ms, *c, now)
+		return true, nil
+	case c.Food:
+		hot := c.HoT
+		if hot <= 0 {
+			hot, _ = RationRestore(ms.body) // a ration's figures (the eat turn's)
+		}
+		w.mercMealLocked(ms, c.Name, hot, c.ID, now)
+		return false, nil
+	}
+	return false, ErrMercUseNotFood
 }
 
 // mercSaysPower is whether a merc of the class speaks of its power: a caster's or a

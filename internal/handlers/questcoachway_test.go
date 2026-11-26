@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/session"
 	"github.com/eqoa/server/internal/worlds"
@@ -182,5 +183,46 @@ func TestQuestStopTagEndsTheLine(t *testing.T) {
 		if len(c.got) > 63 || strings.Contains(c.got, "|") {
 			t.Errorf("%q breaks the PS2 TextBox's rules", c.got)
 		}
+	}
+}
+
+// A coachman whose town's faction holds the player kill-on-sight (at or below
+// -350: he would refuse it) is no quest's way for it (Heirloom petition 3191:
+// "the questionmark should not appear on good coaches if you are evil,
+// likewise if you are good, it should not direct you to evil coaches"): no way
+// mark over him, and no " ?" on a stop whose coachman would refuse it. The
+// controls: at -349 both are back.
+func TestQuestWayAvoidsCoachmenWhoRefuse(t *testing.T) {
+	f := coachQuestFixture(t)
+	f.sign("Aviak Village")
+	f.tw.w.SetNPCFactions([]database.NPCFactionRow{
+		{Name: "coachman ronks", World: -1, Faction: "Citizens of Freeport"},
+		{Name: "coachman harrek", World: -1, Faction: "Citizens of Bastable"},
+	})
+	f.tw.p.Factions = map[string]int{"Citizens of Freeport": -350}
+	if m := wayMark(t, f); m != nil {
+		t.Errorf("Ronks would refuse the player: the way mark %+v", m)
+	}
+	f.tw.p.Factions["Citizens of Freeport"] = -349
+	if m := wayMark(t, f); m == nil || m.npc != "Coachman Ronks" {
+		t.Fatalf("the control: at -349 the way mark %+v, want Ronks's", m)
+	}
+	// the stop's coachman at Aviak Village holds the player kill-on-sight: no way there either
+	f.tw.p.Factions["Citizens of Bastable"] = -500
+	if m := wayMark(t, f); m != nil {
+		t.Errorf("Harrek would refuse the player at the stop: the way mark %+v", m)
+	}
+
+	// the menu: Grumm's stop at Aviak Village, Harrek's, unmarked while he refuses
+	grumm := f.tw.w.NPCs[9002]
+	dests := []entity.CoachDest{{Name: "Aviak Village", World: 10, X: 9211.7, Z: 21552, Coachman: 9001}}
+	f.qe.CoachStops(f.tw.p, grumm, dests)
+	if dests[0].QuestStop {
+		t.Errorf("a refusing coachman's stop marked: %+v", dests)
+	}
+	f.tw.p.Factions["Citizens of Bastable"] = 0
+	f.qe.CoachStops(f.tw.p, grumm, dests)
+	if !dests[0].QuestStop {
+		t.Errorf("the control: Harrek serves the player, the stop %+v unmarked", dests)
 	}
 }

@@ -1131,6 +1131,23 @@ const (
 	OpcodeFactionTrackData GameOpcode = 0x7E88
 )
 
+// Characters' surnames on the name plates of a client that draws them
+// (handlers/surname.go; Live petition 5648). A PS2 ignores the offer: its
+// players see a surname in /who alone.
+const (
+	// OpcodeSurnameOffer both ways. Server to client once the player is in
+	// the world: a u8, the layout of OpcodeSurnames (1). Client to server: a
+	// u8, 1 to be sent the surnames, 0 to stop.
+	OpcodeSurnameOffer GameOpcode = 0x7EF8
+	// OpcodeSurnames server to client, to one that answered 1: a u8 layout
+	// (1), a u16 count, and each: a character's name (its own, no tag), then
+	// its surname ("" none: forget the one held), each a u8 byte count and its
+	// UTF-8 bytes. Sent whole once after the answer (every character in the
+	// world with one), then a character at a time: its login with one, a
+	// surname taken, changed or cleared.
+	OpcodeSurnames GameOpcode = 0x7EF9
+)
+
 // A monster's name and level when the player talks to it (□, Q on vanilla's
 // keyboard) and it has nothing to say, for a client that shows them in the
 // target's details box (handlers/mobinfo.go, world.mob_info; a GM's
@@ -1259,7 +1276,7 @@ const (
 	// OpcodeMercWindowOffer both ways. Server to client once the player is in
 	// the world, where world.mercs is on: a u8, 1, the layout of
 	// OpcodeMercWindowState and OpcodeMercSpellsState. Client to server: a u8,
-	// the layout it reads (1), 0 to stop. A client that answered 1 has the
+	// the layout it reads (1; 2 a client reading the state's kind 4), 0 to stop. A client that answered 1 has the
 	// merc's menu's Items > Inventory and Spells, and /merc [name] inv, open
 	// its windows in place of the boxes, and is sent the merc's state after
 	// every change to what it holds or casts, by any road (the boxes, /merc,
@@ -1282,9 +1299,13 @@ const (
 	//     the pack, at most a stack, as /merc stock takes it (NO TRADE and LORE
 	//     as for one summoned);
 	//   7 close: none; the window is down (no stock's change is sent it).
+	//   8 use: a u32 the merc's record id: a carried meal or grocer's drink
+	//     eaten or drunk now, its effect on the merc (/merc use; petition
+	//     3285).
 	// Each is answered by OpcodeMercWindowResult and, done, the state.
 	OpcodeMercWindowAsk GameOpcode = 0x7E73
-	// OpcodeMercWindowState server to client: a u8 layout (1); a u8 of flags
+	// OpcodeMercWindowState server to client: a u8 layout (the client's answer:
+	// 1, or 2, which adds the record kind 4 below); a u8 of flags
 	// (bit 0 open the window, bit 1 the hire is gone: close it); a u8 the
 	// merc's slot; its name; a u8 class, a u8 race, a u8 level; five u32s, its
 	// hit points and most, power and most, and AC; seven u32s, STR STA AGI DEX WIS INT CHA (its figures now
@@ -1293,7 +1314,8 @@ const (
 	// u32 its id (0 an heirloom, which is only shown), a u8 its kind (0
 	// carried, 1 worn, 2 an heirloom worn where it wears nothing of its own,
 	// 3 the owner's potion stock: an alchemist's window's, its id the item's
-	// id, its stack the stock's count), then the record as 0x003B carries it
+	// id, its stack the stock's count; 4, layout 2's, carried and a meal or a
+	// grocer's drink its owner may Use: ask 8; kind 0 in layout 1), then the record as 0x003B carries it
 	// (ReadNetItem: its equip slot the worn slot, -1 carried). While the
 	// window is open (from its open to ask 7) a brew or a throw's change to
 	// the stock sends it again, at most every 5 s.
@@ -2030,6 +2052,10 @@ func (op GameOpcode) String() string {
 		return "FactionTrackAnswer"
 	case OpcodeFactionTrackData:
 		return "FactionTrackData"
+	case OpcodeSurnameOffer:
+		return "SurnameOffer"
+	case OpcodeSurnames:
+		return "Surnames"
 	case OpcodeStatFiguresData:
 		return "StatFiguresData"
 	case OpcodePetDyesOffer:

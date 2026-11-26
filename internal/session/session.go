@@ -346,6 +346,11 @@ type Session struct {
 	// answered (a PS2, an older build), keeps the boxes.
 	mercWindow uint8
 
+	// surnames: the client answered the surnames' offer 1
+	// (protocol.OpcodeSurnameOffer, handlers/surname.go), so it is sent the
+	// characters' surnames for its name plates.
+	surnames bool
+
 	// groupReg: the client answered the group search's offer 1
 	// (protocol.OpcodeGroupRegOffer, handlers/groupreg.go), so it is sent its
 	// standing (OpcodeGroupRegState) whenever it differs from groupRegSent
@@ -597,6 +602,23 @@ func (s *Session) MercsLayout() uint8 {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.mercsLayout
+}
+
+// SetSurnames records the client's answer to the surnames' offer.
+func (s *Session) SetSurnames(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.surnames = on
+}
+
+// Surnames reports a client that answered the surnames' offer 1.
+func (s *Session) Surnames() bool {
+	if s == nil {
+		return false
+	}
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.surnames
 }
 
 // SetMercWindow records the client's answer to the merc windows' offer (0

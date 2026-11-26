@@ -112,6 +112,9 @@ type Kept struct {
 	// CRC now) is no longer one the client holds, as its file is the old one (ServerWorldCRC)
 	ServerWorldCRCs []uint32 `json:"server_world_crcs,omitempty"`
 
+	// Surnames: the client reads the surnames (handlers/surname.go)
+	Surnames bool `json:"surnames,omitempty"`
+
 	Clock *KeptClock `json:"clock,omitempty"`
 	Conn  KeptConn   `json:"conn"`
 
@@ -259,6 +262,7 @@ func (s *Session) Keep() Kept {
 		MercsTold:          s.mercsTold,
 		MercsLayout:        s.mercsLayout,
 		MercWindow:         s.mercWindow,
+		Surnames:           s.surnames,
 		GroupReg:           s.groupReg,
 		ItemLinks:          s.itemLinks,
 		ReportNotice:       s.reportNotice,
@@ -453,6 +457,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	// keeps it; the world may have changed in the hold)
 	s.mercsTold, s.mercsLayout, s.mercsSent = k.MercsTold, k.MercsLayout, ""
 	s.mercWindow = k.MercWindow
+	s.surnames = k.Surnames
 	s.groupReg, s.groupRegSent = k.GroupReg, ""
 	s.itemLinks = k.ItemLinks
 	s.reportNotice = k.ReportNotice

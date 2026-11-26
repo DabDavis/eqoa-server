@@ -36,6 +36,10 @@ import (
 //   - /merc [name] inv: what it holds (the Inventory box, each record its
 //     Equip or Unequip and Take back), /merc [name] equip|unequip|take
 //     <item>.
+//   - /merc [name] use <item>, the Inventory box's Use and vanilla's window's
+//     (petition 3285): a meal or a grocer's drink it carries eaten or drunk
+//     now, its effect on the merc as its own turn would put it
+//     (entity.MercUse), whatever its health or power.
 //   - /merc [name] stock: an alchemist's owner's potions made (entity/
 //     mercbrew.go), each taken into the pack a stack at a time. A potion of
 //     the stock is the player's as any he made: its NO TRADE and LORE flags
@@ -94,6 +98,11 @@ const (
 	mercItemAsk      = "%s: %s"
 	mercStockAsk     = "Your alchemists' potions (%d of %d): take a stack."
 	mercItemsAsk     = "%s's items:"
+	mercUseEat       = "%s eats %s."
+	mercUseDrink     = "%s drinks %s."
+	mercUseNotOut    = "%s must be out with you to eat or drink."
+	mercUseNot       = "%s cannot eat or drink %s."
+	mercUseNoPower   = "%s has no power for %s to restore."
 )
 
 // mercInvPage is the records an items box lists (five and More).
@@ -368,6 +377,48 @@ func (m *Mercs) toPack(sess *session.Session, p *entity.Player, it database.Merc
 	return came, ""
 }
 
+// mercUsable is whether a carried record is a meal or a grocer's drink its
+// owner may have the merc Use (consumableOf's: a player's own).
+func mercUsable(p *database.ItemPatternRecord) bool {
+	_, ok := consumableOf(p)
+	return ok
+}
+
+// useItem has the merc eat or drink the carried record now (the file's doc):
+// one of it used, the window sent again.
+func (m *Mercs) useItem(sess *session.Session, p *entity.Player, row database.MercRow, it database.MercItem) bool {
+	name := it.Pattern.ItemName
+	if it.EquipLoc >= 0 || !mercUsable(&it.Pattern) {
+		SendErrorMessage(sess, fmt.Sprintf(mercUseNot, row.Name, name))
+		return false
+	}
+	if m.gw == nil {
+		SendErrorMessage(sess, fmt.Sprintf(mercUseNotOut, row.Name))
+		return false
+	}
+	drink, err := m.gw.MercUse(sess, row.Slot, it.ID, m.now())
+	switch {
+	case errors.Is(err, entity.ErrMercUseNoPower):
+		SendErrorMessage(sess, fmt.Sprintf(mercUseNoPower, row.Name, name))
+		return false
+	case errors.Is(err, entity.ErrMercUseNone):
+		SendErrorMessage(sess, "Your mercenary no longer holds that.")
+		m.pushWindow(sess, p, row.Slot)
+		return false
+	case errors.Is(err, entity.ErrMercUseNotFood):
+		SendErrorMessage(sess, fmt.Sprintf(mercUseNot, row.Name, name))
+		return false
+	case err != nil:
+		SendErrorMessage(sess, fmt.Sprintf(mercUseNotOut, row.Name))
+		return false
+	}
+	m.gw.RunMercNotes() // the record's use kept before the window goes (noteSupply)
+	log.Printf("Merc: %s has %q (slot %d) use %q (record %d)", p.Name, row.Name, row.Slot, name, it.ID)
+	SendClientMessage(sess, fmt.Sprintf(map[bool]string{false: mercUseEat, true: mercUseDrink}[drink], row.Name, name))
+	m.pushWindow(sess, p, row.Slot)
+	return true
+}
+
 // takeItem takes the merc's record back into the pack (its kit made again).
 func (m *Mercs) takeItem(sess *session.Session, p *entity.Player, row database.MercRow, it database.MercItem) bool {
 	came, why := m.toPack(sess, p, it, row.Name)
@@ -549,8 +600,8 @@ func (m *Mercs) mercItemsOf(sess *session.Session, row database.MercRow) ([]data
 	return items, true
 }
 
-// invCommand is /merc's give, inv, equip, unequip, take, stock, claim, aoe
-// and single (the file's doc), for the merc of the slot.
+// invCommand is /merc's give, inv, equip, unequip, take, use, stock, claim,
+// aoe and single (the file's doc), for the merc of the slot.
 func (m *Mercs) invCommand(sess *session.Session, p *entity.Player, rows []database.MercRow, slot int, verb, rest string) {
 	if verb == "claim" {
 		m.claimKeeping(sess, p, false)
@@ -596,7 +647,7 @@ func (m *Mercs) invCommand(sess *session.Session, p *entity.Player, rows []datab
 		}
 		SendClientMessage(sess, strings.Join(names, ", ")+".")
 		m.menuInv(sess, p, slot, 0)
-	case "equip", "unequip", "take":
+	case "equip", "unequip", "take", "use":
 		items, ok := m.mercItemsOf(sess, row)
 		if !ok {
 			return
@@ -609,6 +660,8 @@ func (m *Mercs) invCommand(sess *session.Session, p *entity.Player, rows []datab
 		switch {
 		case verb == "take":
 			m.takeItem(sess, p, row, it)
+		case verb == "use":
+			m.useItem(sess, p, row, it)
 		case verb == "equip" && it.EquipLoc >= 0, verb == "unequip" && it.EquipLoc < 0:
 			SendClientMessage(sess, fmt.Sprintf(map[bool]string{true: mercEquipLine, false: "%s is not wearing %s."}[it.EquipLoc >= 0], row.Name, it.Pattern.ItemName))
 		default:
@@ -835,6 +888,8 @@ func (m *Mercs) menuItem(sess *session.Session, p *entity.Player, slot, id int) 
 			keys, answers = append(keys, "unequip"), append(answers, "Unequip")
 		case len(equipSlotsFor(it.Pattern.EquipSlot, row.Class)) > 0:
 			keys, answers = append(keys, "equip"), append(answers, "Equip")
+		case mercUsable(&it.Pattern):
+			keys, answers = append(keys, "use"), append(answers, "Use")
 		}
 		keys, answers = append(keys, "take", "back"), append(answers, "Take back", "Back")
 		m.mu.Lock()
@@ -953,6 +1008,8 @@ func (m *Mercs) itemsAnswer(sess *session.Session, p *entity.Player, a mercAsk, 
 				m.equip(sess, p, row, it, items)
 			case "take":
 				m.takeItem(sess, p, row, it)
+			case "use":
+				m.useItem(sess, p, row, it)
 			case "back":
 				m.menuInv(sess, p, a.slot, 0)
 			}

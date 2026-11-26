@@ -114,7 +114,7 @@ const (
 	mercRestLine  = "Your mercenary %s rests for %d more seconds."
 	mercBackLine  = "Your mercenary %s is back at your side."
 	mercKitFailed = "The liaison's ledger is out of order. Try again."
-	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, camp (here until you go 125 off; again breaks it), attack (your target), path, pet, master [name|none] (55+), were [form|none] (a were form your book holds), charm [off], group, revive, dismiss [all], give [item], inv, equip|unequip|take <item>, aoe|single (a Cocktail alchemist), helm|look [on|off] (its helm, or all its armour's look, shown or hidden), stock, claim, rename <new name> (3 to 15 letters, as a character's name): with no name, every merc out. /pet rename <new name> names your summoned pet. /familiar dismiss sends a familiar away."
+	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, camp (here until you go 125 off; again breaks it), attack (your target), path, pet, master [name|none] (55+), were [form|none] (a were form your book holds), charm [off], group, revive, dismiss [all], give [item], inv, equip|unequip|take <item>, use <food or drink> (it eats or drinks it now), aoe|single (a Cocktail alchemist), helm|look [on|off] (its helm, or all its armour's look, shown or hidden), stock, claim, rename <new name> (3 to 15 letters, as a character's name): with no name, every merc out. /pet rename <new name> names your summoned pet. /familiar dismiss sends a familiar away."
 )
 
 // mercRoles are the liaison's first answers, each role's classes in their
@@ -1343,7 +1343,7 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 		if line := m.gw.AskMercGroup(sess); line != "" {
 			SendClientMessage(sess, line)
 		}
-	case "aoe", "single", "give", "inv", "inventory", "items", "equip", "unequip", "take", "stock", "claim":
+	case "aoe", "single", "give", "inv", "inventory", "items", "equip", "unequip", "take", "use", "stock", "claim":
 		m.invCommand(sess, p, rows, slot, verb, strings.Join(words[1:], " ")) // mercinv.go
 	default:
 		SendClientMessage(sess, mercHelpLine)
@@ -1467,7 +1467,7 @@ func (m *Mercs) dismissAll(sess *session.Session, p *entity.Player) {
 var mercVerbs = map[string]bool{"status": true, "dismiss": true, "stance": true, "follow": true, "stay": true, "camp": true, "attack": true,
 	"group": true, "revive": true, "help": true, "path": true, "pet": true, "charm": true, "list": true, "defensive": true,
 	"offensive": true, "menu": true, "master": true, "aoe": true, "single": true, "give": true, "inv": true, "inventory": true, "items": true,
-	"equip": true, "unequip": true, "take": true, "stock": true, "claim": true, "spells": true, "helm": true, "look": true,
+	"equip": true, "unequip": true, "take": true, "use": true, "stock": true, "claim": true, "spells": true, "helm": true, "look": true,
 	"rename": true, "were": true}
 
 // mercWords reports a tell's body that is /merc's: none, or one of its words

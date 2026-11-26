@@ -33,7 +33,7 @@ func TestDPSMeterOfferedAtWorldEntry(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if got, want := dpsMeterOffers(sess), []byte{0x3A, 0x7E, 4}; len(got) != 1 || !bytes.Equal(got[0], want) {
+	if got, want := dpsMeterOffers(sess), []byte{0x3A, 0x7E, 5}; len(got) != 1 || !bytes.Equal(got[0], want) {
 		t.Fatalf("world entry offered %x, want one %x", got, want)
 	}
 }

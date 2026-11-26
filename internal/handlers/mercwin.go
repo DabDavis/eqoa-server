@@ -31,8 +31,15 @@ import (
 // loadout (entity/mercloadout.go, charmerc.spell_slots). A PS2 never answers:
 // it is sent none of it and keeps the boxes.
 
-// mercWindowLayout is the layout the offer names and the state is sent in.
+// mercWindowLayout is the layout the offer names (the base one, which every
+// client that takes the windows reads) and the spell window's state is sent in.
 const mercWindowLayout = 1
+
+// mercWindowLayoutUse is the inventory state's layout with a carried meal or
+// drink its own kind (mercRecUse), which a client answering 2 to the offer
+// reads (petition 3285); a client answering 1 is sent layout 1, the record
+// carried.
+const mercWindowLayoutUse = 2
 
 // The window's asks (OpcodeMercWindowAsk) and the spell window's
 // (OpcodeMercSpellsAsk).
@@ -44,6 +51,7 @@ const (
 	mercAskTake    = 5
 	mercAskStock   = 6 // take from the owner's potion stock
 	mercAskClose   = 7 // the window closed
+	mercAskUse     = 8 // the merc eats or drinks a carried meal or drink (petition 3285)
 
 	mercSpellsOpen    = 1
 	mercSpellsSet     = 2
@@ -64,6 +72,7 @@ const (
 	mercRecWorn    = 1
 	mercRecHeir    = 2
 	mercRecStock   = 3 // the owner's potion stock (an alchemist's: mercbrew.go), its id the item's
+	mercRecUse     = 4 // carried, a meal or a grocer's drink its owner may Use (layout 2's)
 )
 
 // mercStockEvery is the least time between two states a brew or a throw's
@@ -92,6 +101,11 @@ func mercWindows(sess *session.Session) bool {
 	return sess.MercWindow() >= mercWindowLayout
 }
 
+// mercWindowUse is whether the session's client reads layout 2 (mercRecUse).
+func mercWindowUse(sess *session.Session) bool {
+	return sess.MercWindow() >= mercWindowLayoutUse
+}
+
 // MercWindowHandler takes the offer's answer and the windows' asks.
 type MercWindowHandler struct {
 	world *entity.World
@@ -111,14 +125,14 @@ func (h *MercWindowHandler) RegisterHandlers(r *Registry) {
 }
 
 // HandleAnswer is the client's answer: a u8, the layout it reads (at most
-// ours), 0 to stop.
+// ours: 2 a client that reads mercRecUse), 0 to stop.
 func (h *MercWindowHandler) HandleAnswer(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 1 {
 		log.Printf("MercWindow: a short answer from %s", sess.RemoteAddr())
 		return nil
 	}
-	sess.SetMercWindow(min(data[0], mercWindowLayout))
+	sess.SetMercWindow(min(data[0], mercWindowLayoutUse))
 	return nil
 }
 
@@ -252,7 +266,7 @@ func (m *Mercs) windowAsk(sess *session.Session, p *entity.Player, slot int, op 
 			return false
 		}
 		return m.giveItem(sess, p, row, r.itemID)
-	case mercAskEquip, mercAskUnequip, mercAskTake:
+	case mercAskEquip, mercAskUnequip, mercAskTake, mercAskUse:
 		id, ok := u32()
 		if !ok {
 			return false
@@ -272,6 +286,8 @@ func (m *Mercs) windowAsk(sess *session.Session, p *entity.Player, slot int, op 
 		switch op {
 		case mercAskTake:
 			return m.takeItem(sess, p, row, it)
+		case mercAskUse:
+			return m.useItem(sess, p, row, it)
 		case mercAskUnequip:
 			if it.EquipLoc < 0 {
 				return true // carried already
@@ -369,7 +385,11 @@ func (m *Mercs) windowRecords(p *entity.Player, row database.MercRow, level int)
 			worn = append(worn, mercWindowRec{id: it.ID, kind: mercRecWorn, e: e})
 			continue
 		}
-		carried = append(carried, mercWindowRec{id: it.ID, kind: mercRecCarried, e: e})
+		kind := byte(mercRecCarried)
+		if mercUsable(&it.Pattern) {
+			kind = mercRecUse // shown as carried to a layout-1 client (buildMercWindowState)
+		}
+		carried = append(carried, mercWindowRec{id: it.ID, kind: kind, e: e})
 	}
 	if heir, err := m.heirlooms(row.Class, row.Race, level); err == nil {
 		for _, e := range itemsOver(heir, own) {
@@ -391,9 +411,12 @@ func (m *Mercs) windowRecords(p *entity.Player, row database.MercRow, level int)
 }
 
 // buildMercWindowState is OpcodeMercWindowState (the opcode's doc).
-func buildMercWindowState(flags byte, slot int, sh entity.MercSheet, recs []mercWindowRec, capes bool) []byte {
+// layout is the client's (1, or 2 with mercRecUse; a record of that kind is
+// carried in layout 1).
+func buildMercWindowState(layout byte, flags byte, slot int, sh entity.MercSheet, recs []mercWindowRec, capes bool) []byte {
+	layout = min(max(layout, mercWindowLayout), mercWindowLayoutUse)
 	return build(protocol.OpcodeMercWindowState, 1<<16, func(w *buffer.Writer) {
-		w.WriteByte(mercWindowLayout)
+		w.WriteByte(layout)
 		w.WriteByte(flags)
 		w.WriteByte(byte(slot))
 		writeName8(w, sh.Name)
@@ -411,7 +434,11 @@ func buildMercWindowState(flags byte, slot int, sh entity.MercSheet, recs []merc
 		w.WriteByte(byte(n))
 		for _, r := range recs[:n] {
 			w.WriteUint32(uint32(r.id))
-			w.WriteByte(r.kind)
+			kind := r.kind
+			if kind == mercRecUse && layout < mercWindowLayoutUse {
+				kind = mercRecCarried
+			}
+			w.WriteByte(kind)
 			e := r.e
 			e.Location = -1
 			writeItem(w, &e, r.id, -1, capes)
@@ -438,7 +465,7 @@ func (m *Mercs) sendWindow(sess *session.Session, p *entity.Player, row database
 	}
 	sh := m.gw.MercSheetOf(sess, row.Slot, kit)
 	sh.Name = row.Name
-	queueReliable(sess, protocol.OpcodeMercWindowState, buildMercWindowState(flags, row.Slot, sh, m.windowRecords(p, row, kit.Level), readsCapes(sess)))
+	queueReliable(sess, protocol.OpcodeMercWindowState, buildMercWindowState(sess.MercWindow(), flags, row.Slot, sh, m.windowRecords(p, row, kit.Level), readsCapes(sess)))
 }
 
 // spellsAsk does one of the spell window's asks (protocol.OpcodeMercSpellsAsk);

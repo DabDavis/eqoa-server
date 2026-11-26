@@ -639,6 +639,11 @@ type CoachDest struct {
 	// is done, or the way there starts (handlers/questcoachway.go): the menu
 	// shows a " ?" after it.
 	QuestStop bool
+
+	// Coachman is the coachman whose stop it is (coachDestLocked), 0 for
+	// another trip's: one who would refuse a player (World.RefusesID) is no
+	// quest's way for that player (handlers/questcoachway.go).
+	Coachman EntityID
 }
 
 // SparPick is a sparring dummy's menu as far as the player has gone: the

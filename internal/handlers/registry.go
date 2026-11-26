@@ -706,6 +706,11 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	NewDPSMeterHandler(gameWorld).RegisterHandlers(r)
 	// One faction on the HUD (0x7E87; factiontrack.go, petition 3216)
 	NewFactionTrackHandler(gameWorld).RegisterHandlers(r)
+	// The characters' surnames (0x7EF8; surname.go, Live petition 5648): /surname,
+	// /who's, and a client that draws them on its name plates
+	if charStore != nil {
+		NewSurnames(gameWorld, charStore.DB(), sessionMgr).RegisterHandlers(r)
+	}
 	// The real offence and defence figures (0x7E84; statfigures.go): a client
 	// whose stat window is open
 	NewStatFiguresHandler(gameWorld).RegisterHandlers(r)

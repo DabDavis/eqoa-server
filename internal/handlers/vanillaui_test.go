@@ -28,6 +28,7 @@ var qolOffers = []protocol.GameOpcode{
 	protocol.OpcodeStatFigures,       // its stat caps the game's (QoLStatCaps): no Stat Window
 	protocol.OpcodeFactionTrackOffer, // the faction tracker (factiontrack.go)
 	protocol.OpcodeBestiary,          // the bestiary (bestiary.go): none where the QoL additions are off
+	protocol.OpcodeSurnameOffer,      // the surnames on the name plates (surname.go)
 }
 
 // bestiaryKept has the bestiary offered for one test (a server with a database keeps

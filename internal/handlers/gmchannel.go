@@ -920,6 +920,9 @@ func (h *ChatHandler) whoIs(t *entity.Player, ts *session.Session) []string {
 	if t.GuildName != "" {
 		lines = append(lines, "  guild: "+t.GuildName)
 	}
+	if v := surnamesH.Load().Of(t.CharServerID); v != "" {
+		lines = append(lines, "  surname: "+v) // surname.go
+	}
 	level := 0
 	if h.access != nil {
 		level, _ = h.access.AccessLevel(ts.AccountID())

@@ -13,9 +13,10 @@ import "github.com/eqoa/server/internal/session"
 // heals draw none of the free creatures round it on it (healAggroLocked), as
 // a GM's #aggro off. Unlike the GM's, a fight it starts works as any other: a
 // creature it hits, or whose fight it joins, fights it and may kill it, and
-// that creature's area spells take it as anyone near (templateAreaLocked). A
+// that creature's area spells take it as anyone near (areaTakesPlayerLocked). A
 // creature's area spell leaves it out only while it is no part of that
-// creature's fight. A fight already on when the mode goes on goes on.
+// creature's fight. A GM's Safe Mode (#aggro off, aggro.go) is the same to a
+// creature's area abilities. A fight already on when the mode goes on goes on.
 //
 // Keyed by the character, so the mode outlives a change of world and, kept in
 // table charsafemode by the handler (handlers/safemode.go), a logout and every
@@ -66,4 +67,31 @@ func inFightLocked(npc *NPC, p *Player) bool {
 	}
 	_, hated := npc.Threats[p.ServerID]
 	return hated
+}
+
+// areaTakesPlayerLocked reports whether npc's area abilities take the player
+// p: its area spells, breaths and nukes (templateAreaLocked), a sethp and its
+// damage over time (setHPReachLocked), an area rampage (areaRampageLocked) and
+// a swarm (swarmReachLocked), each by this one rule. p is taken when it is
+// there (presentLocked), where npc is (npcSharesLocked, the water's edge:
+// apartLocked) and seen by it (an invisible player only by one that sees
+// invisibility, seesInvisLocked), and, in a player's safe mode (/testinvis) or
+// a GM's Safe Mode (#aggro off, aggro.go), only while it is part of npc's
+// fight (inFightLocked: on its hate list, a hit of either's put it there, or
+// the one it fights). Neither mode spares a player a fight it is in (the
+// owner, 2026-11-26: Garrak, a sub-GM in Safe Mode meleeing the dreadnaught,
+// never took its Dread Curse or its damage over time); both still keep the
+// creatures from setting on it on sight (aggroSystem, healAggroLocked). Must
+// be called with the lock held.
+func (w *World) areaTakesPlayerLocked(npc *NPC, p *Player) bool {
+	if p == nil || !w.presentLocked(p) || !w.npcSharesLocked(npc, p) || w.apartLocked(p, npc) {
+		return false
+	}
+	if p.Invisible() && !w.seesInvisLocked(npc, p) {
+		return false
+	}
+	if w.aggro.ignored[p.CharServerID] || w.safeLocked(p) {
+		return inFightLocked(npc, p)
+	}
+	return true
 }

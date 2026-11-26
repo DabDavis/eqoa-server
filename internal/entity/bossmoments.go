@@ -336,8 +336,7 @@ func (w *World) setHPReachLocked(npc *NPC, m *database.TemplateAbility, now time
 	place := npcAreaPlace(npc, npc.X, npc.Y, npc.Z, false) // its line from its own heights too (sight.go)
 	for _, id := range w.SpatialIndex.QueryRadius(npc.X, npc.Z, r) {
 		if p := w.Players[id]; p != nil {
-			if p.IsDead() || !w.npcSharesLocked(npc, p) || !w.noticeableByLocked(npc, p) ||
-				(w.safeLocked(p) && !inFightLocked(npc, p)) || w.apartLocked(p, npc) {
+			if !w.areaTakesPlayerLocked(npc, p) { // safemode.go
 				continue
 			}
 			if dist3(p.X, p.Y, p.Z, npc.X, npc.Y, npc.Z) <= r && w.reachesLocked(place, p.X, p.Y, p.Z) {

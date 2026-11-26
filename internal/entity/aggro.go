@@ -483,7 +483,14 @@ func (w *World) seesInvisLocked(npc *NPC, p *Player) bool {
 // noticeableSeenLocked is noticeableLocked but for invisibility. Must be
 // called with the lock held.
 func (w *World) noticeableSeenLocked(p *Player) bool {
-	if p.IsDead() || p.respawnPending() || w.aggro.ignored[p.CharServerID] {
+	return !w.aggro.ignored[p.CharServerID] && w.presentLocked(p)
+}
+
+// presentLocked reports p there to be taken at all: alive, not on the way
+// back from a death, in the world and not loading one (its state channels
+// held). Must be called with the lock held.
+func (w *World) presentLocked(p *Player) bool {
+	if p.IsDead() || p.respawnPending() {
 		return false
 	}
 	if w.SessionManager == nil {

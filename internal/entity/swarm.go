@@ -128,8 +128,7 @@ func (w *World) swarmReachLocked(npc *NPC, m *database.TemplateAbility, now time
 	var ps []*Player
 	for _, id := range w.SpatialIndex.QueryRadius(npc.X, npc.Z, r) {
 		p := w.Players[id]
-		if p == nil || p.IsDead() || p.respawnPending() || p.World != npc.World || !w.npcSharesLocked(npc, p) ||
-			!w.noticeableByLocked(npc, p) || (w.safeLocked(p) && !inFightLocked(npc, p)) || w.apartLocked(p, npc) {
+		if p == nil || p.World != npc.World || !w.areaTakesPlayerLocked(npc, p) { // safemode.go
 			continue
 		}
 		if dist3(p.X, p.Y, p.Z, npc.X, npc.Y, npc.Z) <= r && w.reachesLocked(place, p.X, p.Y, p.Z) {

@@ -1180,8 +1180,11 @@ func (w *World) runHandsBack() {
 // sent with no target, and one sent at a creature, on the caster), a group
 // one on the caster's group within its range, anything else on the target.
 func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastSpell, targetObjectID uint32) ([]EntityID, string) {
+	if spell.Scope == 0 {
+		return []EntityID{p.ServerID}, ""
+	}
 	d := &spell.Def
-	// an illusion goes by its name, whatever its record's scope (illusion.go)
+	// the remaining illusions go by their names (illusion.go)
 	switch d.FormKind {
 	case FormSelf:
 		if d.IllusionNamed && spell.Scope == 1 {
@@ -1204,8 +1207,6 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 		return []EntityID{p.ServerID}, ""
 	}
 	switch spell.Scope {
-	case 0:
-		return []EntityID{p.ServerID}, ""
 	case 3:
 		// the caster's pet, whatever is targeted: CLIENT sends its target as
 		// it is and never puts the pet in its place (pet.go)
@@ -1834,7 +1835,7 @@ func (w *World) healLocked(caster *Player, casterSess *session.Session, t *Playe
 	if owner, merc := w.dpsMercBodyLocked(caster); merc && kind.tagged() {
 		// a merc's heal: its owner's healing, its merc's share, wherever it
 		// landed (told as the merc's to its owner alone: dpsheal.go)
-		w.dpsAddByLocked(owner, dpsHeal, filled, true, w.dpsMercOfLocked(owner, caster.ServerID), dpsMeterNow())
+		w.dpsAddByLocked(owner, dpsHeal, filled, numberByMerc, w.dpsMercOfLocked(owner, caster.ServerID), dpsMeterNow())
 		filled = 0
 	}
 	w.dpsWorthLocked(filled, func() { w.tellAmountLocked(caster, casterSess, t.ServerID, n, kind) }) // the meter's: what it restored (dpsheal.go)

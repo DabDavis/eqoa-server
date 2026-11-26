@@ -194,6 +194,69 @@ func TestDPSMeterLayoutThreeOnTheWire(t *testing.T) {
 	}
 }
 
+func TestDPSMeterLayoutFourOnTheWire(t *testing.T) {
+	rows := []dpsRow{
+		{id: 1, line: dpsLine{name: "Dab", class: 3, damage: 1000, pet: 420, heal: 950, healPet: 910, power: 40, merc: [3]int64{300, 900, 40}}, flags: 1},
+		{id: 2, line: dpsLine{name: "Jib", class: 9, damage: 300, heal: 120, power: 10}, flags: 2},
+	}
+	got := encodeDPSMeterLayout(4, 0x01020304, true, 1500*time.Millisecond, rows)
+	// Same fixture as the Rust client's layout 4 decoder test.
+	want := []byte{
+		4, 4, 3, 2, 1, 1, 0xDC, 5, 0, 0, 0x14, 5, 0, 0, 2, 0, 1, 0,
+		0x2E, 4, 0, 0, 50, 0, 0, 0, 1, 0, 1, 0,
+		0xE8, 3, 0, 0, 170, 0, 0, 0, 10, 0, 0, 0, 1, 0, 2, 0, 2, 0, 2,
+		5, 3, 0xBC, 2, 0, 0, 120, 0, 0, 0, 50, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 3, 'D', 'a', 'b',
+		0x2C, 1, 0, 0, 0x84, 3, 0, 0, 40, 0, 0, 0,
+		2, 9, 0x2C, 1, 0, 0, 0, 0, 0, 0, 120, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 3, 'J', 'i', 'b',
+	}
+	if !bytes.Equal(got, want) {
+		t.Fatalf("layout 4:\n got % X\nwant % X", got, want)
+	}
+
+	raid := make([]dpsRow, 30)
+	for i := range raid {
+		raid[i].line = dpsLine{name: "Abcdefghijklmnopqrstuvw", damage: int64(3000 - i), pet: int64(3000 - i), merc: [3]int64{int64(3000 - i)}}
+	}
+	raid[28].line.pet = 1
+	raid[28].line.merc[dpsDamage] = 1 // first by damage with the mercs hidden
+	raid[29].flags = 1
+	b := encodeDPSMeterLayout(4, 9, false, time.Second, raid)
+	if len(b) > dpsMeterBodyMost || binary.LittleEndian.Uint32(b[30:34]) != 2971 {
+		t.Fatalf("raid length %d, merc-free damage %d", len(b), binary.LittleEndian.Uint32(b[30:34]))
+	}
+	n, at := int(b[48]), 49
+	if n != 21 {
+		t.Fatalf("sent %d rows", n)
+	}
+	var own, hiddenLeader bool
+	for range n {
+		row := b[at:]
+		own = own || row[0]&1 != 0
+		hiddenLeader = hiddenLeader || binary.LittleEndian.Uint32(row[2:6]) == 2971
+		at += 23 + int(row[22])
+		if row[0]&4 != 0 {
+			at += 12
+		}
+	}
+	if !own || !hiddenLeader || at != len(b) {
+		t.Fatalf("own=%t hidden leader=%t parsed %d of %d bytes", own, hiddenLeader, at, len(b))
+	}
+}
+
+func TestDPSMeterLayoutFourCountsMercFiguresWithoutAMercID(t *testing.T) {
+	w := NewWorld()
+	p := &Player{ServerID: 1, Name: "Dab"}
+	now := time.Now()
+	w.dpsAddLocked(p, dpsDamage, 30, false, now)
+	w.dpsAddLocked(p, dpsDamage, 20, true, now)
+	w.dpsAddByLocked(p, dpsDamage, 50, numberByMerc, 0, now)
+	f := *w.dpsScopeLocked(p)
+	row := w.dpsRowsForLocked(p, f, 4)[0]
+	if row.line.damage != 100 || row.line.pet != 70 || row.line.merc != [3]int64{50} {
+		t.Fatalf("mercenary attribution: %+v", row)
+	}
+}
+
 // A necromancer merc's Power path (Power Squall: "Drain Group" power, a hit at
 // its foe since petition 2302) gives its team power, as a player's does: its
 // owner and its owner's other merc each up to its most, counted as the merc's

@@ -20,9 +20,7 @@ import (
 // OpcodeNumberTagsOffer, and is sent nothing.
 
 // dpsMeterLayout is the data's layout the offer names: entity/dpsmeter.go's
-// newest (3, mercs' lines apart: entity/dpsmerc.go; 2 healing and power beside
-// damage: entity/dpsheal.go). A client answers the layout it reads; every
-// vanilla before 2026-11-25 answers 1 whatever is offered, the layout-2 ones 2.
+// newest. A client answers the layout it reads.
 const dpsMeterLayout = entity.DPSMeterLayoutNewest
 
 // buildDPSMeterOffer is OpcodeDPSMeterOffer from the server: a u8, the layout.
@@ -55,8 +53,7 @@ func (h *DPSMeterHandler) RegisterHandlers(r *Registry) {
 }
 
 // HandleDPSMeter makes the client's answer its player's: a u8, the layout to be
-// sent the meter in (1, damage alone; 2, healing and power too; 3, mercs' lines
-// apart; past the newest, the newest), 0 to stop (a wider answer is read by its first byte, so a u32's 1
+// sent the meter in (capped at the newest), 0 to stop (a wider answer is read by its first byte, so a u32's 1
 // and 0 say the same). Nothing is answered.
 func (h *DPSMeterHandler) HandleDPSMeter(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()

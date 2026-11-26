@@ -109,14 +109,9 @@ const dpsMeterTicks = 5
 const dpsMeterLayout = 1
 
 // DPSMeterLayoutNewest is the newest layout the server writes, the one its
-// offer names: 3, layout 2 with each merc's line apart (dpsmerc.go, Heirloom
-// petition 3134). Layout 2 is layout 1 with each line's healing and power given
-// beside its damage (Heirloom petition 3030, the owner's "build both": "DPS meter should
-// have options to include healing per second, and if possible power provided
-// per second"). A client answers the layout it reads (at most this one; 1
-// from every vanilla before layout 2, 2 from those before 3) and is sent that
-// one.
-const DPSMeterLayoutNewest = 3
+// offer names. Layout 4 includes mercenary contributions on each player's
+// row so the client can show or hide them without losing the split to paging.
+const DPSMeterLayoutNewest = 4
 
 // dpsNameBytes is the most bytes of a name sent, as a roster's (writeName8).
 const dpsNameBytes = 23
@@ -137,6 +132,8 @@ type dpsLine struct {
 	heal    int64
 	healPet int64
 	power   int64
+	// Mercenary contributions to damage, healing and power, in dpsWhat order.
+	merc [3]int64
 }
 
 // dpsFight is one fight of a group (a raid group's too) or of a player alone:
@@ -162,7 +159,7 @@ type dpsFight struct {
 // asked).
 type dpsMeter struct {
 	// layout: the data's layout the client answered (1, damage alone; 2,
-	// healing and power too; 3, mercs' lines apart: DPSMeterLayoutNewest)
+	// healing and power too; 3, separate mercs; 4, per-player mercenary shares)
 	layout  uint8
 	view    *dpsFight
 	shown   uint32
@@ -284,7 +281,7 @@ func (w *World) dpsFigureLocked(sess *session.Session, n int, kind numberKind, t
 	if p == nil || n <= 0 || w.friendlyFigureLocked(sess, p, target) {
 		return
 	}
-	w.dpsAddByLocked(p, dpsDamage, n, kind.byHelper(), w.dpsFigureMercLocked(p, kind), dpsMeterNow())
+	w.dpsAddByLocked(p, dpsDamage, n, kind, w.dpsFigureMercLocked(p, kind), dpsMeterNow())
 }
 
 // friendlyFigureLocked is whether a figure on target (the id sess's client knows
@@ -334,14 +331,16 @@ const (
 // fight, and a fight's length is its damage's. Must be called with the lock
 // held.
 func (w *World) dpsAddLocked(maker *Player, what dpsWhat, n int, byPet bool, now time.Time) {
-	w.dpsAddByLocked(maker, what, n, byPet, 0, now)
+	var kind numberKind
+	if byPet {
+		kind = numberByPet
+	}
+	w.dpsAddByLocked(maker, what, n, kind, 0, now)
 }
 
-// dpsAddByLocked is dpsAddLocked's, merc (0 none) the merc of maker's that
-// made it (byPet then true): counted on maker's line as its helper's share, as
-// ever, and on the merc's own line too (dpsmerc.go). Must be called with the
-// lock held.
-func (w *World) dpsAddByLocked(maker *Player, what dpsWhat, n int, byPet bool, merc EntityID, now time.Time) {
+// dpsAddByLocked uses the figure's helper flags to attribute a contribution.
+// The mercenary's ID is optional. Must be called with the lock held.
+func (w *World) dpsAddByLocked(maker *Player, what dpsWhat, n int, kind numberKind, merc EntityID, now time.Time) {
 	if maker == nil || n <= 0 {
 		return
 	}
@@ -375,9 +374,13 @@ func (w *World) dpsAddByLocked(maker *Player, what dpsWhat, n int, byPet bool, m
 		l = &dpsLine{name: maker.Name, class: maker.Class}
 		f.lines[maker.ServerID] = l
 	}
-	if merc != 0 && byPet {
-		w.dpsMercLineLocked(f, maker, merc).add(what, n)
+	if kind&numberByMerc != 0 {
+		l.merc[what] += int64(n)
+		if merc != 0 {
+			w.dpsMercLineLocked(f, maker, merc).add(what, n)
+		}
 	}
+	byPet := kind.byHelper()
 	switch what {
 	case dpsHeal:
 		l.heal += int64(n)
@@ -447,11 +450,11 @@ func (w *World) dpsRowsLocked(p *Player, m *dpsFight) []dpsRow {
 	return rows
 }
 
-// dpsRowsForLocked is dpsRowsLocked's in layout: from 3, each merc's line
+// dpsRowsForLocked is dpsRowsLocked's in layout: in 3, each merc's line
 // apart (dpsSplitMercs). Must be called with the lock held.
 func (w *World) dpsRowsForLocked(p *Player, f *dpsFight, layout uint8) []dpsRow {
 	rows := w.dpsRowsLocked(p, f)
-	if layout >= 3 {
+	if layout == 3 {
 		rows = dpsSplitMercs(rows, f, p)
 	}
 	return rows
@@ -478,7 +481,7 @@ func encodeDPSMeter(fight uint32, over bool, length time.Duration, rows []dpsRow
 }
 
 // encodeDPSMeterLayout is OpcodeDPSMeterData's body (past its opcode) in layout
-// (1, 2 or 3) for a fight of number fight, over or not, length long, of rows in
+// for a fight of number fight, over or not, length long, of rows in
 // their order (the most damage first). Layout 1: the first DPSMeterLinesMost,
 // the receiver's own (flag 1) in the last place when it is not among them, its
 // place among all of them said (0 for none). Layout 2: the same header, then the
@@ -493,9 +496,14 @@ func encodeDPSMeter(fight uint32, over bool, length time.Duration, rows []dpsRow
 // name after its own (u8 bytes and UTF-8; none but a merc's line's). The owners'
 // names are left out (each none) of a message they would make longer than
 // dpsMeterBodyMost.
+//
+// Layout 4 sends player rows with the combined totals in the layout 2 header.
+// Before the row count it adds three merc-free u32 totals and three u16 places
+// (damage, healing, power). Each row shows the player and their regular pet.
+// If flag 4 is set, three u32 mercenary contributions follow the player name.
 func encodeDPSMeterLayout(layout uint8, fight uint32, over bool, length time.Duration, rows []dpsRow) []byte {
 	out := encodeDPSMeterBody(layout, fight, over, length, rows, true)
-	if layout >= 3 && len(out) > dpsMeterBodyMost {
+	if layout == 3 && len(out) > dpsMeterBodyMost {
 		out = encodeDPSMeterBody(layout, fight, over, length, rows, false)
 	}
 	return out
@@ -509,20 +517,27 @@ const dpsMeterBodyMost = protocol.DefaultMessageSize - 16
 // owners' names out.
 func encodeDPSMeterBody(layout uint8, fight uint32, over bool, length time.Duration, rows []dpsRow, owners bool) []byte {
 	var total, heal, power int64
+	var withoutMercs [3]int64
 	mine := -1
 	for i, r := range rows {
 		total += r.line.damage
 		heal += r.line.heal
 		power += r.line.power
+		if layout >= 4 {
+			withoutMercs[dpsDamage] += r.line.damage - r.line.merc[dpsDamage]
+			withoutMercs[dpsHeal] += r.line.heal - r.line.merc[dpsHeal]
+			withoutMercs[dpsPower] += r.line.power - r.line.merc[dpsPower]
+		}
 		if r.flags&1 != 0 && mine < 0 {
 			mine = i
 		}
 	}
 	shown := rows
 	healPlace, powerPlace := 0, 0
+	var withoutMercPlaces [3]int
 	if layout >= 2 {
 		var keep []int
-		keep, healPlace, powerPlace = dpsBestRows(rows, mine)
+		keep, healPlace, powerPlace, withoutMercPlaces = dpsBestRows(rows, mine, layout >= 4)
 		shown = make([]dpsRow, len(keep))
 		for k, i := range keep {
 			shown[k] = rows[i]
@@ -551,20 +566,39 @@ func encodeDPSMeterBody(layout uint8, fight uint32, over bool, length time.Durat
 		out = binary.LittleEndian.AppendUint16(out, uint16(min(healPlace, 0xFFFF)))
 		out = binary.LittleEndian.AppendUint16(out, uint16(min(powerPlace, 0xFFFF)))
 	}
+	if layout >= 4 {
+		for _, amount := range withoutMercs {
+			out = binary.LittleEndian.AppendUint32(out, clamp(amount))
+		}
+		for _, place := range withoutMercPlaces {
+			out = binary.LittleEndian.AppendUint16(out, uint16(min(place, 0xFFFF)))
+		}
+	}
 	out = append(out, byte(len(shown)))
 	for _, r := range shown {
-		name := dpsName(r.line.name)
+		l := r.line
+		name := dpsName(l.name)
+		if layout >= 4 {
+			l.damage -= l.merc[dpsDamage]
+			l.pet -= l.merc[dpsDamage]
+			l.heal -= l.merc[dpsHeal]
+			l.healPet -= l.merc[dpsHeal]
+			l.power -= l.merc[dpsPower]
+			if l.merc != [3]int64{} {
+				r.flags |= 4
+			}
+		}
 		out = append(out, r.flags, byte(max(0, min(r.line.class, 255))))
-		out = binary.LittleEndian.AppendUint32(out, clamp(r.line.damage))
-		out = binary.LittleEndian.AppendUint32(out, clamp(r.line.pet))
+		out = binary.LittleEndian.AppendUint32(out, clamp(l.damage))
+		out = binary.LittleEndian.AppendUint32(out, clamp(l.pet))
 		if layout >= 2 {
-			out = binary.LittleEndian.AppendUint32(out, clamp(r.line.heal))
-			out = binary.LittleEndian.AppendUint32(out, clamp(r.line.healPet))
-			out = binary.LittleEndian.AppendUint32(out, clamp(r.line.power))
+			out = binary.LittleEndian.AppendUint32(out, clamp(l.heal))
+			out = binary.LittleEndian.AppendUint32(out, clamp(l.healPet))
+			out = binary.LittleEndian.AppendUint32(out, clamp(l.power))
 		}
 		out = append(out, byte(len(name)))
 		out = append(out, name...)
-		if layout >= 3 {
+		if layout == 3 {
 			owner := ""
 			if owners {
 				owner = dpsName(r.owner)
@@ -572,18 +606,18 @@ func encodeDPSMeterBody(layout uint8, fight uint32, over bool, length time.Durat
 			out = append(out, byte(len(owner)))
 			out = append(out, owner...)
 		}
+		if layout >= 4 && r.flags&4 != 0 {
+			for _, amount := range l.merc {
+				out = binary.LittleEndian.AppendUint32(out, clamp(amount))
+			}
+		}
 	}
 	return out
 }
 
-// dpsBestRows is which of rows (in the order of damage) layout 2 sends, in that
-// order: all of them when they fit, else the DPSMeterLinesMost with the best
-// place by damage, healing or power (a line's best of its three; a tie by its
-// place by damage), the receiver's own (mine, -1 for none) among them in place
-// of the last; and the receiver's own places by healing and by power (1 the
-// most; 0 for none), its rows ranked by each as by damage (the most first, then
-// as rows are).
-func dpsBestRows(rows []dpsRow, mine int) (keep []int, healPlace, powerPlace int) {
+// dpsBestRows selects the highest-ranked rows across metrics and reserves a
+// row for the receiver. Layout 4 considers ranks with mercenaries hidden too.
+func dpsBestRows(rows []dpsRow, mine int, mercShares bool) (keep []int, healPlace, powerPlace int, withoutMercPlaces [3]int) {
 	n := len(rows)
 	healRank, powerRank := dpsRanks(rows, func(l *dpsLine) int64 { return l.heal }), dpsRanks(rows, func(l *dpsLine) int64 { return l.power })
 	if mine >= 0 {
@@ -593,17 +627,72 @@ func dpsBestRows(rows []dpsRow, mine int) (keep []int, healPlace, powerPlace int
 	for i := range keep {
 		keep[i] = i
 	}
-	if n <= DPSMeterLinesMost {
-		return keep, healPlace, powerPlace
+	var withoutMercRanks [3][]int
+	if mercShares {
+		withoutMercRanks = [3][]int{
+			dpsRanks(rows, func(l *dpsLine) int64 { return l.damage - l.merc[dpsDamage] }),
+			dpsRanks(rows, func(l *dpsLine) int64 { return l.heal - l.merc[dpsHeal] }),
+			dpsRanks(rows, func(l *dpsLine) int64 { return l.power - l.merc[dpsPower] }),
+		}
+		if mine >= 0 {
+			for metric, ranks := range withoutMercRanks {
+				withoutMercPlaces[metric] = ranks[mine] + 1
+			}
+		}
+	} else if n <= DPSMeterLinesMost {
+		return keep, healPlace, powerPlace, withoutMercPlaces
 	}
-	best := func(i int) int { return min(i, healRank[i], powerRank[i]) }
+	best := func(i int) int {
+		rank := min(i, healRank[i], powerRank[i])
+		if mercShares {
+			rank = min(rank, withoutMercRanks[dpsDamage][i], withoutMercRanks[dpsHeal][i], withoutMercRanks[dpsPower][i])
+		}
+		return rank
+	}
 	sort.SliceStable(keep, func(a, b int) bool { return best(keep[a]) < best(keep[b]) })
+	if mercShares {
+		// 49 bytes for the layout 4 header, including the row count.
+		budget := dpsMeterBodyMost - 49
+		limit := DPSMeterLinesMost
+		if mine >= 0 {
+			budget -= dpsLayout4RowBytes(rows[mine].line)
+			limit--
+		}
+		selected := keep[:0]
+		for _, i := range keep {
+			if len(selected) == limit {
+				break
+			}
+			if i == mine {
+				continue
+			}
+			size := dpsLayout4RowBytes(rows[i].line)
+			if size <= budget {
+				selected = append(selected, i)
+				budget -= size
+			}
+		}
+		if mine >= 0 {
+			selected = append(selected, mine)
+		}
+		sort.Ints(selected)
+		return selected, healPlace, powerPlace, withoutMercPlaces
+	}
 	keep = keep[:DPSMeterLinesMost]
 	if mine >= 0 && !slices.Contains(keep, mine) {
 		keep[DPSMeterLinesMost-1] = mine
 	}
 	sort.Ints(keep)
-	return keep, healPlace, powerPlace
+	return keep, healPlace, powerPlace, withoutMercPlaces
+}
+
+func dpsLayout4RowBytes(l dpsLine) int {
+	// Flags, class, five metric fields, name length, and name.
+	size := 23 + len(dpsName(l.name))
+	if l.merc != [3]int64{} {
+		size += 12
+	}
+	return size
 }
 
 // dpsRanks is each row's place (0 the first) by of: the most first, a tie in

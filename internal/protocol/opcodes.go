@@ -925,20 +925,16 @@ const (
 	// group did how much damage in the fight and how fast (entity/dpsmeter.go,
 	// handlers/dpsmeter.go; the owner, 2026-11-10: "lets add dps meters, will
 	// work solo, group, raid"). Server to client once the player is in the
-	// world: a u8, the newest OpcodeDPSMeterData layout it writes (3 since
-	// 2026-11-25's petition 3134, 2 before it that day; 1 before: every
-	// vanilla reads any). A PS2 ignores it (CLIENT's
+	// world: a u8, the newest OpcodeDPSMeterData layout it writes. A PS2 ignores it (CLIENT's
 	// dispatcher has no case above 0x1402 and no default) and never answers.
 	OpcodeDPSMeterOffer GameOpcode = 0x7E3A
 
 	// OpcodeDPSMeterAnswer is a client's answer to OpcodeDPSMeterOffer, client
 	// to server, at once and whenever it changes: a u8, the layout of
-	// OpcodeDPSMeterData to be sent (1 damage alone, 2 healing and power too, 3
-	// mercs' lines apart; one past the newest is the newest; every vanilla
-	// before 2026-11-25 answers 1, the next ones 2 when offered more), 0 to stop.
+	// OpcodeDPSMeterData to be sent, capped at the newest, or 0 to stop.
 	OpcodeDPSMeterAnswer GameOpcode = 0x7E3B
 
-	// OpcodeDPSMeterData is the meter, server to a client that answered 1: at
+	// OpcodeDPSMeterData is the meter, server to a client that requested a layout: at
 	// most once a second while a fight in its group is on and something in it
 	// changed, and once more as the fight ends (a fight ends DPSMeterIdle after
 	// the last damage anyone in the group did). Little-endian: a u8 layout (1),
@@ -977,6 +973,12 @@ const (
 	// and UTF-8: none for a player's line, and none for any line of a message
 	// it would make too long). The wholes are layout 2's; the lines and places
 	// count the mercs' lines as lines.
+	//
+	// Layout 4 sends one row per player. After the layout 2 header and before
+	// the row count, it adds three u32 totals and three u16 ranks excluding
+	// mercenaries (damage, healing, power). The row's base figures exclude
+	// mercenaries. Flag 4 adds three u32 mercenary shares after the name,
+	// in the same metric order. See entity/dpsmeter.go.
 	OpcodeDPSMeterData GameOpcode = 0x7E3C
 
 	// OpcodeDPSMeterReset is a client's reset, client to server: a u8, 1. The

@@ -465,6 +465,9 @@ func deliverShareTx(tx sqlRunner, id int, holder uint32, qty int, l *AuctionLot)
 	} else if !there {
 		return nil, execOneTx(tx, `UPDATE auction_shares SET delivered = 1 WHERE id = ? AND delivered = 0`, id)
 	}
+	if held, err := loreHoldsTx(tx, holder, l); err != nil || held {
+		return nil, err // a Lore item its holder has already waits (auctionlore.go)
+	}
 	itemID, merged, ok, err := fileItemTx(tx, holder, &l.Item, qty)
 	if err != nil || !ok {
 		return nil, err

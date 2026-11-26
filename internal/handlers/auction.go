@@ -567,6 +567,9 @@ func (a *AuctionHouse) sell(sess *session.Session, player *entity.Player, banker
 		ItemID: rec.itemID, PatternID: rec.patternID, Stack: rec.qty,
 		MinBid: price, Buyout: buyout, Minutes: minutes, GM: a.isGM(sess), Now: a.now(),
 		PerItem: perItem, Count: count,
+		// a Lore item only from a client that sells one: the live form is
+		// vanilla's (a PS2's CanSell refuses one, word 1727; auctionlore.go)
+		LoreOK: v.live,
 	})
 	if err != nil {
 		a.refused(sess, player, "sale", err)
@@ -1176,6 +1179,19 @@ func (a *AuctionHouse) deliverLocked(sess *session.Session, p *entity.Player) {
 	}
 	for _, d := range got {
 		a.fileLocked(sess, d)
+	}
+	if left > 0 {
+		// a Lore item held there because one is had already (auctionlore.go)
+		lore, err := a.db.AuctionLoreWaiting(p.CharServerID)
+		if err != nil {
+			log.Printf("Auction: %s's waiting Lore items: %v", p.Name, err)
+		}
+		left -= len(lore)
+		if sess.CharacterInWorld() {
+			for _, name := range lore {
+				auctionLine(sess, fmt.Sprintf("The auction house holds %s for you until you no longer have one: it is Lore.", name))
+			}
+		}
 	}
 	if left > 0 && sess.CharacterInWorld() {
 		auctionLine(sess, fmt.Sprintf("The auction house holds %d of your items until your bank has room for them.", left))

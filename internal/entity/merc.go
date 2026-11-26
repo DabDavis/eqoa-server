@@ -288,6 +288,9 @@ type mercState struct {
 	bowOut    bool
 	shot      *mercShot
 	shotReady time.Time
+	// closing: it walks to its melee target's side, until it stands there
+	// (mercfight.go's mercStandFrom)
+	closing bool
 	// throwing: an alchemist's potion on its way, throwReady when it may
 	// throw again (mercthrow.go)
 	throwing   *mercThrowing

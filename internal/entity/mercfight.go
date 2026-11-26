@@ -191,11 +191,73 @@ func (w *World) mercTurnLocked(ms *mercState, dt float32, now time.Time, ownerIn
 	}
 }
 
-// mercReach is how near its target a merc swings from: a player's melee
-// reach (attack.go's TargetInRange) and the target's allowance for its size,
-// less a little so it is inside it.
+// mercReach is the farthest from its target a merc swings from: a player's
+// melee reach (attack.go's TargetInRange) and the target's allowance for its
+// size, less a little so it is inside it.
 func mercReach(t *NPC) float32 {
 	return meleeReach + npcReachExtra(t) - 0.5
+}
+
+// mercHitReach is how far a merc's melee hit lands: a player's, TargetInRange's
+// 3D distance centre to centre against 4.5 and the target's allowance
+// (attack.go's inReach).
+func mercHitReach(t *NPC) float32 {
+	return meleeReach + npcReachExtra(t)
+}
+
+// mercStandGap is how far past its target's edge a merc stands to swing: a
+// man's edge and a little, about where a player stands to melee.
+const mercStandGap float32 = 1.5
+
+// mercStandSlack is how much farther than its stand its target may move off
+// before a merc that swings at it closes in again.
+const mercStandSlack float32 = 1.5
+
+// mercStandFrom is how near its target a merc goes before it swings
+// (Heirloom petition 3229, Cucumber: "Mercenary bard seems to be able to melee
+// hit from very far away"): its target's edge (its body's, reach.go, a man's
+// for a body the server does not know) and mercStandGap, never past
+// mercReach. A big creature's allowance let a merc at its owner's side swing
+// at Arch Bishop Lancel from 6.8 off his centre, 3.6 off his edge, through its
+// owner: a player's reach, but no player's place. It goes to his side.
+func mercStandFrom(t *NPC) float32 {
+	edge := humanRadius
+	if r, ok := ModelRadius(uint32(t.ModelID)); ok {
+		size := t.Size
+		if size <= 0 {
+			size = 1
+		}
+		edge = r * size
+	}
+	return min(edge+mercStandGap, mercReach(t))
+}
+
+// mercCloseFrom is the distance past which a merc swinging at its target
+// closes in again: its stand and mercStandSlack, never past mercReach.
+func mercCloseFrom(t *NPC) float32 {
+	return min(mercStandFrom(t)+mercStandSlack, mercReach(t))
+}
+
+// mercMeleeArtRange is the longest range of an art a tank or a melee fighter
+// strikes with from its target's side (a bard's Assaults and Resonant Blades
+// are 5): one cast from farther is a spell.
+const mercMeleeArtRange float32 = meleeReach + 1
+
+// mercArtAwayLocked reports a tank's or a melee fighter's melee art (its range
+// at most mercMeleeArtRange) at t while it is not yet at t's side: it goes
+// there first, as for its swing (petition 3229: a bard's Resonant Blades and
+// Assaults struck Arch Bishop Lancel from beside its owner, 6.8 off).
+func (ms *mercState) mercArtAwayLocked(s *CastSpell, t *NPC) bool {
+	if ms.role != roleTank && ms.role != roleMelee || s.Range <= 0 || s.Range > mercMeleeArtRange {
+		return false
+	}
+	m := ms.npc
+	return distXZ(m.X, m.Z, t.X, t.Z) > mercCloseFrom(t)
+}
+
+// mercSwingsAt reports the merc in its round at t already (its swing begun).
+func mercSwingsAt(m, t *NPC) bool {
+	return m.RoundTarget == t.ServerID && !m.RoundStart.IsZero()
 }
 
 // mercMeleeLocked takes the merc to its target and swings there in its
@@ -204,23 +266,37 @@ func mercReach(t *NPC) float32 {
 func (w *World) mercMeleeLocked(ms *mercState, t *NPC, dt float32, now time.Time) {
 	m := ms.npc
 	reach := mercReach(t)
-	if d := distXZ(m.X, m.Z, t.X, t.Z); d > reach || w.petStackedLocked(m, t.X, t.Y, t.Z, now) {
+	// it goes to its target's side before it swings, and once swinging closes
+	// in again when its target moves off (mercStandFrom: petition 3229)
+	limit := mercStandFrom(t)
+	if mercSwingsAt(m, t) && !ms.closing {
+		limit = mercCloseFrom(t)
+	}
+	d := distXZ(m.X, m.Z, t.X, t.Z)
+	ms.closing = d > limit
+	if d > limit || w.petStackedLocked(m, t.X, t.Y, t.Z, now) {
 		// out of its reach: its bow's shot, or the pull it waits for
 		// (mercshoot.go)
 		if d > reach && w.mercShootLocked(ms, t, now) {
 			m.loseDueHits(now)
 			return
 		}
-		// out of its reach, or its target on the floor over or under it: round
-		// what stands between (petwalk.go)
+		// away from its target's side, or its target on the floor over or
+		// under it: round what stands between (petwalk.go)
 		x, z := m.X, m.Z
-		if d > reach {
-			x = t.X + (m.X-t.X)/d*(reach-1)
-			z = t.Z + (m.Z-t.Z)/d*(reach-1)
+		if stand := mercStandFrom(t); d > limit && d > 0 {
+			x = t.X + (m.X-t.X)/d*max(stand-0.5, 0.5)
+			z = t.Z + (m.Z-t.Z)/d*max(stand-0.5, 0.5)
 		}
+		fromX, fromZ := m.X, m.Z
 		w.petWalkLocked(m, t.ServerID, x, z, t.X, t.Y, t.Z, max(ms.owner.SpeedNow(), petRunSpeed), dt, now)
-		m.loseDueHits(now) // closing in: no hit lands from out of reach
-		return
+		// its way to its target's side shut (nothing to stand on nearer, or
+		// round): it swings from where it stands while that is in its reach,
+		// as a player would
+		if !(dt > 0 && m.X == fromX && m.Z == fromZ && d <= reach && !w.petStackedLocked(m, t.X, t.Y, t.Z, now)) {
+			m.loseDueHits(now) // closing in: no hit lands from out of reach
+			return
+		}
 	}
 	m.stopMoving()
 	m.Facing = headingTo(t.X-m.X, t.Z-m.Z)
@@ -240,6 +316,9 @@ func (w *World) mercMeleeLocked(ms *mercState, t *NPC, dt float32, now time.Time
 	}
 	for m.RoundHits < len(hits) && !now.Before(m.RoundStart.Add(hits[m.RoundHits])) {
 		m.RoundHits++
+		if dist3(m.X, m.Y, m.Z, t.X, t.Y, t.Z) > mercHitReach(t) {
+			continue // past a player's reach (TargetInRange), the hit is lost
+		}
 		if w.mercMeleeHitLocked(ms, t, now) {
 			return
 		}

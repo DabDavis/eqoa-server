@@ -122,11 +122,6 @@ type QuestEngine struct {
 	cat          questCatalog
 	chars        map[uint32]*questChar
 	froglokLines map[[2]int]froglokQuestLine // [quest ID, step]; step zero is the offer
-	// skySyncing is set while a Plane of Sky chain's step or quest is done for
-	// a doer's groupmates (skygroup.go); skyKill is the characters the kill
-	// being counted is credited to (killed), whose kill steps count on their own
-	skySyncing bool
-	skyKill    map[uint32]bool
 	// prefarm is /prefarm's verdict on the kill being counted (prefarm.go), nil
 	// outside one
 	prefarm *prefarmKill
@@ -1705,9 +1700,6 @@ func (q *QuestEngine) startLocked(sess *session.Session, p *entity.Player, c *qu
 	// its events (questevents.go): the quest's on taking it, then its step's
 	q.questEventsLocked(sess, p, c, qu, database.EventAccept)
 	q.stepStartedLocked(sess, p, c, qu, cq, st)
-	if !gm {
-		q.skyGroupTakeLocked(p, qu, st.Step) // a Sky chain's, its group's too (skygroup.go)
-	}
 	return ""
 }
 
@@ -2139,11 +2131,6 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 	for i, kp := range k.Players {
 		chars[i] = q.namedLocked(kp.ServerID, kp.Name)
 	}
-	q.skyKill = make(map[uint32]bool, len(k.Players))
-	for _, kp := range k.Players {
-		q.skyKill[kp.ServerID] = true
-	}
-	defer func() { q.skyKill = nil }()
 	q.prefarm = &prefarmKill{k: k} // /prefarm (prefarm.go): read at its first need
 	defer func() { q.prefarm = nil }()
 	dropped := q.corpseDropsLocked(k, chars) // before the steps move on: who is on which, at the kill
@@ -2370,8 +2357,6 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 // st (a choice's Skip: the bribe that passes over the fight), none of their
 // events fired; past the last, the quest is finished.
 func (q *QuestEngine) completeStepSkipLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, given *handedIn, extra *database.ClassReward, skip int) {
-	// a Plane of Sky chain's step is its group's by the doer (skygroup.go)
-	q.skyGroupStepLocked(p, qu, st)
 	delete(c.packTold, [2]int{qu.ID, st.Step})
 	idx := c.index(qu.ID)
 	next := qu.Next(st.Step)

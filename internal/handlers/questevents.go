@@ -138,9 +138,6 @@ func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c
 		return
 	}
 	for _, e := range evs {
-		if q.skySyncing && skyWorldEvent(e.Do) {
-			continue // the doer's, one for the group (skygroup.go)
-		}
 		switch e.Do {
 		case database.EventPopup:
 			q.popupLocked(sess, c, e.Text, e.Answer)

@@ -9,16 +9,23 @@ machinery (every row it changes kept in guide_set_log, so --undo is exact), trig
       peasants, five minutes after their deaths three vassals, three minutes after three denizens, five minutes
       after the squire by the exit portal, then the Ancient Jester (his Night Key 1 opens the isle's essence).
   202 Night 3, save the maiden: a player at the courtyard's mouth starts it; the maiden comes out on her pedestal,
-      two dukes of the night at the mouth, and Arch Bishop Millian and Arch Bishop Lancel must die within five
-      minutes (awaitkill: the bishops of the towers, not copies), else the dukes carry her off (the run fails);
-      saved, she stays fifteen minutes for the quest's talk. Her row stands out of the world between events.
+      two dukes of the night at the mouth, and Arch Bishop Millian and Arch Bishop Lancel must die within thirty
+      minutes (awaitkill: the bishops of the towers, not copies; five until Heirloom petition 3144, 2026-11-26, when
+      they had become raid bosses of 325k), else the dukes carry her off (the run fails); saved, she stays fifteen
+      minutes for the quest's talk, then goes. The bishops' kills count in a run alone (petition 3144: a raid killed
+      one, let the time run out, and killed the other in the next): a run's start and its failure put those near on
+      101306 steps 12-13 back to 11 and on 101437 steps 2-3 back to 1 (questset with from past its step; onfail).
+      Her row stands out of the world between events.
   203 Rain 2, Kaglanor: a talk to Sterie Glitterlight (her quest answers as ever) raises Kaglanor by the maze's
-      ruined wall, one at a time.
+      ruined wall, one at a time. Placed on her circle (petition 3049) and Kaglanor where petition 3052 put him
+      (Heirloom petition 3146, 2026-11-26: quest 101302 step 1's own spawn of him made a second; it is gone).
   204 Rain 4, the necrologist: a player within 25 of his spot (the quest's popup spot) brings Narciliisisin; at his
       death his spirit rises where he fell. 205 Rain 5: his death (npcdeath) wakes Chimareon the Tyrant on his isle.
   206 Snow 1, Ryini's walk (quest 101307 step 2's trigger event): her row hidden an hour, a copy of her walks the
       mountain corridor (a route off the ground file), two icebound gargoyles set on her halfway, a Wind Mephit at
-      the stone bridge, a talk to go on, then left at the road's end over the village; her death fails it.
+      the stone bridge, a talk to go on, then left at the road's end over the village; her death fails it. Her way
+      to the bridge keeps to the valley's floor (Heirloom petition 3151, 2026-11-26: it went along the mountainside
+      over it, where players could not reach her or see her fight the gargoyles).
   207 Snow 4, Enraged Aeyinar (quest 101307 step 15's trigger event): fifteen minutes.
   208-210 Sun 3: a whispering wind's death 30% a whistling wind where it fell, a whistling's 30% a wailing, a
       wailing's the Torrential Wind (one at a time).
@@ -112,12 +119,50 @@ def trig(slot, name, radius, x, y, z, steps, notes, world=W):
     return t
 
 
-# Ryini's route off the ground file (a heightfield search, cells of 2, a step of at most 1.6 a cell): her row to
-# the Wind Mephit's at the stone bridge, 437 long, then on down to the floor over the village, 295
-RYINI_TO_BRIDGE = [[5647.0, 558.6, 6333.0], [5619.0, 559.8, 6327.0], [5591.0, 556.4, 6333.0], [5569.0, 551.2, 6355.0],
-                   [5553.0, 538.9, 6375.0], [5553.0, 540.0, 6405.0], [5553.0, 534.8, 6435.0], [5553.0, 524.0, 6463.0],
-                   [5555.0, 507.9, 6489.0], [5575.0, 506.8, 6511.0], [5595.0, 498.1, 6531.0], [5621.0, 490.6, 6537.0],
-                   [5651.0, 488.7, 6537.0]]
+# Ryini's route off the ground file (a heightfield search, cells of 2): her row to the Wind Mephit's at the stone
+# bridge, then on down to the floor over the village, 295. The first leg was a search of at most 1.6 a cell (437
+# long), which ran along the mountainside at x 5553, 20-30 over the valley players walk (Heirloom petition 3151); since
+# 2026-11-26 a search of at most 1.0 a cell (a slope of 0.5) costing each unit climbed 4, 528 long: round the ridge's
+# north end and down the valley's floor at x 5528, each point's floor and the line between them checked with
+# cmd/campground (no wall, nothing embedded; the old last point, over the chasm by the bridge, dropped)
+RYINI_TO_BRIDGE = [[5662.0, 552.9, 6342.0], [5662.0, 548.2, 6326.0], [5678.0, 539.8, 6326.0], [5676.0, 527.5, 6310.0],
+                   [5662.0, 527.4, 6304.0], [5646.0, 527.8, 6300.0], [5630.0, 528.0, 6300.0], [5614.0, 527.2, 6300.0],
+                   [5598.0, 523.2, 6300.0], [5584.0, 522.5, 6308.0], [5572.0, 524.4, 6320.0], [5560.0, 523.4, 6332.0],
+                   [5548.0, 522.8, 6344.0], [5536.0, 518.3, 6356.0], [5528.0, 515.3, 6370.0], [5528.0, 511.8, 6386.0],
+                   [5528.0, 508.4, 6402.0], [5528.0, 505.3, 6418.0], [5528.0, 502.3, 6434.0], [5528.0, 499.1, 6450.0],
+                   [5528.0, 494.7, 6466.0], [5528.0, 491.4, 6482.0], [5540.0, 491.4, 6494.0], [5552.0, 491.4, 6506.0],
+                   [5564.0, 491.4, 6518.0], [5576.0, 491.4, 6530.0], [5588.0, 491.4, 6542.0], [5604.0, 490.7, 6546.0],
+                   [5620.0, 487.6, 6546.0], [5636.0, 485.4, 6546.0], [5653.0, 485.8, 6551.0], [5668.0, 488.1, 6552.0]]
+# the gargoyle pair, ~100 ahead of her 45 s in, on the valley's floor (was (5553, 531.5, 6445) on the slope)
+GARGOYLES_AT = (5528.0, 509.7, 6396.0)
+# the night 3 race's time and the bishops' steps put back (Heirloom petition 3144)
+NIGHT3_SECONDS = 1800
+NIGHT3_BACK = [{"do": "questset", "quest": 101306, "step": 11, "from": 13},
+               {"do": "questset", "quest": 101437, "step": 1, "from": 3}]
+# the dukes' march (Heirloom petition 3201, 2026-11-26: "night dukes on Night 3 dont move to princess"): the race in
+# six stages of five minutes, the dukes walking up the courtyard's ramp a stage at a time to its head below her
+# pedestal (each spot's floor off cmd/campground); each later stage's awaitkill keeps the kills heard before it
+# (keep), so the bishops dead in an early stage meet each later one at once
+NIGHT3_STAGES = 6
+NIGHT3_MARCH = [(4250.0, 578.21, 6608.0), (4250.0, 583.51, 6626.0), (4250.0, 588.86, 6644.0), (4250.0, 594.2, 6662.0),
+                (4250.0, 599.55, 6680.0), (4250.0, 600.63, 6690.0)]
+NIGHT3_FAIL = "The dukes of the night reach the maiden and carry her off into the dark. When the bishops stand again, try again."
+
+
+def night3_race():
+    """The race's stages: the dukes walk a stage on, then the bishops' kills are waited for five minutes; the last
+    stage's time out fails the run, putting the bishops' steps back. No line between stages: a race won early runs
+    the stages left at once."""
+    out, stage = [], NIGHT3_SECONDS // NIGHT3_STAGES
+    for i, (x, y, z) in enumerate(NIGHT3_MARCH):
+        out.append({"do": "walk", "npc": "night duke", "pace": 2, **at(x, y, z)})
+        kill = {"do": "awaitkill", "npc": "Arch Bishop Millian, Arch Bishop Lancel", "seconds": stage}
+        if i:
+            kill["keep"] = True  # the kills of the stages before count (a run's deaths start afresh at each await)
+        if i == NIGHT3_STAGES - 1:
+            kill.update({"fail": NIGHT3_FAIL, "onfail": NIGHT3_BACK})
+        out.append(kill)
+    return out
 BRIDGE_TO_ROAD_END = [[5689.0, 484.7, 6571.0], [5689.0, 485.0, 6597.0], [5689.0, 485.2, 6623.0], [5687.0, 483.2, 6647.0],
                       [5681.0, 475.8, 6649.0], [5659.0, 473.9, 6655.0], [5651.0, 460.8, 6661.0], [5631.0, 453.7, 6663.0],
                       [5611.0, 445.2, 6671.0], [5589.0, 439.0, 6679.0]]
@@ -144,6 +189,9 @@ def deso2_steps():
     steps += [{"do": "awaitdead"},
               {"do": "broadcast", "text": "The last of the waves is broken. The Warlord of Narcillian comes for the village himself!"},
               spawn("#119586", 4656.63, 630.69, 6645.69, minutes=60),
+              # the warlord's step begins as he comes (Heirloom petition 3190: it showed two waves in): those near
+              # on 101308 steps 9-10 set to 11; step 10 names no creature, so no kill ends it before
+              {"do": "questset", "quest": 101308, "step": 11, "from": 9},
               {"do": "awaitdead"},
               {"do": "broadcast", "text": "The warlord is dead. The orb to the third isle of desolation shines on the portal pad."},
               {"do": "end"}, {"do": "despawn"}, {"do": "wait", "seconds": 600}]
@@ -207,24 +255,26 @@ def spec():
     t.append(trig(202, "Night 3: Save the Maiden", 300, 4250.0, 569.38, 6580.0, [
         {"do": "lock", "lock": "night 3 maiden"},
         {"do": "awaitnear", "start": True, "radius": 15},
+        *NIGHT3_BACK,
         {"do": "popup", "text": "The Night Maiden is brought out onto her pedestal, and the dukes of the night start toward her. "
-                               "Slay Arch Bishop Millian and Arch Bishop Lancel in their towers before the dukes reach her!"},
-        {"do": "spawn", "npc": "#119727", "spread": 1, "minutes": 30, **at(4250.09, 660.62, 6743.46)},
-        {"do": "spawn", "npc": "night duke", "count": 2, "spread": 3, "minutes": 10, **at(4250.0, 571.2, 6590.0)},
-        {"do": "awaitkill", "npc": "Arch Bishop Millian, Arch Bishop Lancel", "seconds": 300,
-         "fail": "The dukes of the night reach the maiden and carry her off into the dark. When the bishops stand again, try again."},
+                               "Slay Arch Bishop Millian and Arch Bishop Lancel in their towers before the dukes reach her! "
+                               "You have thirty minutes."},
+        {"do": "spawn", "npc": "#119727", "spread": 1, "minutes": NIGHT3_SECONDS // 60 + 20, **at(4250.09, 660.62, 6743.46)},
+        {"do": "spawn", "npc": "night duke", "count": 2, "spread": 3, "minutes": NIGHT3_SECONDS // 60 + 1, **at(4250.0, 571.2, 6590.0)},
+        *night3_race(),
         {"do": "despawn", "npc": "night duke"},
         {"do": "broadcast", "text": "The bishops are dead, and the dukes fall back into the night. The maiden is safe: speak with her."},
-        {"do": "wait", "seconds": 900}],
+        {"do": "wait", "seconds": 900},
+        {"do": "despawn"}],
         "Night 3 (t209, Yado and CS): the popup at the entrance, the bishops Millian and Lancel dead before the dukes reach "
         "the maiden, then she gives the shard. The courtyard's mouth (south of the entry plaza, the landing 130 off) off the "
         "ground file; her pedestal her row's; five minutes and two dukes (their name and look ours, untouchable). She stands "
         "out of the world between events; saved, 15 minutes."))
-    t.append(trig(203, "Rain 2: Kaglanor", 60, 4194.98, 180.0, 5147.39, [
+    t.append(trig(203, "Rain 2: Kaglanor", 60, 4116.9, 180.06, 5116.2, [
         {"do": "lock", "lock": "kaglanor"},
         {"do": "awaittalk", "npc": "Sterie Glitterlight", "start": True},
         {"do": "broadcast", "text": "A cold wind moves by the maze's ruined wall: the spirit Kaglanor has come."},
-        spawn("#120092", 4158.34, 180.0, 5158.97, minutes=30),
+        spawn("#120092", 4156.1, 180.06, 5183.3, minutes=30),
         {"do": "awaitdead"}, {"do": "wait", "seconds": 120}],
         "Rain 2 (t211): 'the questor must speak with her. At this point a white con spirit (kaglanor) spawns behind you near "
         "the maze wall ruins.' His row's spot; one at a time; Sterie's quest answers the talk as ever."))
@@ -258,9 +308,10 @@ def spec():
         {"do": "say", "npc": "Ryini", "text": "Take me down the mountain, %p. I would see Tamis again."},
         {"do": "walk", "npc": "Ryini", "points": RYINI_TO_BRIDGE, "pace": RYINI_PACE, "x": 5674.45, "y": 488.09, "z": 6554.08},
         {"do": "wait", "seconds": 45},
-        {"do": "spawn", "npc": "icebound gargoyle", "count": 2, "spread": 4, "minutes": 20, "hostile": True, **at(5553.0, 531.5, 6445.0)},
+        {"do": "spawn", "npc": "icebound gargoyle", "count": 2, "spread": 4, "minutes": 20, "hostile": True, **at(*GARGOYLES_AT)},
         {"do": "sic", "npc": "icebound gargoyle", "target": "Ryini", "radius": 100},
-        {"do": "wait", "seconds": 70},
+        {"do": "awaitdead", "npc": "icebound gargoyle"},
+        {"do": "wait", "seconds": 80},
         {"do": "popup", "text": "Ryini reaches the stone bridge, and a Wind Mephit tears out of the air before her!"},
         spawn("#119634", 5674.45, 488.09, 6554.08, spread=4, minutes=20),
         {"do": "awaitdead", "npc": "Wind Mephit"},

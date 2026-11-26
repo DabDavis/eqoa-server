@@ -205,7 +205,10 @@ type TriggerStep struct {
 	// hostile and minutes its spawn's, text a line in its players' chat as it comes
 	By string `json:"by,omitempty"`
 	// Quest and QuestStep (queststep): the quest's id and the step done; (questset) the
-	// step set, From the first step it is set from
+	// step set, From the first step it is set from (before step: those on from..step-1 go
+	// on to it, the kill group's flag), or the last it puts back from (past step: those on
+	// step+1..from go back to it, its kills to count again: Night 3's bishops after a
+	// failed run, Heirloom petition 3144)
 	Quest     int `json:"quest,omitempty"`
 	QuestStep int `json:"step,omitempty"`
 	From      int `json:"from,omitempty"`
@@ -215,6 +218,11 @@ type TriggerStep struct {
 	// quest, a death) passes it by. A talk start with no text lets the NPC answer as
 	// ever (its quests, its lines) after the firing; with text that is its answer
 	Start bool `json:"start,omitempty"`
+	// Keep (awaitkill): the kills the run heard while waiting on the steps before it count
+	// too (any other await starts its count afresh): a race in stages, Night 3's dukes
+	// walking a stage on every five minutes while the bishops' two deaths are waited for
+	// over all of them (Heirloom petition 3201)
+	Keep bool `json:"keep,omitempty"`
 	// Gone (awaitkill): met at once, too, while no living NPC of its names stands within the
 	// run's reach (a standing guardian already dead when the run came: Tallon's Zek sentry)
 	Gone bool `json:"gone,omitempty"`
@@ -223,6 +231,11 @@ type TriggerStep struct {
 	// spawns taken away, the rest left undone (Night 3's bishops, dead before the dukes
 	// reach the maiden)
 	Fail string `json:"fail,omitempty"`
+	// OnFail (with fail): steps done as the run fails, for its players as they stand
+	// then, before its spawns go: questsets alone (Heirloom petition 3144: Night 3's
+	// race lost, a bishop killed in it no longer counts, those on the chain put back
+	// to the first bishop)
+	OnFail []TriggerStep `json:"onfail,omitempty"`
 	// Points (walk): a route walked in order before x/y/z (none: straight there), and
 	// Pace its speed (0: the run's; under 7 walked, not run)
 	Points [][3]float32 `json:"points,omitempty"`
@@ -614,8 +627,8 @@ func StepProblems(steps []TriggerStep) []string {
 		case TriggerQuestSet:
 			if s.Quest <= 0 || s.QuestStep <= 0 || s.From <= 0 {
 				add(i, "questset names no quest, step and from (quest, step, from)")
-			} else if s.From >= s.QuestStep {
-				add(i, "questset's from %d is not before its step %d", s.From, s.QuestStep)
+			} else if s.From == s.QuestStep {
+				add(i, "questset's from %d is its step: before it sets on, past it puts back", s.From)
 			}
 		case TriggerQuestStep:
 			if s.Quest <= 0 || s.QuestStep <= 0 {
@@ -664,6 +677,22 @@ func StepProblems(steps []TriggerStep) []string {
 				add(i, "start is an awaittalk's or an awaitnear's")
 			case !first:
 				add(i, "start is the trigger's first step (its locks before it)")
+			}
+		}
+		if s.Keep && s.Do != TriggerAwaitKill {
+			add(i, "keep is an awaitkill's")
+		}
+		if len(s.OnFail) > 0 && strings.TrimSpace(s.Fail) == "" {
+			add(i, "onfail is a fail's: the step has none")
+		}
+		for j, o := range s.OnFail {
+			switch {
+			case o.Do != TriggerQuestSet:
+				add(i, "onfail's step %d is %q: questsets alone", j+1, o.Do)
+			case o.Quest <= 0 || o.QuestStep <= 0 || o.From <= 0:
+				add(i, "onfail's questset %d names no quest, step and from", j+1)
+			case o.From == o.QuestStep:
+				add(i, "onfail's questset %d: from %d is its step", j+1, o.From)
 			}
 		}
 		if strings.TrimSpace(s.Fail) != "" {

@@ -117,9 +117,11 @@ func (q *QuestEngine) heldStepLocked(sess *session.Session, p *entity.Player, c 
 }
 
 // SetHeldSteps sets a quest at step to for each player who is on it at a step from
-// from up to before to (a trigger's questset: the kill group's flag), as a GM's
-// set-step: nothing handed in, no reward. It answers how many were set. The trigger
-// engine calls it on a goroutine of its own, as DoHeldStep.
+// from up to before to (a trigger's questset: the kill group's flag), or, with from
+// past to, from after to up to from (put back: a failed run's kills to count again,
+// Heirloom petition 3144), as a GM's set-step: nothing handed in, no reward, the
+// step's count started again. It answers how many were set. The trigger engine
+// calls it on a goroutine of its own, as DoHeldStep.
 func (q *QuestEngine) SetHeldSteps(members []heldMember, questID, from, to int) int {
 	if q == nil {
 		return 0
@@ -143,7 +145,11 @@ func (q *QuestEngine) SetHeldSteps(members []heldMember, questID, from, to int) 
 		}
 		c := q.namedLocked(m.p.CharServerID, m.p.Name)
 		cq := c.quests[questID]
-		if cq == nil || !cq.Active() || cq.Step < from || cq.Step >= to {
+		lo, hi := from, to-1
+		if from > to {
+			lo, hi = to+1, from
+		}
+		if cq == nil || !cq.Active() || cq.Step < lo || cq.Step > hi {
 			continue
 		}
 		log.Printf("Quests: %s's %q set from step %d to %d (a trigger's questset)", m.p.Name, qu.Name, cq.Step, to)

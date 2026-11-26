@@ -207,7 +207,8 @@ func TestQuestSetAndProtectMinutesProblems(t *testing.T) {
 	}{
 		{`[{"do":"questset","quest":5,"step":4,"from":2}]`, ""},
 		{`[{"do":"questset","quest":5,"step":4}]`, "questset names no quest, step and from"},
-		{`[{"do":"questset","quest":5,"step":4,"from":4}]`, "is not before its step"},
+		{`[{"do":"questset","quest":5,"step":4,"from":4}]`, "is its step"},
+		{`[{"do":"questset","quest":5,"step":4,"from":6}]`, ""},
 		{`[{"do":"protect","npc":"Ryini","minutes":60}]`, ""},
 		{`[{"do":"protect","npc":"Ryini","minutes":-1}]`, "protect's -1.0 minutes"},
 	} {

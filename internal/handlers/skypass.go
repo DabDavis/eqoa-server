@@ -456,6 +456,7 @@ func (q *QuestEngine) PassSteps(sess *session.Session, p *entity.Player, name st
 	c := q.namedLocked(p.CharServerID, p.Name)
 	c.box = nil
 	look := q.lookAt(sess)
+	q.passAheadLocked(sess, p, c, name, spawn, those)
 	done := 0
 	tried := map[[2]int]bool{}
 	for {
@@ -491,6 +492,35 @@ func (q *QuestEngine) PassSteps(sess *session.Session, p *entity.Player, name st
 		}
 		q.atNPCLocked(sess, p, c, qu, cq, st, true, pick)
 		done++
+	}
+}
+
+// passAheadLocked brings a chain run again up to the passage's step: a player
+// who has finished the chain before (done > 0) and, on a run taken up again at
+// the main isle's essence, crosses a later isle's essence with a key kept from
+// the run before is put at that essence's step, the isles skipped counted as
+// crossed (Cucumber, 2026-11-26: a finished Chain of Night taken up again by
+// the key of the ancients sat at step 3, the four ancient peasants, while
+// Night Keys 1 and 2 took him to the third isle, so the bishops' kills were
+// "told what comes first" and the run could never be finished). A first run is
+// not moved: its isles are walked. Must be called with q.mu held.
+func (q *QuestEngine) passAheadLocked(sess *session.Session, p *entity.Player, c *questChar, name string, spawn entity.EntityID, those [][2]int) {
+	for _, s := range those {
+		cq := c.quests[s[0]]
+		if cq == nil || !cq.Active() || cq.Done == 0 || cq.Step >= s[1] {
+			continue
+		}
+		qu := q.cat.byID[s[0]]
+		if qu == nil {
+			continue
+		}
+		st := qu.Step(s[1])
+		if st == nil || !database.AtNPC(st.Kind) || !stepNPC(st, name, spawn) {
+			continue
+		}
+		log.Printf("SkyPass: %s's %q again (finished %d time(s)) brought from step %d to the passage's step %d at %s",
+			p.Name, qu.Name, cq.Done, cq.Step, st.Step, name)
+		q.setStepLocked(sess, p, c, qu, cq, st)
 	}
 }
 

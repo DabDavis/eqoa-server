@@ -973,6 +973,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharRecord(); err != nil { // combatrecord.go: each character's PvP and duels
 		return err
 	}
+	if err := db.ensureCharBestiary(); err != nil { // bestiary.go: the creatures each character has met
+		return err
+	}
 	if err := db.ensureCharInfection(); err != nil { // wereinfection.go: a character's were infection (work 1463)
 		return err
 	}

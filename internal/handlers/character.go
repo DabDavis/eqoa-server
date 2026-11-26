@@ -1139,6 +1139,10 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// Combat Record asks for it, a PS2 ignores the offer
 	SendCombatRecordOffer(sess)
 
+	// Offer the bestiary (bestiary.go): vanilla's Character > Bestiary asks for its
+	// pages, a PS2 ignores the offer; none where the QoL additions are off for it
+	SendBestiaryOffer(sess)
+
 	// The four weapon sets (gearsets.go): SOE's live client reads them, a PS2
 	// skips them
 	if h.gearSets != nil {

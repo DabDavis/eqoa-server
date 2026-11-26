@@ -36,6 +36,7 @@ func worldEntryOpsOf(t *testing.T, sess *session.Session) []protocol.GameOpcode 
 // is offered none of the quality-of-life additions and no item links; another
 // account's session on the same shard is offered every one, as before.
 func TestOGSessionStopsItsOwnOffers(t *testing.T) {
+	bestiaryKept(t) // the bestiary offered, as by a server with a database
 	SetConLevel(true)
 	SetMobInfo(true)
 	t.Cleanup(func() { SetConLevel(false); SetMobInfo(false) })

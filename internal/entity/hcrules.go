@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/eqoa/server/internal/session"
 )
@@ -69,6 +70,7 @@ func (w *World) noteHateLocked(npc *NPC, id EntityID) {
 	}
 	if p := w.Players[id]; p != nil {
 		npc.hcHate[id] = hcHolder{hardcore: p.Hardcore}
+		w.bestiaryMetLocked(npc, p, time.Now()) // the player met it (bestiary.go)
 		return
 	}
 	n := w.NPCs[id]
@@ -82,6 +84,7 @@ func (w *World) noteHateLocked(npc *NPC, id EntityID) {
 	if n.Owner != 0 {
 		if o := w.Players[n.Owner]; o != nil {
 			npc.hcHate[o.ServerID] = hcHolder{hardcore: o.Hardcore}
+			w.bestiaryMetLocked(npc, o, time.Now()) // its owner met it (bestiary.go)
 			return
 		}
 		npc.hcHate[hcHolderOutside] = hcHolder{}

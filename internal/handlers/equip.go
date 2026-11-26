@@ -541,6 +541,12 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		if row.EquipLoc < 0 && h.craft.UseScroll(sess, serverID, idx, row) {
 			return nil
 		}
+		// the Scroll of Returning: out of a heroic dungeon and back, spent on the way back
+		// (dungeonreturn.go); before the spell scrolls, as it wears their icon
+		if IsScrollOfReturning(&row.Pattern) {
+			h.useScrollOfReturning(sess, player, idx, row)
+			return nil
+		}
 		if isScroll(&row.Pattern) {
 			h.scribe(sess, player, idx, row)
 			return nil

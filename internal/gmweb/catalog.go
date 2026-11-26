@@ -595,6 +595,24 @@ var catalog = map[string]tableNote{
 			"ac":    {Label: "AC a piece"},
 		},
 	},
+	"charbestiary": {
+		Label: "Bestiaries", Group: "Players", Sort: "serverid",
+		Help: "Each character's bestiary (petition 3192; entity/bestiary.go): a row a creature kind (the NPC's name) and " +
+			"the zone it spawns in, made the first time the kind took the character (or its pet) into its hate, and the " +
+			"kills it was credited with there. Players see it in vanilla's Character > Bestiary. Counted from this " +
+			"table's first deploy; each shard its own.",
+		Live:   "At the next page the player asks for.",
+		Show:   []string{"serverid", "kind", "zone", "kills", "first_seen"},
+		Search: []string{"kind", "zone"},
+		Cols: map[string]colNote{
+			"serverid":   {Label: "Character", Ref: "characters"},
+			"kind":       {Label: "Creature", Help: "the NPC's name"},
+			"zone":       {Label: "Zone", Help: "where it spawns: the map's zone, a heroic dungeon, a town's wilds or the world"},
+			"first_seen": {Label: "First met", Help: "Unix time"},
+			"kills":      {Label: "Kills"},
+			"last_kill":  {Label: "Last kill", Help: "Unix time, 0 none"},
+		},
+	},
 	"charrecord": {
 		Label: "Combat records", Group: "Players", Sort: "serverid",
 		Help: "Each character's combat record, lifetime, a row each from its first count (entity/combatrecord.go): PvP " +

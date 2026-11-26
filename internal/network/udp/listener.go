@@ -834,6 +834,7 @@ func (l *Listener) SaveAll() {
 	// the combat records' last counts (entity/combatrecord.go): written every tick,
 	// and here for a kill in the tick before a restart or a shutdown
 	l.gameWorld.FlushCombatRecords()
+	l.gameWorld.FlushBestiary() // and the bestiary's (entity/bestiary.go)
 	var inWorld []*session.Session
 	l.sessionManager.ForEach(func(sess *session.Session) bool {
 		if sess.CharacterInWorld() {

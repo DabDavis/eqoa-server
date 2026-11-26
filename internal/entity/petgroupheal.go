@@ -21,7 +21,11 @@ import (
 // would heal a duel's opponent or a PvP foe. Of the group's other players, one
 // in a fight that is its own (ownfight.go: a duel, PvP, Mr. Moogie's challenge)
 // is left out with its pet; the pet's own owner is healed whatever it fights,
-// as its other heals do (a class pet is a duel's own).
+// as its other heals do (a class pet is a duel's own). A merc's pet is no class
+// pet: its hirer in such a fight is left out too, as the merc's own heals leave
+// it (petSparesLocked; Heirloom petition 3186, 2026-11-26: "merc mage pet heals
+// during lion fight", two merc magicians' Ghilan Nobles healing their hirer
+// through Metal Moogie V3's challenge).
 
 // petGroupHealReach is how far from the pet its group heal reaches when its
 // spell has no range of its own: a spell's usual 30.
@@ -32,6 +36,17 @@ const petGroupHealReach float32 = 30
 type petSide struct {
 	players []*Player
 	pets    []*NPC
+}
+
+// petSparesLocked reports a player the pet's heals pass by: one whose fight is
+// its own (ownFightLocked), unless it is the owner of a class pet (a duel's
+// own); a merc's pet's hirer in such a fight too, as no merc helps it
+// (ownfight.go). Must be called with the lock held.
+func (w *World) petSparesLocked(ps *petState, p *Player) bool {
+	if p == ps.owner && ps.merc == nil {
+		return false
+	}
+	return w.ownFightLocked(p)
 }
 
 // petSideLocked is the pet's side within reach of it (the file's doc), alive
@@ -48,7 +63,7 @@ func (w *World) petSideLocked(ps *petState, reach float32) petSide {
 		}
 	}
 	addPlayer := func(p *Player) {
-		if p == nil || p.IsDead() || p.respawnPending() || (p != owner && w.ownFightLocked(p)) {
+		if p == nil || p.IsDead() || p.respawnPending() || w.petSparesLocked(ps, p) {
 			return
 		}
 		if near(p.World, p.X, p.Y, p.Z) {

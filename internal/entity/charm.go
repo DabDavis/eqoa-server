@@ -400,10 +400,20 @@ func (w *World) takeCharmedLocked(owner *Player, npc *NPC, hold *charmHold) {
 }
 
 // Ebony Recluse keeps its wild elemental resists while charmed. Its attacks
-// and hit points continue to follow the ordinary charm rules.
+// and hit points continue to follow the ordinary charm rules. So does a
+// creature whose npccharm row names its own template (namedTemplateLocked) as
+// the one it fights by charmed: it is charmed as itself, its template's
+// abilities its pet's (charmTemplateLocked) and its resists kept (Heirloom
+// petitions 3237/3239: a charmed toxic breath kept none of its 90%; the lava
+// centipede, charmed by its own template since 2026-11-02, likewise).
 func (w *World) charmResistsLocked(npc *NPC) *ClassTemplate {
 	if database.NPCClassKey(npc.Name) == "ebony recluse" {
 		return w.namedTemplateLocked(npc)
+	}
+	if own := w.namedTemplateLocked(npc); own != nil {
+		if r, ok := w.charmRuleLocked(npc); ok && r.Template != "" && w.templates.byName[r.Template] == own {
+			return own
+		}
 	}
 	return nil
 }

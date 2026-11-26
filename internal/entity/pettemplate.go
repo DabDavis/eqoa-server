@@ -147,10 +147,38 @@ func (w *World) petTakenLocked(pet *NPC, n int) int {
 		return n
 	}
 	n = w.earthPetTakenLocked(ps, n) // a tank's share of its owner's level (petearthtaken.go)
-	if ps.tmpl == nil || ps.tmpl.tmpl.TakenPct == 100 {
+	if ps.tmpl == nil {
 		return n
 	}
-	return max(1, int(math.Round(float64(n)*float64(ps.tmpl.tmpl.TakenPct)/100)))
+	if ps.tmpl.tmpl.TakenPct != 100 {
+		n = max(1, int(math.Round(float64(n)*float64(ps.tmpl.tmpl.TakenPct)/100)))
+	}
+	if pct, ok := charmedMeleeKindTaken(pet, ps.tmpl.tmpl); ok {
+		n = max(1, n*pct/100)
+	}
+	return n
+}
+
+// charmedMeleeKindTaken is the share of a creature's melee a charmed pet
+// takes by its template's melee resists (AbilityMeleeKind: slash, pierce and
+// blunt, what a player's weapon hits as on it). A creature's melee is of no
+// weapon kind, so the template must name all three, and the largest of the
+// three is taken (the least resisted): a charmed toxic breath, its own
+// template's 10% of each, tanks as it did wild (Heirloom petition 3239: "half
+// dead after tanking 2 phantoms"). ok false for any other pet.
+func charmedMeleeKindTaken(pet *NPC, t *ClassTemplate) (int, bool) {
+	if pet.Charm == nil || t == nil || len(t.kindTaken) == 0 {
+		return 0, false
+	}
+	most, n := 0, 0
+	for _, k := range []Stat{StatSlash, StatPierce, StatBlunt} {
+		pct, ok := t.kindTaken[k]
+		if !ok {
+			return 0, false
+		}
+		most, n = max(most, pct), n+1
+	}
+	return most, n == 3 && most != 100
 }
 
 // petAbilities is the pet's template's abilities, none without one.
@@ -1034,6 +1062,13 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 		if pet.sheet != nil {
 			hit, drained = sheetFigure(pet, c.spell.Def.Effects, a.DamageOr(), false) // its stats scale it (petstats.go)
 		}
+		resist := c.spell.resist
+		if hit <= 0 && a.Damage > 0 && len(c.spell.Def.Effects) == 0 {
+			// a fixed hit of its own name (fixedHitSpell: no book's spell, no
+			// effects), its figure and resist the row's: a charmed toxic breath's
+			// 1,000 PR Toxic Breath (Heirloom petitions 3237/3239) had landed nothing
+			hit, resist = a.Damage, shieldResistStat(a.Resist)
+		}
 		if a.Kind == database.AbilityLifetap {
 			w.petDrainStatsLocked(ps, t, c.spell, now) // a drain of stats: Undead Bane's
 		}
@@ -1042,7 +1077,7 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 		}
 		pet.LastCombatTime = now
 		log.Printf("Pet: %s's %q lands %q on %s for %d before the balance", ps.owner.Name, pet.Name, c.spell.Name, t.Name, hit)
-		taken := -creatureResists(c.spell.resist, t, -hit, now)
+		taken := -creatureResists(resist, t, -hit, now)
 		if drained > 0 {
 			// a tap heals the pet by what it took (a player's tap's rule, lifetap.go):
 			// its drained share of the hit after the creature's resist and the

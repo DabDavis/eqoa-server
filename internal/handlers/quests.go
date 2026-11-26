@@ -203,7 +203,10 @@ type QuestEngine struct {
 	// names is the steps' items' names by patternid, for the trackers
 	// (questprogress.go), made at Reload too
 	texts map[int]*questText
-	names map[int]string
+	// dropSrc is the creature names whose loot tables drop each item a give step
+	// names (questmarksdrops.go), read with the quests
+	dropSrc map[int][]string
+	names   map[int]string
 	// saysPlaces is the places quests' last words give their next givers
 	// (questpointers.go), as worked out, forgotten at Reload
 	saysPlaces map[string]string
@@ -654,6 +657,7 @@ func (q *QuestEngine) publishLocked() error {
 	q.wereq = wereQuestsOf(cat)                            // wereinfect.go
 	q.marked = markedWithFollowUps(marked, cat.successors) // questheadmarks.go
 	q.texts, q.names = texts, names
+	q.dropSrc = dropSources(q.store, cat.all)
 	q.saysPlaces = nil
 	q.spots, q.camps, q.hops = nil, nil, nil // the marks read the NPCs' places again
 	for id := range q.unpublished {

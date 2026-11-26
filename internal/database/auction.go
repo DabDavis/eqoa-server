@@ -467,6 +467,10 @@ type AuctionListing struct {
 	// disc's form, whose count is the constant 1).
 	PerItem bool
 	Count   int
+	// LoreOK: the seller's client sells a Lore item (vanilla's live form,
+	// handlers' 0x7E0B; auctionlore.go). Not: CLIENT's CanSell, which
+	// refuses one (word 1727).
+	LoreOK bool
 }
 
 // AuctionList puts a bank record up for auction: the listing fee out of the
@@ -519,9 +523,13 @@ func (db *SQLiteDB) AuctionList(req AuctionListing) (AuctionLot, int, error) {
 			return fmt.Errorf("%w: item %d holds %d, its pattern stacks to %d", errAuctionChanged, e.ItemID, e.StackLeft, p.MaxStack)
 		case p.Trade != 0:
 			return refuseAuction("No Trade items cannot be put up for auction.")
-		case p.Lore != 0 || p.Rent == 0:
-			// CLIENT's CanSell, word 1727
+		case (p.Lore != 0 && !req.LoreOK) || p.Rent == 0:
+			// CLIENT's CanSell, word 1727 (a Lore item from a client that
+			// sells one: auctionlore.go)
 			return refuseAuction("Item is not auctionable")
+		case p.Lore != 0 && ((req.PerItem && req.Count != 1) || (!req.PerItem && e.StackLeft != 1)):
+			// a Lore lot is one item (auctionlore.go)
+			return refuseAuction("%s is Lore: put it up one at a time.", p.ItemName)
 		case req.MinBid < p.ItemCost:
 			// DrawSell clamps the starting bid up to the item's value (each
 			// item's, by the item)
@@ -670,6 +678,9 @@ func (db *SQLiteDB) AuctionBid(req AuctionBidRequest) (AuctionBidResult, error) 
 		}
 		if !ok || !l.Running(req.Now) || (l.Perpetual && !req.Perpetual) {
 			return refuseAuction("You cannot bid on a closed auction.") // word 1776
+		}
+		if err := loreBidTx(tx, req.Bidder, &l, max(1, req.Qty)); err != nil {
+			return err // no second of a Lore item (auctionlore.go)
 		}
 		if l.Perpetual {
 			return buyPerpetualTx(tx, req, l, &res)
@@ -959,6 +970,11 @@ func settleTx(tx sqlRunner, l AuctionLot, now time.Time) (AuctionSettlement, err
 	where := "It is in your bank."
 	if d == nil && !after.Delivered {
 		where = "It waits at the auction house for room in your bank."
+		if held, err := loreHoldsTx(tx, after.Holder, &after); err != nil {
+			return st, err
+		} else if held {
+			where = loreWaitLine(name)
+		}
 	}
 	if winner != 0 {
 		if err := noticeTx(tx, winner, now, "You won the auction of %s for %d tunar. %s", name, l.Price, where); err != nil {
@@ -967,7 +983,7 @@ func settleTx(tx sqlRunner, l AuctionLot, now time.Time) (AuctionSettlement, err
 	} else if !st.SellerGone {
 		line := fmt.Sprintf(auctionNoBidsBanked, name) // in the bank: the live game's words (filmed)
 		if d == nil && !after.Delivered {
-			line = fmt.Sprintf("Your auction of %s ended with no bids. %s", name, where) // waiting for room: ours
+			line = fmt.Sprintf("Your auction of %s ended with no bids. %s", name, where) // waiting for room (or Lore held): ours
 		}
 		if err := noticeTx(tx, l.Seller, now, "%s", line); err != nil {
 			return st, err
@@ -1053,6 +1069,9 @@ func deliverTx(tx sqlRunner, l *AuctionLot, now time.Time) (*AuctionDelivery, er
 		}
 		l.Delivered = true
 		return nil, nil
+	}
+	if held, err := loreHoldsTx(tx, l.Holder, l); err != nil || held {
+		return nil, err // a Lore item its holder has already waits (auctionlore.go)
 	}
 	n := l.Item.StackLeft
 	itemID, merged, ok, err := fileItemTx(tx, l.Holder, &l.Item, n)

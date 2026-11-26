@@ -1728,12 +1728,13 @@ func (w *World) coachDestLocked(npc *NPC) CoachDest {
 		facing = npc.SpawnFacing
 	}
 	return CoachDest{
-		Name:   label,
-		X:      x,
-		Y:      npc.SpawnY,
-		Z:      z,
-		Facing: facing,
-		World:  npc.World,
+		Name:     label,
+		X:        x,
+		Y:        npc.SpawnY,
+		Z:        z,
+		Facing:   facing,
+		World:    npc.World,
+		Coachman: npc.ServerID,
 	}
 }
 

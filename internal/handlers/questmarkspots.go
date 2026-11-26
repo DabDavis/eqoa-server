@@ -337,6 +337,9 @@ type wayHop struct {
 	// coach is a coachman's stop (entity.CoachTrips); ledger, one sold only
 	// to a traveller who has signed the stop's ledger (its name)
 	coach, ledger bool
+	// coachman is the coachman of the stop a coach's trip ends at (0 none
+	// known): one who would refuse the player is no way for it
+	coachman entity.EntityID
 }
 
 // wayHopsLocked is every trip of wayRoutes whose NPC stands in the world,
@@ -379,7 +382,7 @@ func (q *QuestEngine) wayHopsLocked(spots map[string][]entity.NPCSpot) []wayHop 
 			at := wayNodeOf(t.From)
 			for _, d := range t.Dests {
 				if lands := wayNodeAt(d.World, d.X, d.Z); lands != at {
-					q.hops = append(q.hops, wayHop{from: t.From, to: d.World, name: d.Name, at: at, lands: lands, coach: true, ledger: t.Ledger})
+					q.hops = append(q.hops, wayHop{from: t.From, to: d.World, name: d.Name, at: at, lands: lands, coach: true, ledger: t.Ledger, coachman: d.Coachman})
 				}
 			}
 		}

@@ -27,6 +27,14 @@ import (
 //   - A coach stop counts only as his menu would sell it to the player
 //     (wayAllowLocked): a world its client holds, and on a network a ledger
 //     it has signed (charcoaches, read at most every signedEvery).
+//   - A coachman who would refuse the player (entity.World.RefusesID: his
+//     town's faction holds it at or below entity.FactionKOSAt, as an evil
+//     player in Qeynos or a good one in Neriak) is no way for it, neither the
+//     coachman it rides from nor the one it would be set down by: no mark
+//     over him, no way through his town's stable, no " ?" on his stop (Heirloom
+//     petition 3191: "the questionmark should not appear on good coaches if
+//     you are evil, likewise if you are good, it should not direct you to
+//     evil coaches"). A step in such a town is marked by another road, if any.
 //   - His menu puts " ?" after the stop of a step under way (CoachStops,
 //     coachMenu): the stop in the step's place nearest the step's mark (when
 //     that is nearer it than the coachman is by coachStopGain, or in another
@@ -103,6 +111,7 @@ func (q *QuestEngine) wayAllowLocked(serverID uint32) func(wayHop) bool {
 	if q.sessionOf != nil {
 		sess = q.sessionOf(serverID)
 	}
+	refuses := q.coachRefuserLocked(sess)
 	return func(h wayHop) bool {
 		if !h.coach {
 			return true
@@ -110,7 +119,40 @@ func (q *QuestEngine) wayAllowLocked(serverID uint32) func(wayHop) bool {
 		if sess != nil && !holdsWorld(sess, h.to) {
 			return false
 		}
+		if refuses(h.from.ID) || refuses(h.coachman) {
+			return false
+		}
 		return !h.ledger || signed == nil || signed[h.name]
+	}
+}
+
+// coachRefuserLocked is whether a coachman (by id) would refuse the session's
+// player (entity.World.RefusesID), each asked once; none refuses with no
+// player known. Must be called with q.mu held.
+func (q *QuestEngine) coachRefuserLocked(sess *session.Session) func(entity.EntityID) bool {
+	var p *entity.Player
+	if sess != nil && q.gw != nil {
+		p = q.gw.SessionPlayer(sess)
+	}
+	return q.refuserFor(p)
+}
+
+// refuserFor is coachRefuserLocked's for a player.
+func (q *QuestEngine) refuserFor(p *entity.Player) func(entity.EntityID) bool {
+	if p == nil || q.gw == nil {
+		return func(entity.EntityID) bool { return false }
+	}
+	seen := map[entity.EntityID]bool{}
+	return func(id entity.EntityID) bool {
+		if id == 0 {
+			return false
+		}
+		r, ok := seen[id]
+		if !ok {
+			r = q.gw.RefusesID(p, id)
+			seen[id] = r
+		}
+		return r
 	}
 }
 
@@ -127,7 +169,8 @@ func (q *QuestEngine) CoachStops(p *entity.Player, coach *entity.NPC, dests []en
 	c := q.namedLocked(p.CharServerID, p.Name)
 	spots := q.markSpotsLocked(now)
 	here := wayNodeAt(coach.World, coach.SpawnX, coach.SpawnZ)
-	var hops []wayHop // the trips the player may take, made at the first step that needs them
+	refuses := q.refuserFor(p) // a stop whose coachman refuses the player: never marked (petition 3191)
+	var hops []wayHop          // the trips the player may take, made at the first step that needs them
 	for _, cq := range c.active() {
 		qu := q.cat.byID[cq.QuestID]
 		if qu == nil {
@@ -143,7 +186,7 @@ func (q *QuestEngine) CoachStops(p *entity.Player, coach *entity.NPC, dests []en
 			// a stop in the step's place: the nearest its mark
 			best, bestD := -1, 0.0
 			for i, d := range dests {
-				if d.Ledgers || wayNodeAt(d.World, d.X, d.Z) != there {
+				if d.Ledgers || refuses(d.Coachman) || wayNodeAt(d.World, d.X, d.Z) != there {
 					continue
 				}
 				if dd := math.Hypot(float64(d.X-mark.X), float64(d.Z-mark.Z)); best < 0 || dd < bestD {
@@ -174,7 +217,7 @@ func (q *QuestEngine) CoachStops(p *entity.Player, coach *entity.NPC, dests []en
 			limit, reach := far[here]
 			best, bestN := -1, 0
 			for i, d := range dests {
-				if d.Ledgers {
+				if d.Ledgers || refuses(d.Coachman) {
 					continue
 				}
 				n, ok := far[wayNodeAt(d.World, d.X, d.Z)]

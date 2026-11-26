@@ -695,6 +695,18 @@ func (w *World) refusesLocked(p *Player, npc *NPC) bool {
 	return Kos(w.standingLocked(p, f))
 }
 
+// RefusesID is Refuses for the player and the NPC of the id (false for none):
+// a coachman of a town that holds the player kill-on-sight is no quest's way
+// for it (handlers/questcoachway.go, Heirloom petition 3191).
+func (w *World) RefusesID(p *Player, id EntityID) bool {
+	if p == nil || id == 0 {
+		return false
+	}
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.refusesLocked(p, w.NPCs[id])
+}
+
 // NPCFaction is the faction an NPC is of, "" none (npcfaction).
 func (w *World) NPCFaction(npc *NPC) string {
 	w.mu.RLock()

@@ -2482,6 +2482,27 @@ var catalog = map[string]tableNote{
 			"source":         {Label: "Source", Help: "gm, or eqoa-data cms for tools/seed_masteries.py's rows"},
 		},
 	},
+	"legacyforms": {
+		Label: "Legacy forms", Group: "Items & spells", Title: "spellid", Sort: "spellid",
+		Help: "An ability's older form, owned through a class mastery (handlers/legacyforms.go; Heirloom petition 3184, " +
+			"the owner approved the mechanism): a character owning the rank mastery_id (Class masteries) casts the " +
+			"spell legacy_spellid (its own Spells and Spell effects rows: power, cast time, recast, what it does) whenever " +
+			"it casts the ability spellid from its book. The book is not changed: removing the rank (or #cmreset, or a " +
+			"Relive) gives the present form back at the next cast. The rank itself is an ordinary Class masteries row, " +
+			"listed under its class. Not cast nor sold on a vanilla_ui shard or to an [OG] character. note says what the " +
+			"older form was and where its figures come from. Rows of source legacy-forms-1126 are " +
+			"tools/legacy_forms_20261126.py's (its --undo deletes them).",
+		Live:   "At once: the next cast of the ability.",
+		Search: []string{"note", "source"},
+		Cols: map[string]colNote{
+			"spellid":        {Label: "Ability", Ref: "spellpattern", Help: "the ability in the book (its present form)"},
+			"legacy_spellid": {Label: "Older form", Ref: "spellpattern", Help: "the spell cast in its place"},
+			"mastery_id":     {Label: "Mastery", Ref: "cmcatalog", Help: "the rank that gives it"},
+			"note":           {Label: "Note", Help: "the older form and its sources"},
+			"enabled":        {Label: "On", Enum: "bool"},
+			"source":         {Label: "Source", Help: "gm, or legacy-forms-1126 for the seeding tool's rows"},
+		},
+	},
 	"charcms": {
 		Label: "Character masteries", Group: "Players", Sort: "serverid",
 		Help: "The class masteries each character bought (Class masteries) and what each cost it; its points are " +

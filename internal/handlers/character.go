@@ -1074,6 +1074,10 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// world.mob_info is on: a client that shows them there asks, a PS2
 	// ignores it and is shown them in a dialogue box
 	SendMobInfoOffer(sess)
+	// and a creature's details and loot chart (mobdetails.go), where
+	// world.mob_details is on: a client that opens them on a right click asks,
+	// a PS2 ignores it
+	SendMobDetailsOffer(sess)
 	// and a target's level in the target box (conlevel.go), where
 	// world.con_level is on: a client that draws it shows it, a PS2 ignores
 	// it (its players type /con)

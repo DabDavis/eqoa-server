@@ -785,6 +785,16 @@ type WorldConfig struct {
 	// Heirloom Test Server sets it.
 	MobInfo bool `yaml:"mob_info"`
 
+	// MobDetails answers a client's ask about a creature with its details and
+	// loot chart: its name, level, class, consider colour and hit points, and
+	// what its corpse can hold with each item's chance a kill, read off the
+	// loot model the corpses roll (handlers/mobdetails.go; Heirloom petition
+	// 3163). A client that can (vanilla: a right click on a creature) is
+	// offered it (protocol.OpcodeMobDetailsOffer); not on a world.vanilla_ui
+	// shard nor to an [OG] character. Unset or false: nothing is offered and
+	// an ask is refused.
+	MobDetails bool `yaml:"mob_details"`
+
 	// ConLevel lets every player see a target's level (handlers/conlevel.go;
 	// Live petition 5130, the owner 2026-11-15: "yes lets allow"): /con (a
 	// PS2's "/t con") says "<name> is level N." of the player's target, and a

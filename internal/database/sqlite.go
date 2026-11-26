@@ -792,6 +792,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCMCatalog(); err != nil {
 		return err
 	}
+	if _, err := db.Exec(LegacyFormsSchema); err != nil { // a mastery's older form of an ability (legacyforms.go)
+		return fmt.Errorf("legacyforms: %w", err)
+	}
 	if _, err := db.Exec(ImportedSchema); err != nil { // imported gear's copies (imported.go)
 		return fmt.Errorf("itemimported: %w", err)
 	}

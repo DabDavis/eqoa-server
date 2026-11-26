@@ -202,6 +202,10 @@ var snapshotRules = map[string]snapshotRule{
 
 	// The pets creatures summon (npcpets.go, entity/creaturepets.go): game data, no person's; kept whole, said here
 	// so a snapshot's reader knows it.
+	"legacyforms": {why: "the older forms of abilities a class mastery gives: ability, the spell cast in its place, the rank, " +
+		"a note of its sources (handlers/legacyforms.go)"},
+	"legacy_forms_1126_log": {allow: []string{"rowkey"}, why: "tools/legacy_forms_20261126.py's log"},
+
 	"npcpets": {why: "the pets each creature summons, by its name or its row: a template npcs row, how many, their level " +
 		"against the owner's (npcpets.go)"},
 

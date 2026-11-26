@@ -898,6 +898,10 @@ func main() {
 	handlers.SetMailPostage(cfg.World.MailPostage)
 	// a monster's name and level on the talk button (handlers/mobinfo.go)
 	handlers.SetMobInfo(cfg.World.MobInfo)
+	handlers.SetMobDetails(cfg.World.MobDetails)
+	if cfg.World.MobDetails {
+		log.Printf("Mob details: a creature's details and loot chart on a client's ask (world.mob_details)")
+	}
 	if cfg.World.MobInfo {
 		log.Printf("Mob info: a monster with nothing to say shows its name and level (world.mob_info)")
 	}

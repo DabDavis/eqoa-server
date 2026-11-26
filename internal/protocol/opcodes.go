@@ -1186,6 +1186,49 @@ const (
 	OpcodeMobInfo GameOpcode = 0x7E4E
 )
 
+// A creature's details and loot chart (handlers/mobdetails.go, world.mob_details;
+// Heirloom petition 3163: "view a mob's loot chart: right-click a mob to view its
+// details like stats and loot table"). Not retail; 0x7EFA-0x7EFC, past the surname's
+// 0x7EF8-0x7EF9.
+const (
+	// OpcodeMobDetailsOffer is the server's offer, server to client once the
+	// player is in the world, only where world.mob_details is on and the
+	// session has the quality-of-life additions (handlers.QoLOnFor: not on a
+	// world.vanilla_ui shard, not an [OG] character's): a u8, the layout of
+	// OpcodeMobDetails (1). A client that knows it (vanilla) asks with
+	// OpcodeMobDetailsAsk; it answers nothing to the offer. A PS2 ignores it
+	// (CLIENT's dispatcher has no case above 0x1402 and no default).
+	OpcodeMobDetailsOffer GameOpcode = 0x7EFA
+
+	// OpcodeMobDetailsAsk is a client's ask, client to server: a u8 layout (1)
+	// and the u32 id the client knows a creature by. Asks are rate limited per
+	// session (handlers/mobdetails.go: a few at once, then one every two
+	// seconds); one past the limit is answered with status 2.
+	OpcodeMobDetailsAsk GameOpcode = 0x7EFB
+
+	// OpcodeMobDetails is the answer, server to client. Little-endian: a u8
+	// layout (1), the u32 id asked about, a u8 status (0 shown; 1 no creature
+	// the client knows by that id, or not a creature: a player, an NPC with
+	// the NPC bit, a corpse, a pet; 2 asked too often, ask again in a moment;
+	// 3 not on this server). Status 0 goes on: the name (a u8 byte count and
+	// ASCII, at most 63), a u8 level, the class (u8-counted ASCII, "" for a
+	// creature of none), a u8 consider colour as 0x0010's (0 red, 1 yellow, 2
+	// white, 3 dark blue, 4 light blue, 5 green) for the asker, u32 hit
+	// points now and u32 their most, then a u8 count of info lines (each
+	// u8-counted ASCII: its kind of loot, its region's), then a u16 count of
+	// loot rows and a u8 of flags (1: rows were left out past the most sent),
+	// each row a u8 source (0 its own items, 1 what it holds, 2 a loot table,
+	// 3 a category of its region's, a row a category, 4 a quest's item, 5 a
+	// table every creature rolls), a u16 chance a kill in hundredths of a
+	// percent (10000 every kill; at least 1 for any chance above none), a u32
+	// item record id (0 for a category's row, which names its pool), and its
+	// text (u8-counted ASCII: the item's name, or the category and how many
+	// items its pool holds). Read off the loot model a corpse rolls with
+	// (handlers/loot.go rollCorpse, loottables/npcloot, lootcategory, the
+	// quests' loot steps): what can drop, never what will.
+	OpcodeMobDetails GameOpcode = 0x7EFC
+)
+
 // A target's level beside its name (handlers/conlevel.go, world.con_level; Live
 // petition 5130, the owner 2026-11-15: "yes lets allow").
 const (

@@ -264,6 +264,8 @@ Each system's file is its long form; its tests document the edge cases. `world.<
 | PvP flag | `entity/pvp.go`, `handlers/pvp.go`, `world.pvp` |
 | /afk: the [AFK] name tag (first dropped), away message on tells, ends at chat, attack, cast or a 2-unit move; kept over a keep restart | `entity/afk.go`, `handlers/afk.go` |
 | Monster name and level on □ | `handlers/mobinfo.go`, `world.mob_info` |
+| A creature's details and loot chart on a client's ask (vanilla's right click; 0x7EFA-0x7EFC): name, level, class, con, hit points, what its corpse can hold with each item's chance a kill, read off the corpse's own loot model; QoL-locked | `handlers/mobdetails.go`, `world.mob_details` |
+| Legacy forms: a class mastery rank that casts an ability's older form (table `legacyforms`: ability, legacy spell, rank); the book unchanged, the next cast after a removal the present form; QoL-locked | `handlers/legacyforms.go`, `database/legacyforms.go`, `tools/legacy_forms_20261126.py` |
 | [OG] and [HC] (hardcore) characters, memorial | `handlers/ogaccount.go`, `hardcore*.go`, `hc*.go`, `memorial.go`, `entity/hcrules.go`, `internal/fallen`, `world.og_accounts`, `world.hardcore` |
 | Profanity filter, item links in chat | `handlers/profanity.go`, `handlers/itemlinks.go` |
 | Combat record (PvP, duels) | `entity/combatrecord.go`, table `charrecord` |

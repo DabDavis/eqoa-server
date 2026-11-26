@@ -50,12 +50,15 @@ func (h *SpellbookHandler) handleUseSkill(sess *session.Session, msg *protocol.M
 		log.Printf("Cast: %s has nothing on bar slot %d", p.Name, slot)
 		return nil
 	}
-	row, _, err := h.store.SpellEffectRow(e.Pattern.SpellID)
+	// an older form of the ability its mastery gives (legacyforms.go): the legacy
+	// spell cast in its place, from the same place in the book
+	cast := h.legacyFormOf(sess, p, e)
+	row, _, err := h.store.SpellEffectRow(cast.Pattern.SpellID)
 	if err != nil {
-		log.Printf("Cast: %q's effect: %v", e.Pattern.SpellName, err)
+		log.Printf("Cast: %q's effect: %v", cast.Pattern.SpellName, err)
 	}
-	spell := h.areaOf(castSpellRow(e, row)) // spellarea.go
-	h.recastGroupOf(&spell, book)           // its recast group's spells (entity/recastgroup.go)
+	spell := h.areaOf(castSpellRow(cast, row)) // spellarea.go
+	h.recastGroupOf(&spell, book)              // its recast group's spells (entity/recastgroup.go)
 	if spell.Def.Reagent == "" || spell.Def.ReagentCount <= 0 {
 		h.gameWorld.StartCast(sess, spell, target, time.Now())
 		return nil

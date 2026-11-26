@@ -100,6 +100,14 @@ world:
   # set.
   # mob_info: true
 
+  # A creature's details and loot chart (handlers/mobdetails.go): vanilla
+  # (offered it with opcode 0x7EFA) opens them on a right click on a creature:
+  # its name, level, class, consider colour, hit points, and what its corpse
+  # can hold with each item's chance a kill, read off the loot tables, its
+  # region's categories and the quests' loot steps. Not on a vanilla_ui shard
+  # nor to an [OG] character. Off unless set.
+  # mob_details: true
+
   # A target's level, for every player (handlers/conlevel.go): /con (a PS2's "/t con") says "<name> is level N." of the player's
   # target, and vanilla (offered it with opcode 0x7E70) shows the level in its
   # target box beside the name. Off unless set: /con is then an unknown command.

@@ -301,6 +301,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	}
 	if spellStore != nil {
 		classMasteryHandler.SetSpellbook(spellStore)
+		classMasteryHandler.legacyMastery = spellStore.IsLegacyMastery // an older form's rank (legacyforms.go)
 	}
 	chatHandler.SetClassMastery(classMasteryHandler)
 	connStatsHandler := NewConnStatsHandler()
@@ -624,6 +625,11 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// and the answers it shows in an NPC's box (0x7E71; dialogroom.go)
 	NewDialogRoomHandler().RegisterHandlers(r)
 
+	// A creature's details and loot chart (0x7EFB; mobdetails.go): a client that
+	// opens them on a right click asks; the quests' loot step items join below
+	mobDetails := NewMobDetailsHandler(gameWorld, npcWindowHandler)
+	mobDetails.RegisterHandlers(r)
+
 	// The quests (quests.go): an NPC talked to asks them first, their boxes'
 	// answers, the kills and places that do steps, the journal and the
 	// player's own delete (0x007D); the GM panel edits them (questgm.go)
@@ -640,6 +646,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 			// a kill's corpse kept for its loot steps' drops (questloot.go)
 			qe.pending, qe.placed = npcWindowHandler.QuestDropsPending, npcWindowHandler.QuestDropsPlaced
 			npcWindowHandler.workKill = qe.WorkKill // a corpse opens with its quest drops on it (petition 2980)
+			mobDetails.questRows = qe.LootChartRows // a creature's chart lists its loot steps' items (mobdetails.go)
 			qe.Start()
 			r.Register(protocol.OpcodeDeleteQuest, qe.HandleDrop)
 		}

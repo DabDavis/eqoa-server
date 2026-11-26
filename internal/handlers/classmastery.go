@@ -81,6 +81,10 @@ type ClassMasteryHandler struct {
 	gameWorld      *entity.World
 	store          masteryStore
 	book           cmBook
+	// legacyMastery is whether a rank gives an ability's older form
+	// (database.SpellbookStore.IsLegacyMastery, legacyforms.go): not sold where
+	// the quality-of-life lock holds; nil, none does
+	legacyMastery func(id int) (bool, error)
 }
 
 // NewClassMasteryHandler creates a new class mastery handler.
@@ -374,6 +378,11 @@ func (h *ClassMasteryHandler) buy(sess *session.Session, token uint32, id int) [
 	if p == nil {
 		return nil
 	}
+	if why := h.legacyRefusal(sess, id); why != "" {
+		log.Printf("ClassMastery: %s buying %d refused: %s", p.Name, id, why)
+		SendErrorMessage(sess, why)
+		return nil
+	}
 	before := h.gameWorld.CMList(sess, h.cmKnowsOf(p))
 	res := h.gameWorld.BuyCM(sess, id, h.cmKnowsOf(p))
 	if res.Refusal != "" {
@@ -400,6 +409,24 @@ func (h *ClassMasteryHandler) buy(sess *session.Session, token uint32, id int) [
 		writeCMState(w, res.State, list)
 	})
 	return append(h.listAgain(token, before, list), bought)
+}
+
+// legacyRefusalLine is the refusal of an older form's rank where the
+// quality-of-life lock holds (legacyforms.go).
+const legacyRefusalLine = "Legacy forms are not offered to this character."
+
+// legacyRefusal is why the session may not buy rank id, "" when it may: an
+// older form's rank where the quality-of-life lock holds (legacyforms.go).
+func (h *ClassMasteryHandler) legacyRefusal(sess *session.Session, id int) string {
+	if h.legacyMastery == nil || QoLOnFor(sess) {
+		return ""
+	}
+	if is, err := h.legacyMastery(id); err != nil {
+		log.Printf("ClassMastery: is %d an older form's rank: %v", id, err)
+	} else if is {
+		return legacyRefusalLine
+	}
+	return ""
 }
 
 // listAgain is Recv08 with list, when list's parent keys are not before's (the

@@ -176,7 +176,9 @@ func (w *World) setHPMomentLocked(npc *NPC, m *database.TemplateAbility, now tim
 	}
 	ps, ns := w.setHPReachLocked(npc, m, now)
 	if m.Tick <= 0 {
-		ps = slices.DeleteFunc(ps, func(p *Player) bool { return p.HP <= to })
+		if !m.CapMaxHP { // a ceiling lands on a player at any hit points
+			ps = slices.DeleteFunc(ps, func(p *Player) bool { return p.HP <= to })
+		}
 		ns = slices.DeleteFunc(ns, func(n *NPC) bool { return n.HP <= to })
 	}
 	if len(ps) == 0 && len(ns) == 0 {
@@ -201,6 +203,9 @@ func (w *World) setHPMomentLocked(npc *NPC, m *database.TemplateAbility, now tim
 	}
 	for _, p := range ps {
 		p.LastCombatTime = now
+		if m.CapMaxHP {
+			w.setHPCapOnPlayerLocked(npc, m, p, now)
+		}
 		if p.HP <= to {
 			continue
 		}
@@ -233,6 +238,44 @@ func (w *World) setHPMomentLocked(npc *NPC, m *database.TemplateAbility, now tim
 			w.bossDoTOnCreatureStartLocked(npc, m, n, now)
 		}
 	}
+}
+
+// setHPCapSpellID is the spell id a sethp's maximum hit point ceiling
+// (CapMaxHP) is kept under on a player (ours, beside setHPDoTSpellID), so a
+// second landing replaces the first and it is kept over a logout (buffsave.go:
+// no npcFoe, its rule HPCapped).
+const setHPCapSpellID = -1_990_002
+
+// setHPCapFor is a sethp's ceiling's time: its own, else
+// database.DefaultSetHPCapSeconds.
+func setHPCapFor(m *database.TemplateAbility) time.Duration {
+	if m.CapFor > 0 {
+		return time.Duration(m.CapFor * float64(time.Second))
+	}
+	return database.DefaultSetHPCapSeconds * time.Second
+}
+
+// setHPCapOnPlayerLocked puts a sethp's ceiling on p (the owner, 2026-11-26:
+// Dread Curse sets "MAXIMUM HP", not the current): its maximum hit points at
+// m.SetHP at most for its time, under the moment's name in its effects, no
+// resist; landing again replaces it (addEffectLocked), never two. Its hit
+// points above the ceiling are taken by the fall (setHPMomentLocked) as a
+// hit, the ceiling then holding them (effectsChangedLocked); at its end the
+// maximum is p's own, its hit points where they were. Its damage over time's
+// ticks never refresh it. Must be called with the lock held.
+func (w *World) setHPCapOnPlayerLocked(npc *NPC, m *database.TemplateAbility, p *Player, now time.Time) {
+	name := momentName(m)
+	ae := &ActiveEffect{SpellID: setHPCapSpellID, Name: name, Icon: setHPDoTIcon, Caster: npc.ServerID, Until: now.Add(setHPCapFor(m))}
+	ae.Rules.Harm = true
+	ae.Rules.HPCap, ae.Rules.HPCapped = max(m.SetHP, 1), true
+	before := p.HP
+	w.addEffectLocked(p, ae, now)
+	p.HP = before // the fall below is the hit (its line, its figure)
+	if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
+		w.sendChatToSession(sess, fmt.Sprintf("%s's %s holds your maximum hit points at %d for %d seconds.", npc.Name, name,
+			ae.Rules.HPCap, int(setHPCapFor(m)/time.Second)))
+	}
+	log.Printf("Template: %s's %s caps %s's maximum hit points at %d for %s", npc.Name, name, p.Name, ae.Rules.HPCap, setHPCapFor(m))
 }
 
 // setHPDoTSpellID is the spell id a sethp's damage over time is kept under on

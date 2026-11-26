@@ -374,10 +374,14 @@ func (w *World) dpsAddByLocked(maker *Player, what dpsWhat, n int, kind numberKi
 		l = &dpsLine{name: maker.Name, class: maker.Class}
 		f.lines[maker.ServerID] = l
 	}
-	if kind&numberByMerc != 0 {
+	if kind&numberByMerc != 0 || merc != 0 {
 		l.merc[what] += int64(n)
 		if merc != 0 {
-			w.dpsMercLineLocked(f, maker, merc).add(what, n)
+			ml := w.dpsMercLineLocked(f, maker, merc)
+			ml.add(what, n)
+			if kind&numberByPet != 0 {
+				ml.addPet(what, n) // the merc's own pet's (dpsmerc.go)
+			}
 		}
 	}
 	byPet := kind.byHelper()

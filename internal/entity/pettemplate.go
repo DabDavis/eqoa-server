@@ -400,7 +400,7 @@ func (w *World) petShareHealLocked(ps *petState, a *templateAbility, now time.Ti
 func (w *World) tellPetHealLocked(ps *petState, n int) {
 	if sess := w.findSessionByEntityIDLocked(ps.owner.ServerID); sess != nil {
 		if id := w.objectIDForEntityLocked(sess, ps.npc.ServerID); id != 0 {
-			w.sendDamageIndication(sess, sess.PlayerObjectID(), n, id, numberHeal.byPet())
+			w.dpsByPetLocked(ps, func() { w.sendDamageIndication(sess, sess.PlayerObjectID(), n, id, numberHeal.byPet()) }) // dpsmerc.go
 		}
 	}
 }

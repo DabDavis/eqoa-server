@@ -174,7 +174,7 @@ func (w *World) petMemberHealLocked(ps *petState, c *petCast, n int) {
 		}
 		p.HP += n
 		p.StatsDirty = true
-		w.dpsAddLocked(ps.owner, dpsHeal, n, true, dpsMeterNow()) // its owner's healing, its pet's share (dpsheal.go)
+		w.dpsPetAddLocked(ps, dpsHeal, n) // its owner's healing, its pet's share (dpsheal.go); a merc's pet's its merc's (dpsmerc.go)
 		if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
 			if id := w.objectIDForEntityLocked(sess, pet.ServerID); id != 0 {
 				// told to the one healed: counted above
@@ -200,7 +200,7 @@ func (w *World) petMemberHealLocked(ps *petState, c *petCast, n int) {
 			return
 		}
 		t.HP += n
-		w.dpsAddLocked(ps.owner, dpsHeal, n, true, dpsMeterNow()) // dpsheal.go
+		w.dpsPetAddLocked(ps, dpsHeal, n) // dpsheal.go, dpsmerc.go
 		if t == pet {
 			w.dpsWorthLocked(0, func() { w.tellPetHealLocked(ps, worth) }) // counted above
 		}

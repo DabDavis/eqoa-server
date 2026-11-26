@@ -171,7 +171,9 @@ func (w *World) petTapLocked(ps *petState, t *NPC, now time.Time) bool {
 		pet.HP = min(pet.HP+n, pet.MaxHP)
 		if sess := w.findSessionByEntityIDLocked(ps.owner.ServerID); sess != nil {
 			if id := w.objectIDForEntityLocked(sess, pet.ServerID); id != 0 {
-				w.dpsWorthLocked(pet.HP-was, func() { w.sendDamageIndication(sess, sess.PlayerObjectID(), n, id, numberHeal.byPet()) }) // the tap's take, its pet's heal; the meter's (dpsheal.go)
+				w.dpsWorthLocked(pet.HP-was, func() {
+					w.dpsByPetLocked(ps, func() { w.sendDamageIndication(sess, sess.PlayerObjectID(), n, id, numberHeal.byPet()) })
+				}) // the tap's take, its pet's heal; the meter's (dpsheal.go), a merc's pet's its merc's (dpsmerc.go)
 			}
 		}
 	}

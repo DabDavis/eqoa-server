@@ -72,7 +72,7 @@ func (w *World) mercPetHealsMercLocked(ps *petState, c *petCast, n int) {
 	n = min(n, m.MaxHP-m.HP)
 	m.HP += n
 	syncMercBody(ps.merc)
-	w.dpsAddLocked(ps.owner, dpsHeal, n, true, dpsMeterNow()) // its hirer's healing, as its pet's member heals (dpsheal.go)
+	w.dpsPetAddLocked(ps, dpsHeal, n) // its hirer's healing, as its pet's member heals (dpsheal.go); its merc's line (dpsmerc.go)
 	log.Printf("Pet: %s's %q heals its merc %s with %q for %d (HP %d/%d)", ps.owner.Name, pet.Name, m.Name, c.spell.Name, n, m.HP, m.MaxHP)
 }
 

@@ -82,7 +82,9 @@ type subGMs interface {
 // A GM, Heirloom petition 2741: "testers and gm's need a command to /ph ...
 // when I say testers, I mean the GM flag tester that actually displays TEST
 // next to their name": #ph (#placeholder), placeholder.go.
-var subGMCommands = map[string]bool{"#ph": true, "#summon": true, "#goto": true, "#teleport": true, "#gotoplayer": true, "#testmode": true, "#safemode": true, "#fly": true, "#speed": true, "#delete": true, "#clone": true, "#place": true, "#move": true, "#roamer": true,
+// The owner, 2026-11-26: "GMs and sub GMs ... a command to check
+// placeholders": #phcheck, read only (phcheck.go).
+var subGMCommands = map[string]bool{"#ph": true, "#phcheck": true, "#summon": true, "#goto": true, "#teleport": true, "#gotoplayer": true, "#testmode": true, "#safemode": true, "#fly": true, "#speed": true, "#delete": true, "#clone": true, "#place": true, "#move": true, "#roamer": true,
 	"#size": true}
 
 // isSubGM reports whether sess's account is a sub GM.
@@ -142,6 +144,7 @@ var gmCommands = map[string]bool{
 	"#noclip": true, "#raidboss": true, "#aura": true, "#hazard": true, "#announce": true, "#formula": true,
 	"#safemode": true, "#copy": true, // #copy: #clone (gmAliases)
 	"#ph": true, "#placeholder": true, // #placeholder: #ph (gmAliases; placeholder.go)
+	"#phcheck": true, // placeholders looked at, read only (phcheck.go)
 }
 
 // slashGM is the # spelling of a /command line that names a GM command

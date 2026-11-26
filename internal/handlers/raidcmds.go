@@ -434,6 +434,7 @@ func (h *ChatHandler) playerHelp(sess *session.Session) {
 	}
 	if !h.isGM(sess) && h.isSubGM(sess) { // a sub GM's own (placeholder.go)
 		SendClientMessage(sess, phHelp)
+		SendClientMessage(sess, phCheckHelp)
 	}
 	if h.isGM(sess) {
 		SendClientMessage(sess, "  GM commands: #help")

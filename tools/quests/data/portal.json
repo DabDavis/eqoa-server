@@ -2845,8 +2845,8 @@
     {
      "kind": "kill",
      "target": "erych patroller",
-     "count": 4,
-     "journal": "Farm the scouts and scavengers of each quarter of the isle and kill the erych patrollers."
+     "count": 5,
+     "journal": "Farm the scouts and scavengers of each quarter of the isle and kill five erych patrollers."
     },
     {
      "kind": "kill",
@@ -2889,9 +2889,9 @@
     },
     {
      "kind": "kill",
-     "target": "warrior of Narcillian",
-     "count": 4,
-     "journal": "Defend the village: kill Narcillian's warriors."
+     "target": "the last wave of Narcillian",
+     "count": 1,
+     "journal": "Defend the village: hold off Narcillian's scouts and warriors, wave after wave, until their warlord comes."
     },
     {
      "kind": "kill",

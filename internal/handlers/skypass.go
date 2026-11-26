@@ -258,10 +258,7 @@ func (h *InteractHandler) skyPassTalk(sess *session.Session, p *entity.Player, n
 	if q.StepHereBesides(p, npc.Name, npc.ServerID, skyPassSteps()) {
 		return false
 	}
-	// a player one step behind it with a groupmate by it past it goes on
-	// with the group (skygroup.go, Live petitions 5509, 5510)
-	if pass != nil && pass.Back != nil && q.AtStepBefore(p, pass.Back.Quest, pass.Back.Before) &&
-		!q.MateAheadCatchUp(sess, p, pass.Back.Quest, pass.Back.Before) {
+	if pass != nil && pass.Back != nil && q.AtStepBefore(p, pass.Back.Quest, pass.Back.Before) {
 		h.skyBack(sess, p, npc, pass.Back)
 		return true
 	}
@@ -329,9 +326,6 @@ func (h *InteractHandler) skyPass(sess *session.Session, p *entity.Player, npc *
 			// taken by a step that gives one), a chain it holds the key of
 			// taken up first
 			q.StartPassSteps(ms, m, stepsAs, npc.ServerID, pass.Steps)
-			// the step before the passage's, which the group did with
-			// the member out of reach, done with it (skygroup.go)
-			q.CatchUpPassSteps(ms, m, pass.Steps)
 			q.PassSteps(ms, m, stepsAs, npc.ServerID, pass.Steps)
 		})
 }

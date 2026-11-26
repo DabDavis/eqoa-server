@@ -165,6 +165,9 @@ def deso2_steps():
     steps += [{"do": "awaitdead"},
               {"do": "broadcast", "text": "The last of the waves is broken. The Warlord of Narcillian comes for the village himself!"},
               spawn("#119586", 4656.63, 630.69, 6645.69, minutes=60),
+              # the warlord's step begins as he comes (Heirloom petition 3190: it showed two waves in): those near
+              # on 101308 steps 9-10 set to 11; step 10 names no creature, so no kill ends it before
+              {"do": "questset", "quest": 101308, "step": 11, "from": 9},
               {"do": "awaitdead"},
               {"do": "broadcast", "text": "The warlord is dead. The orb to the third isle of desolation shines on the portal pad."},
               {"do": "end"}, {"do": "despawn"}, {"do": "wait", "seconds": 600}]

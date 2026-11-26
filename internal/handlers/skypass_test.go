@@ -457,10 +457,10 @@ func TestTheMainIslesEssenceTakesUpTheChain(t *testing.T) {
 	if n := r.held(r.pa, "rain key"); n != 1 {
 		t.Errorf("Anna holds %d rain keys, want 1", n)
 	}
-	// the chain taken up and its give step done for Cora with Anna's key, as
-	// the group's (skygroup.go, Live petition 5510): Cora's own key is kept
-	if s, _ := r.step(r.pc, 101301); s != 3 || r.held(r.pc, "rain key") != 1 {
-		t.Errorf("Cora's chain: step %d, %d keys, want 3 and her key kept", s, r.held(r.pc, "rain key"))
+	// carried by the passage, Cora's own chain taken up and its give step done
+	// with her own key (each player's own steps: skygroup.go)
+	if s, _ := r.step(r.pc, 101301); s != 3 || r.held(r.pc, "rain key") != 0 {
+		t.Errorf("Cora's chain: step %d, %d keys, want 3 and her own key given", s, r.held(r.pc, "rain key"))
 	}
 	if r.pc.X != r.pa.X || r.pc.Z != r.pa.Z {
 		t.Errorf("Cora was not taken along")

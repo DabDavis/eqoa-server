@@ -163,6 +163,50 @@ func sortDPSRows(rows []dpsRow) {
 	})
 }
 
+// mercDrainHPLocked gives the hit points a merc's tap took (n, its share) to
+// the merc, and for a "Drain Group" one (the necromancer's Blood path: Blood
+// Gale to Blood Vortex) to its team in the spell's reach and sight too
+// (mercHealTeamLocked, as its group's buffs), as a player's cast heals its
+// group (lifetap.go drainLocked; the owner, 2026-11-26, Heirloom petition 3134's
+// follow-up: it healed the merc alone). Each heal counts on the meter as the
+// merc's healing (its line and its owner's merc share), at what it restored.
+// Must be called with the lock held.
+func (w *World) mercDrainHPLocked(ms *mercState, s *CastSpell, e SpellEffect, n int) {
+	m := ms.npc
+	if n <= 0 || m.Dead {
+		return
+	}
+	defer w.dpsBySetLocked(m.ServerID)()
+	kind := numberHeal.byMerc()
+	healNPC := func(o *NPC) {
+		if o.Dead || o.HP >= o.MaxHP {
+			return
+		}
+		was := o.HP
+		o.HP = min(o.HP+n, o.MaxHP)
+		if o.isMerc() {
+			syncMercBody(o.merc)
+		}
+		w.dpsAddByLocked(ms.owner, dpsHeal, o.HP-was, true, m.ServerID, dpsMeterNow())
+	}
+	if e.Drain != DrainGroup {
+		healNPC(m)
+		return
+	}
+	for _, mm := range w.mercHealTeamLocked(ms) {
+		if mm.id() != m.ServerID && !w.mercGroupReachesLocked(ms, s, mm) {
+			continue
+		}
+		if p := mm.p; p != nil {
+			if !p.IsDead() {
+				w.healLocked(ms.body, nil, p, n, kind) // its owner's merc's figure; the meter's merc line (healLocked)
+			}
+			continue
+		}
+		healNPC(mm.n)
+	}
+}
+
 // mercDrainPowerLocked gives the power a merc's Power path spell drained (n,
 // the effect's "Drain Group" power) to the merc and its team in the spell's
 // reach and sight (mercHealTeamLocked, as its group's buffs), each within its

@@ -229,3 +229,46 @@ func TestMercPowerPathGivesPower(t *testing.T) {
 		t.Fatalf("the owner's line's power %d, want %d", pw, want)
 	}
 }
+
+// A necromancer merc's Blood path (Blood Squall: "Drain Group" hit points,
+// the owner's call on petition 3134's follow-up) heals as a player's does: the
+// merc, its owner and an aggressive merc's group mate in reach and sight, each
+// up to its most; a mate out of reach none. All of it
+// is the merc's healing on its own line (its owner's merc share too); before,
+// it healed the merc alone.
+func TestMercBloodPathHealsTheGroup(t *testing.T) {
+	blood := wbSpell(700323, 30, 1, "Blood Squall", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"stack":0,"level":30,
+		"min_level":1,"req_equipment":"Any","sheet_type":"Drain Group","effects":[{"type":"Drain Group","kind":"drain_group","stat":"hp","amount":-450}]}`)
+	r := newMercRig(t)
+	nec := r.kit(11, 0, 0, blood)
+	nec.Name = "Morth"
+	ms := r.hire(nec, MercAggressive) // an aggressive merc's heals reach its group mates (merccall.go)
+	_, b := r.player("B", 9, 0)
+	_, far := r.player("Far", 9, 0)
+	r.group(b, far)
+	crab := r.creature("a crab", 30, 3)
+	r.w.mu.Lock()
+	defer r.w.mu.Unlock()
+	crab.MaxHP, crab.HP = 1_000_000, 1_000_000
+	far.X += 500
+	now := r.at(time.Second)
+	meterClock(t, now)
+	r.p.dps = &dpsMeter{layout: 3}
+	r.w.dpsCountLocked(r.p, 10, false, now)
+	r.p.HP, b.HP, far.HP = r.p.MaxHPNow()-100, b.MaxHPNow()-80, far.MaxHPNow()-100
+	ms.npc.HP = ms.npc.MaxHP - 30
+	syncMercBody(ms)
+	hp := map[string]int{"owner": r.p.HP, "b": b.HP, "far": far.HP, "merc": ms.npc.HP}
+	r.w.mercHarmLocked(ms, &blood, crab, now)
+	got := map[string]int{"owner": r.p.HP - hp["owner"], "b": b.HP - hp["b"], "far": far.HP - hp["far"], "merc": ms.npc.HP - hp["merc"]}
+	if got["owner"] != 100 || got["merc"] != 30 || got["b"] != 80 || got["far"] != 0 {
+		t.Fatalf("restored %v: want the owner 100, itself 30, B 80, Far (out of reach) none", got)
+	}
+	want := int64(got["owner"] + got["b"] + got["merc"])
+	if l := mercLineOf(r.w, r.p, ms); l == nil || l.heal != want {
+		t.Fatalf("the necromancer's line %+v, want healing %d", l, want)
+	}
+	if h, hp, _, _ := healOf(r.w, r.p, r.p); h != want || hp != want {
+		t.Fatalf("the owner's line: healing %d (merc share %d), want %d", h, hp, want)
+	}
+}

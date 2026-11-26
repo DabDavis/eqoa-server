@@ -49,7 +49,8 @@ import (
 //
 // A copy follows its base: at every start SyncAscendedCopies makes each copy
 // its base again by the rule (a fixed look or figure on the base reaches its
-// copy at the next start: fix the base, never a copy). The bosses' loot points
+// copy at the next start: fix the base, never a copy; a copy's race mask a GM
+// widened past its base's is kept, petition 3235). The bosses' loot points
 // at the copies (tools/ascend_boss_loot.py, which makes them in this file's
 // SQL, held to it by TestAscendBossLootToolKeepsTheRule); a quest hand-in takes
 // an Ascended item for its base and rewards Ascended (handlers/questascended.go),
@@ -169,9 +170,55 @@ func ascendedLine(line string) string {
 	})
 }
 
+// ascendedRaceKeptSQL is the race mask the start's sync (SyncAscendedCopies)
+// gives an Ascended record, the copy being row cp and %[1]s its base's mask:
+// the copy's own when it lets every race wear it that its base's does and
+// more (Heirloom petition 3235: the owner's "just race all" set the eleven
+// Ascended records of a narrower base to 1023 on 2026-11-26, and the next
+// start's sync put the Ascended Breastplate of the Anointed back to its base's
+// 1439, no ogre), else the base's. A mask is read as the server reads it
+// (ascendedRaceReach): 0 is every race, and one naming the ten shipped races
+// takes the added ones' bits too (handlers raceUseForWire).
+const ascendedRaceKeptSQL = `CASE WHEN cp."raceuse" IS NOT NULL AND %[1]s IS NOT NULL AND ` +
+	`(` + ascendedRaceReachCP + ` & ` + ascendedRaceReachBase + `) = ` + ascendedRaceReachBase + ` THEN cp."raceuse" ELSE %[1]s END`
+
+// ascendedRaceReach* are ascendedRaceReach on the copy's mask and the base's.
+const (
+	ascendedRaceReachCP   = `(CASE WHEN CAST(cp."raceuse" AS INTEGER) = 0 THEN -1 WHEN (CAST(cp."raceuse" AS INTEGER) & 1023) = 1023 THEN (CAST(cp."raceuse" AS INTEGER) | -1024) ELSE CAST(cp."raceuse" AS INTEGER) END)`
+	ascendedRaceReachBase = `(CASE WHEN CAST(%[1]s AS INTEGER) = 0 THEN -1 WHEN (CAST(%[1]s AS INTEGER) & 1023) = 1023 THEN (CAST(%[1]s AS INTEGER) | -1024) ELSE CAST(%[1]s AS INTEGER) END)`
+)
+
+// ascendedRaceReach is the races a record's race mask lets wear it, as bits:
+// every one for 0, the ten shipped races' mask with every added race's bit
+// (the mask a GM sets as "every race", 1023), else the mask itself.
+func ascendedRaceReach(mask int64) int64 {
+	switch {
+	case mask == 0:
+		return -1
+	case mask&1023 == 1023:
+		return mask | -1024
+	}
+	return mask
+}
+
+// AscendedKeepsRace reports whether the start's sync leaves an Ascended
+// record's race mask as it is (ascendedRaceKeptSQL): it reaches every race its
+// base's does.
+func AscendedKeepsRace(copyMask, baseMask int64) bool {
+	c, b := ascendedRaceReach(copyMask), ascendedRaceReach(baseMask)
+	return c&b == b
+}
+
 // ascendedColumns are itempattern's columns but patternid, quoted (set), and
-// what an Ascended record takes for each from its base (from).
-func ascendedColumns(cols []string) (set, from string) {
+// what an Ascended record takes for each from its base (from): what a new
+// one's are made of (AscendedCopyTx). ascendedSyncColumns are the start's.
+func ascendedColumns(cols []string) (set, from string) { return ascendedColumnsFor(cols, false) }
+
+// ascendedSyncColumns is ascendedColumns for the start's sync, the copy being
+// row cp: a race mask wider than its base's kept (ascendedRaceKeptSQL).
+func ascendedSyncColumns(cols []string) (set, from string) { return ascendedColumnsFor(cols, true) }
+
+func ascendedColumnsFor(cols []string, sync bool) (set, from string) {
 	var s, f []string
 	for _, c := range cols {
 		low := strings.ToLower(c)
@@ -187,6 +234,8 @@ func ascendedColumns(cols []string) (set, from string) {
 			f = append(f, fmt.Sprintf(ascendedNameSQL, q))
 		case low == "rent":
 			f = append(f, fmt.Sprintf(ascendedRentSQL, q))
+		case low == "raceuse" && sync:
+			f = append(f, fmt.Sprintf(ascendedRaceKeptSQL, q))
 		default:
 			f = append(f, q)
 		}
@@ -260,6 +309,8 @@ func AscendedCopyTx(tx *sql.Tx, base int, source string, now time.Time) (id int,
 // SyncAscendedCopies makes every Ascended record its base again by the rule
 // (the server's start): a base a GM or a petition's fix changes (its look, its
 // figures, its name) takes its Ascended record with it, its use effects too.
+// Its race mask alone a GM may widen on the copy: one that lets every race
+// wear it that its base's does, and more, is kept (ascendedRaceKeptSQL).
 // It says how many records changed.
 func SyncAscendedCopies(db *sql.DB, now time.Time) (int, error) {
 	tx, err := db.Begin()
@@ -274,7 +325,7 @@ func SyncAscendedCopies(db *sql.DB, now time.Time) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	set, from := ascendedColumns(cols)
+	set, from := ascendedSyncColumns(cols)
 	pairs := make([][2]int, 0)
 	rows, err := tx.Query(`SELECT a.patternid, a.base FROM itemascended a JOIN itempattern b ON b.patternid = a.base`)
 	if err != nil {
@@ -292,8 +343,9 @@ func SyncAscendedCopies(db *sql.DB, now time.Time) (int, error) {
 	changed := 0
 	// the two statements parsed once for the 751 pairs, not twice a pair (most of
 	// this step's time at a start, 2026-11-19)
-	upd, err := tx.Prepare(fmt.Sprintf(`UPDATE itempattern SET (%s) = (SELECT %s FROM itempattern WHERE patternid = ?)
-			WHERE patternid = ? AND (%s) IS NOT (SELECT %s FROM itempattern WHERE patternid = ?)`,
+	// the copy is cp: a race mask wider than its base's is kept (ascendedRaceKeptSQL)
+	upd, err := tx.Prepare(fmt.Sprintf(`UPDATE itempattern AS cp SET (%s) = (SELECT %s FROM itempattern WHERE patternid = ?)
+			WHERE cp.patternid = ? AND (%s) IS NOT (SELECT %s FROM itempattern WHERE patternid = ?)`,
 		set, from, set, from))
 	if err != nil {
 		return 0, err

@@ -307,7 +307,7 @@ func TestGateBeforeAndAfterTheDate(t *testing.T) {
 	if g.Refusal(r.ids["bob"], before) != "" {
 		t.Fatal("refused before the date")
 	}
-	if line := g.Reminder(r.ids["bob"], before); !strings.Contains(line, "example.com/eqoa/password") || !strings.Contains(line, "December 1, 2026") {
+	if line := g.Reminder(r.ids["bob"], before); !strings.Contains(line, "https://example.com/eqoa/password#email") || !strings.Contains(line, "December 1, 2026") {
 		t.Fatalf("the reminder: %q", line)
 	}
 	if g.Reminder(r.ids["alice"], before) != "" {

@@ -357,6 +357,14 @@ func BossMomentKind(k string) bool {
 // MostSetHPRadius is the widest a sethp's area reaches.
 const MostSetHPRadius = 200
 
+// DefaultSetHPCapSeconds is how long a sethp's maximum hit point ceiling
+// (CapMaxHP) lasts with no cap_for of its own, and MostSetHPCapSeconds the
+// longest one may.
+const (
+	DefaultSetHPCapSeconds = 30
+	MostSetHPCapSeconds    = 3600
+)
+
 // AbilityKinds are the kinds, in the order the help lists them.
 var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot, AbilityDebuff,
 	AbilityStrip, AbilityHealShield, AbilityMeleeKind, AbilityDoT, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage,
@@ -634,6 +642,15 @@ type TemplateAbility struct {
 	Tick      int     `json:"tick,omitempty"`
 	TickAtCap int     `json:"tick_at_cap,omitempty"`
 	TickFor   float64 `json:"tick_for,omitempty"`
+	// CapMaxHP and CapFor are a sethp's (the owner, 2026-11-26: Dread Curse
+	// should set "MAXIMUM HP to 700, not their current HP"): each player it
+	// reaches also bears a debuff under its name for CapFor seconds (0:
+	// DefaultSetHPCapSeconds) that holds its maximum hit points at SetHP at
+	// most, its hit points with them (entity/hpcap.go's ceiling); at its end
+	// the maximum is the player's own again, the hit points where they were
+	// left. A second landing replaces the first. Creatures fall as before.
+	CapMaxHP bool    `json:"cap_max_hp,omitempty"`
+	CapFor   float64 `json:"cap_for,omitempty"`
 	// Hold is a death hold's seconds frozen at 1 hit point (AbilityDeathHold;
 	// 0: DefaultHoldSeconds).
 	Hold float64 `json:"hold,omitempty"`
@@ -889,6 +906,15 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 		n := i + 1
 		if a.PlayersOnly && (a.Kind != AbilitySetHP || a.Radius <= 0) {
 			return fmt.Errorf("ability %d: players_only is a sethp's with a radius", n)
+		}
+		if (a.CapMaxHP || a.CapFor != 0) && a.Kind != AbilitySetHP {
+			return fmt.Errorf("ability %d: cap_max_hp and cap_for are a sethp's", n)
+		}
+		if a.CapFor != 0 && !a.CapMaxHP {
+			return fmt.Errorf("ability %d: cap_for is a cap_max_hp's", n)
+		}
+		if !finite(a.CapFor) || a.CapFor < 0 || a.CapFor > MostSetHPCapSeconds {
+			return fmt.Errorf("ability %d: cap_for %.1f s: 0 (%d) to %d", n, a.CapFor, DefaultSetHPCapSeconds, MostSetHPCapSeconds)
 		}
 		if len(a.To) > 0 && a.Kind != AbilityPortFoe {
 			return fmt.Errorf("ability %d: to is a portfoe's", n)

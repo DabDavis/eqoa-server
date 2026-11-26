@@ -113,6 +113,19 @@ CREATE TABLE IF NOT EXISTS charquests (
 );
 CREATE INDEX IF NOT EXISTS idx_queststeps_target ON queststeps(target);
 CREATE INDEX IF NOT EXISTS idx_charquests_quest ON charquests(questid);
+CREATE TABLE IF NOT EXISTS charquesttrials (
+	serverid INTEGER NOT NULL,
+	questid  INTEGER NOT NULL,
+	deadline INTEGER NOT NULL DEFAULT 0,
+	until    INTEGER NOT NULL DEFAULT 0,
+	back     INTEGER NOT NULL DEFAULT 0,
+	factions TEXT NOT NULL DEFAULT '',
+	regain   INTEGER NOT NULL DEFAULT 0,
+	says     TEXT NOT NULL DEFAULT '',
+	owes     TEXT NOT NULL DEFAULT '',
+	owestep  INTEGER NOT NULL DEFAULT 0,
+	PRIMARY KEY (serverid, questid)
+);
 `
 
 // initQuests moves Return Home's quest tables aside and makes the quest
@@ -266,7 +279,27 @@ const (
 	// credit to anyone, back on its own respawn (Live petition 5638, the owner 2026-11-26: Delwin
 	// Stitchfinger eats Ilenar's poisoned chocolates in the Assassination quests). A step's.
 	EventDie = "die"
+	// A trial's three setbacks (handlers/questtrials.go; Live petition 5663, the owner 2026-11-26: "fix these",
+	// the Were-Hunter Trials as eqoa.forumotion.com t235 has them). Each puts the quest back to an earlier step
+	// (Back), its Factions changed and, with Regain, that step not done again until the standing lost is
+	// earned back; Text is said.
+	//
+	// EventClock (a step's, on its start or done): the time the player has from then (Minutes) to reach step
+	// Until; still short of it when the time is up, the setback. Trainer Iruko's ten minutes, Master Landaar's
+	// fifteen. A clock runs whether the player is in the world or not, and over a restart (charquesttrials).
+	EventClock = "clock"
+	// EventWard (a step's, on its start): a place (World, X, Z, Radius) the player must not come into while
+	// on the step; coming in is the setback. The captured were-beast scared off by a hunter who goes
+	// straight at it.
+	EventWard = "ward"
+	// EventBack (a give or show step's, on lacking): the setback, when the step's NPC is talked to without
+	// what the step needs. Nivaan D'Tarin met without the Delegate's sealed letter.
+	EventBack = "back"
 )
+
+// EventLacking is a give or show step's time when its NPC is talked to while the player lacks what the step
+// needs (its notyet or reminder said first; questtrials.go).
+const EventLacking = "lacking"
 
 // HideReach is how far from the player a hide event finds its NPCs.
 const HideReach = 40
@@ -279,8 +312,8 @@ const TeleportMainland = "mainland"
 // a step's; QuestEventActions every action, in the order the panel offers them.
 var (
 	QuestEventWhens   = []string{EventAccept, EventFinish}
-	StepEventWhens    = []string{EventStart, EventDone}
-	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventAttack, EventVisual, EventTeleport, EventVampire, EventTrigger, EventDoStep, EventClassQuest, EventCast, EventHide, EventDie}
+	StepEventWhens    = []string{EventStart, EventDone, EventLacking}
+	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventAttack, EventVisual, EventTeleport, EventVampire, EventTrigger, EventDoStep, EventClassQuest, EventCast, EventHide, EventDie, EventClock, EventWard, EventBack}
 )
 
 // DoesStep reports a step tried at once when it starts (EventDoStep).
@@ -378,6 +411,17 @@ type QuestEvent struct {
 	// has it: "you'll have to farm another Writ of the Wild"). 0 or a step not
 	// before the firing one: the firing step, what was taken handed back.
 	PutBack int `json:"putback,omitempty"`
+	// Until (clock): the step the player must reach before the time is up
+	Until int `json:"until,omitempty"`
+	// Back (clock, ward, back): the earlier step the quest is put back to by the setback
+	Back int `json:"back,omitempty"`
+	// Factions (clock, ward, back): the standings the setback changes ("Werehunters of Tunaria:-75")
+	Factions string `json:"factions,omitempty"`
+	// Regain (clock, ward, back): the step put back to is not done again until the standing the setback
+	// took is earned back
+	Regain bool `json:"regain,omitempty"`
+	// Radius (ward): how near its place the player may not come
+	Radius float32 `json:"radius,omitempty"`
 }
 
 // HoldTrigger is a step's held trigger event (Hold), nil for none.
@@ -542,6 +586,30 @@ func EventProblems(s string, step bool) []string {
 		case EventDoStep:
 			if !step || e.On != EventStart {
 				add(i, "a dostep is a step's, on its start: the step tried at once")
+			}
+		case EventClock, EventWard, EventBack:
+			if !step {
+				add(i, "a %s is a step's: it puts the quest back to an earlier step", e.Do)
+			}
+			switch {
+			case e.Do == EventClock && e.On != EventStart && e.On != EventDone:
+				add(i, "a clock is a step's, on its start or done")
+			case e.Do == EventWard && e.On != EventStart:
+				add(i, "a ward is a step's, on its start: the place held while the step is the one to do")
+			case e.Do == EventBack && e.On != EventLacking:
+				add(i, "a back is a give or show step's, on lacking: its NPC met without what the step needs")
+			}
+			if e.Back < 1 {
+				add(i, "%s's back names no step to put the quest back to", e.Do)
+			}
+			if e.Do == EventClock && (e.Minutes <= 0 || e.Minutes > 240 || e.Until <= e.Back) {
+				add(i, "clock's minutes %g is not above 0 and up to 240, or its until %d is not after its back %d", e.Minutes, e.Until, e.Back)
+			}
+			if e.Do == EventWard && (e.Radius <= 0 || e.X == 0 && e.Z == 0) {
+				add(i, "ward's place is 0, 0 or its radius is not above 0")
+			}
+			if len(nonEmptyParts(e.Factions)) != len(ParseFactionDeltas(e.Factions)) {
+				add(i, "%s's factions %q are not \"Faction Name:-75\", comma separated", e.Do, e.Factions)
 			}
 		case EventClassQuest:
 			if step || e.On != EventFinish {
@@ -875,6 +943,15 @@ type StepOption struct {
 	// Skip is how many of the steps after this one the option passes over (the
 	// bribe passes over the fight that is the other answer's way).
 	Skip int
+	// Back, Factions, Regain: picked, the option is a trial's setback (handlers/questtrials.go) and not the
+	// step: the quest put back to step Back, the standings Factions changed, and with Regain step Back not
+	// done again until the standing lost is earned back. Trainer Iruko's wrong answer (Live petition 5663,
+	// the owner 2026-11-26: "fix these"; the guide: "If you HAPPEN to answer incorrectly ... you will LOSE 75
+	// faction with the WereHunters of Tunaria and will have to re-farm those 75 faction points back in order
+	// to take the test over"). Factions alone change the standings and the option goes on as written.
+	Back     int
+	Factions []FactionDelta
+	Regain   bool
 }
 
 // MaxStepOptions is how many answers a choice has room for (CLIENT's
@@ -886,15 +963,18 @@ const MaxStepOptions = 6
 type stepChoicesJSON struct {
 	Ask     string `json:"ask,omitempty"`
 	Options []struct {
-		Answer string `json:"answer"`
-		Says   string `json:"says,omitempty"`
-		Stay   bool   `json:"stay,omitempty"`
-		Cost   int    `json:"cost,omitempty"`
-		Skip   int    `json:"skip,omitempty"`
-		XP     int    `json:"xp,omitempty"`
-		Tunar  int    `json:"tunar,omitempty"`
-		Items  string `json:"items,omitempty"`
-		Spells string `json:"spells,omitempty"`
+		Answer   string `json:"answer"`
+		Says     string `json:"says,omitempty"`
+		Stay     bool   `json:"stay,omitempty"`
+		Cost     int    `json:"cost,omitempty"`
+		Skip     int    `json:"skip,omitempty"`
+		XP       int    `json:"xp,omitempty"`
+		Tunar    int    `json:"tunar,omitempty"`
+		Items    string `json:"items,omitempty"`
+		Spells   string `json:"spells,omitempty"`
+		Back     int    `json:"back,omitempty"`
+		Factions string `json:"factions,omitempty"`
+		Regain   bool   `json:"regain,omitempty"`
 	} `json:"options"`
 }
 
@@ -918,7 +998,8 @@ func ParseStepChoices(s string) (StepChoices, error) {
 			continue
 		}
 		out.Options = append(out.Options, StepOption{Answer: strings.TrimSpace(o.Answer), Says: o.Says, Stay: o.Stay,
-			Cost: o.Cost, Skip: o.Skip, Reward: ClassReward{XP: o.XP, Tunar: o.Tunar, Items: ParseItemCounts(o.Items), Spells: ParseIntList(o.Spells)}})
+			Cost: o.Cost, Skip: o.Skip, Reward: ClassReward{XP: o.XP, Tunar: o.Tunar, Items: ParseItemCounts(o.Items), Spells: ParseIntList(o.Spells)},
+			Back: o.Back, Factions: ParseFactionDeltas(o.Factions), Regain: o.Regain})
 	}
 	return out, nil
 }
@@ -934,7 +1015,7 @@ func ChoiceProblems(s, kind string) []string {
 	}
 	var raw stepChoicesJSON
 	if err := json.Unmarshal([]byte(s), &raw); err != nil {
-		return []string{`its choice is not {"ask", "options": [{"answer", "says", "stay", "cost", "skip", "xp", "tunar", "items", "spells"}]}: ` + err.Error()}
+		return []string{`its choice is not {"ask", "options": [{"answer", "says", "stay", "cost", "skip", "xp", "tunar", "items", "spells", "back", "factions", "regain"}]}: ` + err.Error()}
 	}
 	var out []string
 	if !AtNPC(kind) {
@@ -959,6 +1040,12 @@ func ChoiceProblems(s, kind string) []string {
 		}
 		if o.Stay && (o.Cost > 0 || o.Skip > 0) {
 			out = append(out, where+": an option that stays neither costs nor skips")
+		}
+		if o.Back < 0 || o.Back > 0 && (o.Stay || o.Cost > 0 || o.Skip > 0) {
+			out = append(out, where+": an option that puts the quest back neither stays, costs nor skips")
+		}
+		if len(nonEmptyParts(o.Factions)) != len(ParseFactionDeltas(o.Factions)) {
+			out = append(out, fmt.Sprintf("%s: factions %q are not \"Faction Name:-75\", comma separated", where, o.Factions))
 		}
 		if len(nonEmptyParts(o.Items)) != len(ParseItemCounts(o.Items)) {
 			out = append(out, fmt.Sprintf("%s: items %q are not patternid*count, comma separated", where, o.Items))

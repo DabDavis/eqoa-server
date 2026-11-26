@@ -192,6 +192,12 @@ func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c
 			q.hideLocked(p, qu, step, e)
 		case database.EventDie:
 			q.dieLocked(p, qu, step, e)
+		case database.EventClock:
+			q.startClockLocked(c, qu, e, time.Now()) // questtrials.go
+		case database.EventWard:
+			// held while the step is the one to do (questtrials.go's checkWardsLocked)
+		case database.EventBack:
+			q.backEventLocked(sess, p, c, qu, e) // questtrials.go
 		default:
 			log.Printf("Quests: %q step %d: no event %q", qu.Name, step, e.Do)
 		}

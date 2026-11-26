@@ -365,6 +365,10 @@ type questChar struct {
 	// busyTold is when a reach step whose doing fires a trigger of a lock held
 	// last said so, by quest (checkReach): once a laterSayGap
 	busyTold map[int]time.Time
+	// trials is its trial states by quest, read once (questtrials.go: a
+	// clock, a standing owed); clockTold the minutes left a clock last said
+	trials    map[int]*database.QuestTrial
+	clockTold map[int]int
 }
 
 // say is a text with %p the player's name (left as it is while the name is
@@ -591,6 +595,7 @@ func (q *QuestEngine) run() {
 			q.expireSpawns()
 			q.respawnLost()             // questevents.go: a spawn-only creature's lost spawns
 			q.checkStranded(time.Now()) // questencounter.go: a kill whose encounter ended
+			q.checkTrials(time.Now())   // questtrials.go: a trial's clocks and wards
 			q.syncMarks(time.Now())
 			q.syncProgress()
 			q.syncPointers()
@@ -1733,9 +1738,22 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 		q.tellLocked(c, sess, st.Target, line)
 		return
 	}
+	// a standing a trial's setback took, not yet earned back (questtrials.go)
+	if line := q.owesRefusalLocked(sess, c, qu, st); line != "" {
+		q.tellLocked(c, sess, st.Target, line)
+		log.Printf("Quests: %s at %q step %d still owes the standing a setback took", p.Name, qu.Name, st.Step)
+		return
+	}
 	if st.Kind == database.StepGive || st.Kind == database.StepShow {
 		if lack := q.lackingLocked(p, st); lack != "" {
 			log.Printf("Quests: %s at %q step %d still lacks %s", p.Name, qu.Name, st.Step, lack)
+			// met without it, a trial's price (questtrials.go: Nivaan D'Tarin
+			// without the Delegate's sealed letter): its words, then the events
+			if evs := database.EventsOn(st.Events, database.EventLacking); len(evs) > 0 {
+				q.tellLocked(c, sess, st.Target, sayLines(orText(st.NotYet, orText(st.Reminder, orText(st.Waiting, questNotYet))))...)
+				q.runEventsLocked(sess, p, c, qu, st.Step, st.Step, evs)
+				return
+			}
 			// the reference server's Norgam asks his question with only the not-yet
 			// answer while the belts lack; the completing one comes once
 			// they are held
@@ -1778,7 +1796,13 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 			return
 		}
 		opt = &opts[pick]
+		// a trial's wrong answer: the setback, not the step (questtrials.go)
+		if opt.Back > 0 {
+			q.optionSetbackLocked(sess, p, c, qu, cq, st, opt)
+			return
+		}
 		if opt.Stay {
+			q.optionFactionsLocked(sess, p, opt) // a price that leaves the step to do
 			q.tellLocked(c, sess, st.Target, sayLines(opt.Says)...)
 			log.Printf("Quests: %s picked %q at %q step %d: the step stays", p.Name, opt.Answer, qu.Name, st.Step)
 			return
@@ -1795,6 +1819,7 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 			log.Printf("Quests: %s picked %q at %q step %d without the %d tunar", p.Name, opt.Answer, qu.Name, st.Step, opt.Cost)
 			return
 		}
+		q.optionFactionsLocked(sess, p, opt) // the standings an option changes (questtrials.go)
 	}
 	// a held trigger (database.QuestEvent's Hold): the trigger fired, the step
 	// left to its queststep (questhold.go)

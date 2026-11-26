@@ -704,6 +704,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	NewDyePickerHandler(gameWorld).RegisterHandlers(r) // the dyers' colour picker (dyepicker.go)
 	// A damage meter (0x7E3B, 0x7E3D; dpsmeter.go): a client that draws one
 	NewDPSMeterHandler(gameWorld).RegisterHandlers(r)
+	// One faction on the HUD (0x7E87; factiontrack.go, petition 3216)
+	NewFactionTrackHandler(gameWorld).RegisterHandlers(r)
 	// The real offence and defence figures (0x7E84; statfigures.go): a client
 	// whose stat window is open
 	NewStatFiguresHandler(gameWorld).RegisterHandlers(r)

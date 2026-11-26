@@ -1105,6 +1105,32 @@ const (
 	OpcodeStatFiguresData GameOpcode = 0x7E85
 )
 
+// One faction's standing on the HUD, for a client that tracks one outside the
+// faction window (handlers/factiontrack.go, entity/factiontrack.go; Heirloom
+// petition 3216, Cucumber: "track one chosen faction on screen"). The window's
+// own pages (OpcodeClientFaction, OpcodeFactionPage) come only while it is
+// open; this follows a kill's, a quest's or a GM's change as it happens.
+const (
+	// OpcodeFactionTrackOffer is the offer, server to client at every world
+	// entry (none to an [OG] character or on world.vanilla_ui): a u8, 1, the
+	// layout of OpcodeFactionTrackData. A PS2 ignores it.
+	OpcodeFactionTrackOffer GameOpcode = 0x7E86
+
+	// OpcodeFactionTrackAnswer is the faction to follow, client to server, at
+	// once after the offer and whenever the player picks another: a wide string
+	// (a u32 count of UTF-16 units, then the units), its name in any case, or a
+	// part of one name; empty to follow none (nothing more is sent).
+	OpcodeFactionTrackAnswer GameOpcode = 0x7E87
+
+	// OpcodeFactionTrackData is the standing, server to a client that named a
+	// faction: at once after the answer and whenever the standing the faction
+	// window would show changes. A u8 layout (1), a u8 known (1 the name is a
+	// faction's, 0 none or several: the standing is then 0), the wide name (the
+	// faction's own, or the answer's as sent when unknown), and a zigzag
+	// standing, -2000..2000.
+	OpcodeFactionTrackData GameOpcode = 0x7E88
+)
+
 // A monster's name and level when the player talks to it (□, Q on vanilla's
 // keyboard) and it has nothing to say, for a client that shows them in the
 // target's details box (handlers/mobinfo.go, world.mob_info; a GM's
@@ -1975,6 +2001,12 @@ func (op GameOpcode) String() string {
 		return "Ride"
 	case OpcodeStatFigures:
 		return "StatFigures"
+	case OpcodeFactionTrackOffer:
+		return "FactionTrackOffer"
+	case OpcodeFactionTrackAnswer:
+		return "FactionTrackAnswer"
+	case OpcodeFactionTrackData:
+		return "FactionTrackData"
 	case OpcodeStatFiguresData:
 		return "StatFiguresData"
 	case OpcodePetDyesOffer:

@@ -75,6 +75,9 @@ type KeptPlayer struct {
 	// DPSMeterLayout: the layout it asked for (0 read as 1: a keep file of
 	// before layout 2)
 	DPSMeterLayout uint8 `json:"dps_meter_layout,omitempty"`
+	// FactionTrack: the words naming the faction its client follows on the
+	// HUD (factiontrack.go), sent again at the resume
+	FactionTrack string `json:"faction_track,omitempty"`
 	// StatFigures: its client's stat window was open, sent the offence and
 	// defence figures (statfigures.go)
 	StatFigures bool `json:"stat_figures,omitempty"`
@@ -179,6 +182,9 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 	k.WeatherDraws = p.WeatherDraws
 	k.RecordWindow = p.RecordWindow
 	k.Jumps = p.Jumps
+	if p.factionTrack != nil {
+		k.FactionTrack = p.factionTrack.asked
+	}
 	k.DPSMeter = p.dps != nil
 	if p.dps != nil {
 		k.DPSMeterLayout = p.dps.layout
@@ -242,6 +248,9 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	p.RaidWindows, p.raidStateSent = k.RaidWindows, "" // the state again at the next pass (raidrules.go)
 	if k.DPSMeter {
 		p.dps = &dpsMeter{layout: max(k.DPSMeterLayout, dpsMeterLayout)} // the next figure starts its fight (dpsmeter.go)
+	}
+	if k.FactionTrack != "" { // its standing again at the next pass (factiontrack.go)
+		p.factionTrack = &factionTrack{asked: k.FactionTrack, name: w.resolveFactionTrackLocked(k.FactionTrack), due: true}
 	}
 	p.GM, p.HideGMTag, p.SubGM = k.GM, k.HideGMTag, k.SubGM
 	p.DuelWindow = k.DuelWindow

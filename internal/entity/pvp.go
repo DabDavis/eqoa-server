@@ -434,6 +434,9 @@ func (w *World) pvpSpellTargetLocked(p *Player, spell *CastSpell, target Entity)
 		return nil, "", false
 	}
 	if !p.pvpFoe(t) {
+		if hateDropAtFriend(spell) {
+			return nil, "", false // a hate-reducer on a friend (hatedrop.go)
+		}
 		if why := pvpRefusal(p, t); why != "" {
 			return nil, why, true
 		}

@@ -14,9 +14,11 @@ import (
 // and its kin near it, below the heal's 85%: here the pup beside it, of its
 // social faction (npcsocial), not the mage of no faction far off, nor the
 // priest itself while it is whole enough; the cast's 0x00B1 names the pup and
-// the player fighting the pup sees the figure from the priest. With none of
-// its kin hurt it waits; hurt itself and worse off than the pup it heals
-// itself. With no social faction its kin is its own name alone.
+// the player fighting the pup sees the figure over the pup, from its own id
+// (CLIENT draws any other attacker's figure over the player: petition 3205).
+// With none of its kin hurt it waits; hurt itself and worse off than the pup
+// it heals itself, the figure over it. With no social faction its kin is its
+// own name alone.
 func TestAKinHealLandsOnTheWorstOffOfItsKin(t *testing.T) {
 	r := newTemplateRig(t)
 	if _, err := r.db.Exec(`INSERT INTO classtemplates (name, class, abilities) VALUES ('kin healer', -1,
@@ -35,6 +37,8 @@ func TestAKinHealLandsOnTheWorstOffOfItsKin(t *testing.T) {
 	for _, n := range []*NPC{healer, pup, mage} {
 		n.MaxHP, n.HP = 10000, 10000
 	}
+	me := sess.PlayerObjectID()
+	var selfFigures []int // on the healer itself, from the player's id
 	heals := func(from, to time.Duration) (casts []b1, figures []int) {
 		for d := from; d <= to; d += 100 * time.Millisecond {
 			r.tick(d)
@@ -43,9 +47,15 @@ func TestAKinHealLandsOnTheWorstOffOfItsKin(t *testing.T) {
 					src := binary.LittleEndian.Uint32(m[2:])
 					v, n := binary.Uvarint(m[6:])
 					amount := int(v>>1) ^ -int(v&1) // zigzag
-					if src == r.objectID(healer.ServerID) && amount > 0 &&
-						binary.LittleEndian.Uint32(m[6+n:]) == r.objectID(pup.ServerID) {
+					if src == r.objectID(healer.ServerID) && amount > 0 {
+						t.Errorf("a heal's figure from the healer's id, %d: CLIENT draws it over the player", amount)
+					}
+					on := binary.LittleEndian.Uint32(m[6+n:])
+					if src == me && amount > 0 && on == r.objectID(pup.ServerID) {
 						figures = append(figures, amount)
+					}
+					if src == me && amount > 0 && on == r.objectID(healer.ServerID) {
+						selfFigures = append(selfFigures, amount)
 					}
 				}
 				for _, c := range castsIn([][]byte{m}) {
@@ -72,6 +82,9 @@ func TestAKinHealLandsOnTheWorstOffOfItsKin(t *testing.T) {
 	c, _ = heals(6100*time.Millisecond, 10*time.Second)
 	if len(c) != 1 || c[0].target != c[0].caster || healer.HP != 3500 || pup.HP != 6500 {
 		t.Fatalf("heals %+v; healer %d (want 3500), pup %d", c, healer.HP, pup.HP)
+	}
+	if len(selfFigures) != 1 || selfFigures[0] != 1500 {
+		t.Errorf("figures of its heal on itself told the player: %v, want one of 1500 over the healer", selfFigures)
 	}
 
 	// no social faction: its kin is its own name; the pup is not

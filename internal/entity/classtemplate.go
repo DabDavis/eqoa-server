@@ -1779,7 +1779,7 @@ func (w *World) templateHealLocked(c *npcCast) {
 		sess = w.findSessionByEntityIDLocked(p.ServerID)
 	}
 	if on != npc {
-		w.tellNPCHealOnLocked(sess, npc, on, n)
+		w.tellNPCHealOnLocked(sess, on, n)
 		log.Printf("Template: %s heals %s with %q for %d (HP %d/%d)", npc.Name, on.Name, c.spell.Name, n, on.HP, on.MaxHP)
 		return
 	}
@@ -1788,26 +1788,39 @@ func (w *World) templateHealLocked(c *npcCast) {
 	log.Printf("Template: %s heals itself with %q for %d (HP %d/%d)", npc.Name, c.spell.Name, n, npc.HP, npc.MaxHP)
 }
 
-// tellNPCHealOnLocked tells sess (the one the healed NPC fights) of from's heal
-// on another NPC (kinheal.go): a 0x00DB from the healer to the one healed.
-func (w *World) tellNPCHealOnLocked(sess *session.Session, from, on *NPC, n int) {
-	if sess == nil {
-		return
-	}
-	if oid := w.objectIDForEntityLocked(sess, on.ServerID); oid != 0 {
-		w.sendDamageIndication(sess, w.objectIDForEntityLocked(sess, from.ServerID), n, oid, 0)
-	}
+// tellNPCHealOnLocked tells sess (the one the healed NPC fights) of an NPC's heal
+// on another NPC (kinheal.go): a 0x00DB to the one healed, from the player's
+// own id (npcHealFigureLocked).
+func (w *World) tellNPCHealOnLocked(sess *session.Session, on *NPC, n int) {
+	w.npcHealFigureLocked(sess, on, n)
 }
 
 // tellNPCHealLocked tells sess (the one the NPC fights or hit) of the NPC's
-// heal on itself: a 0x00DB from the NPC to the NPC, as a player's on itself
-// is told.
+// heal on itself (npcHealFigureLocked).
 func (w *World) tellNPCHealLocked(sess *session.Session, npc *NPC, n int) {
+	w.npcHealFigureLocked(sess, npc, n)
+}
+
+// npcHealFigureLocked tells sess of a heal of n on the NPC on: a 0x00DB from
+// the player's own id to the NPC, untagged. CLIENT draws a 0x00DB whose
+// attacker is the player over the defender (DamageFromSelf) and any other over
+// the PLAYER (DamageFromOther, whoever the defender: vanilla's
+// play.rs damage_indication, VIClientPart4FD28), so the creature's own id as
+// the attacker put its heal's green figure over the player fighting it, as if
+// the creature healed the player (petition 3205, Kalamer: "siloth ritualist
+// is healing players aswell as each other"; the server never did). From the
+// player's id it floats over the creature healed, as a pet's figures do
+// (tellPetHealLocked); untagged, the player's DPS meter never counts it.
+func (w *World) npcHealFigureLocked(sess *session.Session, on *NPC, n int) {
 	if sess == nil {
 		return
 	}
-	if nid := w.objectIDForEntityLocked(sess, npc.ServerID); nid != 0 {
-		w.sendDamageIndication(sess, nid, n, nid, 0) // the creature's on itself: untagged
+	me := sess.PlayerObjectID()
+	if me == 0 {
+		return
+	}
+	if oid := w.objectIDForEntityLocked(sess, on.ServerID); oid != 0 {
+		w.sendDamageIndication(sess, me, n, oid, 0)
 	}
 }
 

@@ -437,7 +437,7 @@ func TestMetalMoogieKicksEverySixAndTapsEveryThirty(t *testing.T) {
 	}
 	for _, x := range dmg {
 		switch {
-		case x[0] == int64(oa) && x[2] == int64(oa) && x[1] == 750:
+		case x[0] == int64(sa.PlayerObjectID()) && x[2] == int64(oa) && x[1] == 750: // over it, from the player's id (petition 3205)
 			heals++
 		case x[0] == int64(oa) && x[1] == -750:
 			kicks++ // a tap is -750 too: counted off below

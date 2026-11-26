@@ -942,6 +942,14 @@ func (d *SpellDef) readSpeedJSON(e effectJSON) {
 	}
 }
 
+// scaleRowOf reports whether offensive proc hit b is only hit a's scale on its own row: the same
+// figure, resist, target and look, a scale where a has none.
+func scaleRowOf(a, b SpellEffect) bool {
+	return a.Kind == EffectProc && b.Kind == EffectProc && a.Scale == StatNone && a.LevelPct == 0 &&
+		b.Scale != StatNone && b.ScalePct != 0 && a.Amount == b.Amount && a.AmountMax == b.AmountMax &&
+		a.Resist == b.Resist && a.Undead == b.Undead && a.Cap == b.Cap && a.DebuffedPct == b.DebuffedPct && a.ProcFX == b.ProcFX
+}
+
 // readProcsJSON is a proc buff: each of its procs' effects that hits is the
 // line reader's proc (an offensive proc's, proc.go) or defensive proc
 // (dshield.go), a heal a heal of its bearer at the proc (workbook.go); the
@@ -964,6 +972,7 @@ func (d *SpellDef) readProcsJSON(name, kind string, e effectJSON) {
 		d.unsupported("a %s with no proc effects", kind)
 		return
 	}
+	firstHit := -1 // d.Effects' index of this proc buff's first offensive hit, -1 none yet
 	for _, p := range e.Procs {
 		on := strings.ToLower(strings.TrimSpace(p.On))
 		def := on == "defense" || on == "defence" || (on == "" && kind == "def_proc")
@@ -994,6 +1003,16 @@ func (d *SpellDef) readProcsJSON(name, kind string, e effectJSON) {
 				// a defensive proc's or a shield's damage is worked out at
 				// its landing (Shield.with), its scale its caster's
 				se.ScaleBearer = false
+			} else if firstHit >= 0 && scaleRowOf(d.Effects[firstHit], se) {
+				// the workbook's "N ; Increase X% based on STAT" written as two
+				// rows, the figure alone and then the figure with its scale
+				// (Stormlord's Rune): one proc, the first row's with that scale,
+				// as it was read before each proc rolled apart (petition 5645)
+				f := &d.Effects[firstHit]
+				f.Scale, f.ScalePct, f.ScaleBearer, f.LevelPct = se.Scale, se.ScalePct, true, se.LevelPct
+				continue
+			} else if firstHit < 0 {
+				firstHit = len(d.Effects)
 			}
 			d.Effects = append(d.Effects, se)
 		case pk == "hp" && n > 0:

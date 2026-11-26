@@ -75,10 +75,10 @@ func (w *World) duelPetProcsLocked(d *Duel, ps *petState, m duelMark, now time.T
 	}
 	for _, h := range hits {
 		log.Printf("%s: %s's pet %q's %q hits %s for %d", d.tag(), ps.owner.Name, pet.Name, h.ae.Name, m.name(), h.n)
-		if fx := h.ae.Rules.ProcFX; fx != 0 {
+		if fx := h.fx; fx != 0 {
 			w.broadcastNPCSwingLocked(pet, m.id(), 0, fx)
 		}
-		damage := m.pet.duelElementalHit(h.n, h.ae.Rules.Resist, now)
+		damage := m.pet.duelElementalHit(h.n, h.resist, now)
 		if damage > 0 && w.duelPetHurtLocked(d, ps, m, damage, now, numberProc) {
 			return true
 		}

@@ -372,6 +372,9 @@ type ActiveEffect struct {
 	ProcCap      int
 	// ProcUndead: the proc fires on undead creatures alone (Smite Undead's)
 	ProcUndead bool
+	// MoreProcs are its offensive procs past the first (Proc's), each rolled
+	// and resisted on its own (proc.go); nil for a buff of one proc
+	MoreProcs []MoreProc
 	// Form is the body an illusion shows its bearer in (illusion.go), 0 for
 	// none; FormSize its scale, 0 for the bearer's own.
 	Form     uint32
@@ -1681,6 +1684,13 @@ func lastingParts(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 		case EffectInvis:
 			ae.Invis = true
 		case EffectProc:
+			if ae.Proc > 0 {
+				// a second proc of the buff is its own, rolled and resisted apart
+				// (proc.go's MoreProc; petition 5645: it overwrote the first)
+				ae.MoreProcs = append(ae.MoreProcs, moreProcOf(e, caster, ae.Rules.Resist))
+				ae.Rules.ProcDebuffedPct = max(ae.Rules.ProcDebuffedPct, e.DebuffedPct)
+				break
+			}
 			// the line's damage as it is (a GM: "Damage has no mod"), and a
 			// line's own scale: its caster's (enchanter.go: Stormlord's Rune),
 			// or its bearer's at each proc (proc.go)

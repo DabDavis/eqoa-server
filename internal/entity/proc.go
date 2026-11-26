@@ -94,11 +94,71 @@ func procRolls(effects []*ActiveEffect, stat func(Stat) int, bearerLevel, target
 	return hits, resisted
 }
 
-// procRoll is one proc a hit made: its damage and the effect that made it, whose own heal
-// goes with it (procTapLocked).
+// procRoll is one proc a hit made: its damage and the effect that made it, with the line's own
+// resist, look and percent more on a debuffed creature; tap says its effect's heal goes with
+// it (procTapLocked: the first proc line's alone, so a life steal heals once a proc).
 type procRoll struct {
-	n  int
-	ae *ActiveEffect
+	n           int
+	ae          *ActiveEffect
+	resist      Stat
+	fx          uint32
+	debuffedPct int
+	tap         bool
+}
+
+// MoreProc is a proc buff's second or later offensive proc (ActiveEffect.MoreProcs): its own
+// damage and range, its own scale on its bearer's stat, cap, resist, look and chance, each
+// rolled and resisted apart from the first's (petition 5645, Garrak: Shroud of Death's two
+// procs; until 2026-11-26 the second's damage and scale overwrote the first's at the cast,
+// the resist staying the first's, so a hit made one proc of the two mixed). Kept over a
+// logout (buffsave.go).
+type MoreProc struct {
+	Proc        int    `json:",omitempty"`
+	ProcMax     int    `json:",omitempty"`
+	Scale       Stat   `json:",omitempty"`
+	ScalePct    int    `json:",omitempty"`
+	Cap         int    `json:",omitempty"`
+	Undead      bool   `json:",omitempty"`
+	Resist      Stat   `json:",omitempty"`
+	FX          uint32 `json:",omitempty"`
+	DebuffedPct int    `json:",omitempty"`
+	// Chance is its own chance a hit in percent, 0 its buff's (procRollsOf)
+	Chance int `json:",omitempty"`
+}
+
+// moreProcOf is a proc buff's later proc line e as it lands from caster, as lastingParts reads
+// the first: a bearer's scale kept for each proc, a caster's added now, capped; its resist its
+// own, else spellResist (the spell's).
+func moreProcOf(e SpellEffect, caster *Player, spellResist Stat) MoreProc {
+	m := MoreProc{Cap: e.Cap, Undead: e.Undead, Resist: e.Resist, FX: e.ProcFX, DebuffedPct: e.DebuffedPct, Chance: e.Chance}
+	if m.Resist == StatNone {
+		m.Resist = spellResist
+	}
+	if e.ScaleBearer {
+		m.Proc, m.ProcMax = e.Amount, max(e.AmountMax, e.Amount)
+		m.Scale, m.ScalePct = e.Scale, e.ScalePct
+		return m
+	}
+	bonus := procBonus(e, caster)
+	m.Proc, m.ProcMax = e.Amount+bonus, max(e.AmountMax, e.Amount)+bonus
+	if e.Cap > 0 {
+		m.Proc, m.ProcMax = min(m.Proc, e.Cap), min(m.ProcMax, e.Cap)
+	}
+	return m
+}
+
+// procLines is ae's offensive procs, each one rolled apart: the first is its own fields (Proc,
+// its Rules' resist, look and percent more, as every proc buff's was), then MoreProcs.
+func (ae *ActiveEffect) procLines() []MoreProc {
+	if ae.Proc <= 0 && len(ae.MoreProcs) == 0 {
+		return nil
+	}
+	lines := make([]MoreProc, 0, 1+len(ae.MoreProcs))
+	if ae.Proc > 0 {
+		lines = append(lines, MoreProc{Proc: ae.Proc, ProcMax: ae.ProcMax, Scale: ae.ProcScale, ScalePct: ae.ProcScalePct,
+			Cap: ae.ProcCap, Undead: ae.ProcUndead, Resist: ae.Rules.Resist, FX: ae.Rules.ProcFX, DebuffedPct: ae.Rules.ProcDebuffedPct})
+	}
+	return append(lines, ae.MoreProcs...)
 }
 
 // procRollsOf is procRolls with each proc's effect.
@@ -106,34 +166,45 @@ func procRollsOf(effects []*ActiveEffect, stat func(Stat) int, bearerLevel, targ
 	now time.Time, intn func(int) int) (hits []procRoll, resisted int) {
 	intel := stat(StatInt)
 	for _, ae := range effects {
-		if ae.Proc <= 0 || !now.Before(ae.Until) || (ae.ProcUndead && !undead()) {
+		if !now.Before(ae.Until) {
 			continue
 		}
-		chance := ae.Rules.ProcChance // its own (a form's: weaponproc.go), else by INT
-		if ae.Rules.ProcChanceFrom > 0 {
-			chance = dexChancePct(ae.Rules.ProcChanceFrom, ae.Rules.ProcChanceMost, stat(StatDex)) // by DEX (weaponproc.go)
+		for i, l := range ae.procLines() {
+			if l.Proc <= 0 || (l.Undead && !undead()) {
+				continue
+			}
+			chance := ae.Rules.ProcChance // its own (a form's: weaponproc.go), else by INT
+			if ae.Rules.ProcChanceFrom > 0 {
+				chance = dexChancePct(ae.Rules.ProcChanceFrom, ae.Rules.ProcChanceMost, stat(StatDex)) // by DEX (weaponproc.go)
+			}
+			if l.Chance > 0 {
+				chance = l.Chance // a later line's own
+			}
+			if chance <= 0 {
+				chance = procChancePct(intel)
+			}
+			if intn(100) >= chance {
+				continue
+			}
+			roll := procRoll{ae: ae, resist: l.Resist, fx: l.FX, debuffedPct: l.DebuffedPct, tap: i == 0 && ae.Proc > 0}
+			if intn(100) < procResistPct(bearerLevel, targetLevel)-resistOff {
+				// resisted, it does the least it can (workbook.go's leastHarm): its range's
+				// low end, no bearer's stat
+				resisted++
+				roll.n = capAmount(l.Proc, l.Cap)
+				hits = append(hits, roll)
+				continue
+			}
+			n := l.Proc
+			if l.ProcMax > l.Proc {
+				n += intn(l.ProcMax - l.Proc + 1)
+			}
+			if l.Scale != StatNone && l.ScalePct != 0 {
+				n += stat(l.Scale) * l.ScalePct / 100
+			}
+			roll.n = capAmount(n, l.Cap)
+			hits = append(hits, roll)
 		}
-		if chance <= 0 {
-			chance = procChancePct(intel)
-		}
-		if intn(100) >= chance {
-			continue
-		}
-		if intn(100) < procResistPct(bearerLevel, targetLevel)-resistOff {
-			// resisted, it does the least it can (workbook.go's leastHarm): its range's
-			// low end, no bearer's stat
-			resisted++
-			hits = append(hits, procRoll{n: capAmount(ae.Proc, ae.ProcCap), ae: ae})
-			continue
-		}
-		n := ae.Proc
-		if ae.ProcMax > ae.Proc {
-			n += intn(ae.ProcMax - ae.Proc + 1)
-		}
-		if ae.ProcScale != StatNone && ae.ProcScalePct != 0 {
-			n += stat(ae.ProcScale) * ae.ProcScalePct / 100
-		}
-		hits = append(hits, procRoll{n: capAmount(n, ae.ProcCap), ae: ae})
 	}
 	return hits, resisted
 }
@@ -187,12 +258,20 @@ func (w *World) procTapLocked(p *Player, sess *session.Session, ae *ActiveEffect
 // (a player): the Undead Servant's lifetap, "a 80 lifetap proc that after the mob is
 // debuffed, will often proc 160 instead".
 func procDebuffedMore(ae *ActiveEffect, npc *NPC, bearer EntityID, now time.Time) int {
-	if ae == nil || ae.Rules.ProcDebuffedPct <= 0 || npc == nil {
+	if ae == nil {
+		return 0
+	}
+	return procDebuffedMorePct(ae.Rules.ProcDebuffedPct, npc, bearer, now)
+}
+
+// procDebuffedMorePct is procDebuffedMore of a proc line's own percent (procRoll.debuffedPct).
+func procDebuffedMorePct(pct int, npc *NPC, bearer EntityID, now time.Time) int {
+	if pct <= 0 || npc == nil {
 		return 0
 	}
 	for _, e := range npc.Effects {
 		if e.Caster == bearer && e.Rules.Harm && now.Before(e.Until) {
-			return ae.Rules.ProcDebuffedPct
+			return pct
 		}
 	}
 	return 0
@@ -225,6 +304,15 @@ func procHitFX(ae *ActiveEffect) uint32 {
 	return fxShieldHit
 }
 
+// rollHitFX is the look of one proc roll on what it hits: its line's own (MoreProc.FX, the
+// first line's its effect's), else the stand-in (procHitFX).
+func rollHitFX(h procRoll) uint32 {
+	if h.fx != 0 {
+		return h.fx
+	}
+	return fxShieldHit
+}
+
 // playerProcsLocked runs a player's procs after one of its melee hits on a
 // creature still standing. It reports a kill.
 func (w *World) playerProcsLocked(sess *session.Session, p *Player, npc *NPC, now time.Time) bool {
@@ -234,14 +322,16 @@ func (w *World) playerProcsLocked(sess *session.Session, p *Player, npc *NPC, no
 		log.Printf("Proc: %s's proc resisted by %s", p.Name, npc.Name)
 	}
 	for _, h := range p.procsOfRound(hits) {
-		more := procDebuffedMore(h.ae, npc, p.ServerID, now)
-		n := -creatureResists(h.ae.Rules.Resist, npc, -h.n*(100+more)/100, now)
+		more := procDebuffedMorePct(h.debuffedPct, npc, p.ServerID, now)
+		n := -creatureResists(h.resist, npc, -h.n*(100+more)/100, now) // the line's own resist (petition 5645)
 		log.Printf("Proc: %s's %q hits %s for %d", p.Name, h.ae.Name, npc.Name, n)
 		// seen as a damage shield's answer is (petition 1156: "does not proc",
 		// when all it showed was one more figure among the swings')
-		w.broadcastCastLocked(p, npc.ServerID, 0, procHitFX(h.ae))
+		w.broadcastCastLocked(p, npc.ServerID, 0, rollHitFX(h))
 		killed := w.spellHitLocked(p, sess, npc, n, numberProc)
-		w.procTapLocked(p, sess, h.ae, npc, more)
+		if h.tap {
+			w.procTapLocked(p, sess, h.ae, npc, procDebuffedMore(h.ae, npc, p.ServerID, now))
+		}
 		if killed {
 			return true
 		}
@@ -269,7 +359,7 @@ func (w *World) petProcsLocked(ps *petState, t *NPC, now time.Time) bool {
 	}
 	for _, h := range hits {
 		log.Printf("Proc: the pet %q's %q hits %s for %d", pet.Name, h.ae.Name, t.Name, h.n)
-		if fx := h.ae.Rules.ProcFX; fx != 0 {
+		if fx := h.fx; fx != 0 {
 			// its own look at what it hits (Largesse of Plague's); a proc of none shows its
 			// figure alone, as before
 			w.broadcastNPCSwingLocked(pet, t.ServerID, 0, fx)

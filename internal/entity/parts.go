@@ -262,6 +262,9 @@ func (ae *ActiveEffect) takeOff(m, r effectPart) {
 	if m.Proc != 0 || m.ProcMax != 0 {
 		ae.Proc, ae.ProcMax, ae.ProcScale, ae.ProcScalePct, ae.ProcCap, ae.ProcUndead =
 			r.Proc, r.ProcMax, r.ProcScale, r.ProcScalePct, r.ProcCap, r.ProcUndead
+		if r.Proc == 0 && r.ProcMax == 0 {
+			ae.MoreProcs = nil // no proc left, none of its later ones either (proc.go)
+		}
 	}
 	if m.Shield != nil {
 		ae.Shield = r.Shield

@@ -138,7 +138,7 @@ func (q *QuestEngine) skyGroupTakeLocked(p *entity.Player, qu *database.Quest, s
 // doer's alone when a step is done for its groupmates).
 func skyWorldEvent(do string) bool {
 	switch do {
-	case database.EventTrigger, database.EventSpawn, database.EventAttack, database.EventHide:
+	case database.EventTrigger, database.EventSpawn, database.EventAttack, database.EventHide, database.EventDie:
 		return true
 	}
 	return false

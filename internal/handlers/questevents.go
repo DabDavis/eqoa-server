@@ -193,6 +193,8 @@ func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c
 			q.castLocked(sess, p, qu, step, e.Spell)
 		case database.EventHide:
 			q.hideLocked(p, qu, step, e)
+		case database.EventDie:
+			q.dieLocked(p, qu, step, e)
 		default:
 			log.Printf("Quests: %q step %d: no event %q", qu.Name, step, e.Do)
 		}
@@ -512,6 +514,31 @@ func (q *QuestEngine) hideLocked(p *entity.Player, qu *database.Quest, step int,
 	}
 	n := q.gw.HideNPCs(strings.TrimSpace(e.NPC), world, x, z, database.HideReach, time.Now().Add(life))
 	log.Printf("Quests: %q step %d hid %d %q near %s for %s", qu.Name, step, n, e.NPC, p.Name, life)
+}
+
+// dieLocked is a die event of the quest's step: the NPC it names, else the
+// step's target, nearest the player within HideReach dies where it stands
+// (entity.World.DieNear: its death played, no loot, no credit; back on its
+// respawn). Live petition 5638: Delwin Stitchfinger at the poisoned chocolates.
+// Must be called with q.mu held.
+func (q *QuestEngine) dieLocked(p *entity.Player, qu *database.Quest, step int, e database.QuestEvent) {
+	if q.gw == nil || step == 0 {
+		return
+	}
+	name := strings.TrimSpace(e.NPC)
+	if st := qu.Step(step); name == "" && st != nil {
+		name = strings.TrimSpace(st.Target)
+	}
+	world, x, _, z, ok := q.gw.PlayerPlace(p)
+	if !ok || name == "" {
+		return
+	}
+	id, ok := q.gw.DieNear(name, world, x, z, database.HideReach)
+	if !ok {
+		log.Printf("Quests: %q step %d: no %q alive near %s to die", qu.Name, step, name, p.Name)
+		return
+	}
+	log.Printf("Quests: %q step %d: %q (%d) dies before %s", qu.Name, step, name, id, p.Name)
 }
 
 // attackLocked is an attack event of the quest's step: the NPC it names, else

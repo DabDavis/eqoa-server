@@ -2,6 +2,7 @@ package entity
 
 import (
 	"log"
+	"strings"
 	"time"
 )
 
@@ -51,6 +52,34 @@ func (w *World) KillWithMaster(id EntityID) (string, bool) {
 	w.killWithMasterLocked(npc, time.Now())
 	log.Printf("Pets: %q (%d) dies with its master", npc.Name, id)
 	return npc.Name, true
+}
+
+// DieNear lays down dead the living NPC named name (any case) nearest (x, z) in world
+// within reach, not hidden, not a dummy, a player's pet or a mercenary: a quest's die
+// event (handlers' questevents.go; Live petition 5638). It dies as one that died with
+// its master does (killWithMasterLocked): its death played, a corpse of nothing for a
+// moment, no experience, faction or kill credit to anyone, and back on its own respawn
+// time. It reports the NPC's id, false for none.
+func (w *World) DieNear(name string, world uint8, x, z, reach float32) (EntityID, bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	now := time.Now()
+	var best *NPC
+	var bestD float32
+	for _, n := range w.npcsNearLocked(strings.TrimSpace(name), world, x, z, reach) {
+		if n.hiddenAt(now) || n.Dummy != NotDummy || n.Owner != 0 || n.isMerc() {
+			continue
+		}
+		if d := distXZ(n.X, n.Z, x, z); best == nil || d < bestD {
+			best, bestD = n, d
+		}
+	}
+	if best == nil {
+		return 0, false
+	}
+	best.damageBy = nil // no one's kill (killcredit.go)
+	w.killWithMasterLocked(best, now)
+	return best.ServerID, true
 }
 
 // addsDieLocked lays down dead every living add a summon of npc's called (summon.go), npc dead. Must be

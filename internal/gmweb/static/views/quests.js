@@ -35,6 +35,7 @@ const DOS = {
   teleport: 'Teleport the player',
   vampire: 'Make the player a vampire',
   classquest: "Finish the player's city class quest of a level too",
+  die: 'An NPC near the player dies',
 };
 
 export async function render(box, parts) {
@@ -582,6 +583,8 @@ function eventsEditor(obj, key, whens, worlds) {
         field('', flag(e, 'hostile', 'Hostile: it may be attacked, and attacks the player')));
     } else if (e.do === 'attack') {
       fields.push(field('Who', npcInput(e, 'npc', "the step's target"), 'empty: the step\'s target; the nearest of that name within 30 turns on the player, the NPC itself (not a copy); one with the NPC bit is left alone', true));
+    } else if (e.do === 'die') {
+      fields.push(field('Who', npcInput(e, 'npc', "the step's target"), "empty: the step's target; the nearest of that name within 40 dies where it stands (its death played, no loot, no experience or credit) and is back on its own respawn", true));
     } else if (e.do === 'visual') {
       fields.push(field('Visual', text(e, 'fx', { placeholder: '0x1DAEB5B6', class: 'mono' }), "a 0x00B1 DictID (the Spell visuals page lists them)"),
         field('Casting part', num(e, 'seconds', { min: 0, max: 30, step: 0.1 }), 'seconds'));

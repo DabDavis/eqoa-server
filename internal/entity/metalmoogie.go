@@ -381,6 +381,9 @@ func challengeBars(npc *NPC, id EntityID) bool {
 	if siegeBars(npc, id) {
 		return true // a siege's King or gate: its attackers' alone, once live (siege.go)
 	}
+	if reserveBars(npc, id) {
+		return true // another party's woken creature (reserve.go)
+	}
 	return npc != nil && npc.challenge != nil && (npc.challenge.held || npc.challenge.player != id)
 }
 
@@ -395,6 +398,9 @@ func challengeRefusal(npc *NPC, id EntityID) string {
 	}
 	if line := siegeRefusal(npc, id); line != "" {
 		return line // a siege's King or gate (siege.go)
+	}
+	if line := reserveRefusal(npc, id); line != "" {
+		return line // another party's woken creature (reserve.go)
 	}
 	if !challengeBars(npc, id) {
 		return ""

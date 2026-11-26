@@ -49,6 +49,8 @@ type KeptEventNPC struct {
 	// its class template's casts too
 	Enemy uint32 `json:"enemy,omitempty"`
 	Casts bool   `json:"casts,omitempty"`
+	// Reserve is the party it is kept for (reserve.go), nil none
+	Reserve *KeptReserve `json:"reserve,omitempty"`
 }
 
 // KeepEventNPCs is the living copies among ids (a trigger's runs' spawns) as a
@@ -68,7 +70,7 @@ func (w *World) KeepEventNPCs(ids []EntityID, now time.Time) []KeptEventNPC {
 		if !ok {
 			continue
 		}
-		k := KeptEventNPC{KeptNPC: kn, Row: uint32(c.CopyOf), Level: c.Level, FullHP: c.MaxHP, NPCType: c.NPCType, Event: c.EventAggro, NoLoot: c.NoLoot}
+		k := KeptEventNPC{KeptNPC: kn, Row: uint32(c.CopyOf), Level: c.Level, FullHP: c.MaxHP, NPCType: c.NPCType, Event: c.EventAggro, NoLoot: c.NoLoot, Reserve: keptReserveLocked(c)}
 		if e := w.NPCs[c.CurrentEnemy]; c.CurrentEnemy != 0 && e != nil && !e.Dead {
 			k.Enemy = uint32(c.CurrentEnemy)
 			k.Casts = c.castsAt == c.CurrentEnemy
@@ -123,6 +125,7 @@ func (w *World) RestoreEventNPCs(kept []KeptEventNPC) (ids map[EntityID]EntityID
 			k.Home = nil
 		}
 		w.restoreNPCLocked(c, &k.KeptNPC, true, &nr)
+		w.restoreReserveLocked(c, k.Reserve) // the party it was kept for (reserve.go)
 		if enemy != nil {
 			w.addThreatLocked(c, enemy.ServerID, 1)
 			c.CurrentEnemy = enemy.ServerID

@@ -40,7 +40,7 @@ const mercCombatWait = time.Second
 // (petMayFight: alive, in its world, attackable, nobody's pet or merc, not
 // another's Metal Moogie), and never a Metal Moogie at all (a duel's).
 func mercMayFight(m, npc *NPC) bool {
-	return petMayFight(m, npc) && npc.challenge == nil
+	return petMayFight(m, npc) && npc.challenge == nil && !reserveBars(npc, m.ServerID) // nor another party's woken creature (reserve.go)
 }
 
 // mercChooseTargetLocked keeps or lets go of the merc's target and gives one

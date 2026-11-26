@@ -92,6 +92,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.genieSystem(now)       // the lamps' genies and their windows (genie.go)
 	w.portalSystem(now)      // the Summoning Portals' time (summonportal.go)
 	w.metalMoogieSystem(now) // Mr. Moogie's challenge (metalmoogie.go)
+	w.reserveSystem(now)     // woken creatures kept for their parties (reserve.go)
 	w.bufferSystem(now)      // Buffer's casts landing (buffer.go)
 	w.ctfSystem(now)         // capture the flag's queue and match (ctf.go)
 	w.dungeonsSystem(now)    // the dungeons: who may stand in each instance, the empty ones closed (dungeons.go)

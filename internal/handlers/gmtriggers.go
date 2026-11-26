@@ -137,6 +137,9 @@ type triggerRun struct {
 	spawns  []triggerSpawn
 	stopped bool // ended by a stop: a tick in hand passes it by
 	quiet   bool // fired by a quest or a death: no GM to tell its steps
+	// waker is the party whose kill fired it (a death row's), nil for any other
+	// firing: whom a spawn step's reserve "waker" keeps its copies for
+	waker *entity.WakerParty
 
 	// lock is its trigger's (database.TriggerLockName); reach its own, once a
 	// place step set one (0: the trigger's)
@@ -245,6 +248,8 @@ type TriggerFirer struct {
 	// At is the place of a trigger with none of its own, where no GM stands (a
 	// death's)
 	At *triggerPlaceAt
+	// Waker is the party whose kill fires it (Killed), nil for none
+	Waker *entity.WakerParty
 }
 
 // TriggerRunInfo is a run as the GM panel lists it.
@@ -401,10 +406,31 @@ func (e *TriggerEngine) Killed(k entity.KillCredit) {
 			continue
 		}
 		if _, err := e.FireNamed(r.Trigger, TriggerFirer{Name: k.NPCName + "'s death", Quiet: true,
-			At: &triggerPlaceAt{world: world, x: x, y: y, z: z}}); err != nil && !errors.Is(err, ErrTriggerBusy) {
+			At: &triggerPlaceAt{world: world, x: x, y: y, z: z}, Waker: wakerOf(k)}); err != nil && !errors.Is(err, ErrTriggerBusy) {
 			log.Printf("Triggers: %q's death fires %q: %v", k.NPCName, r.Trigger, err)
 		}
 	}
+}
+
+// wakerOf is the party a kill wakes a trigger's creature for: the characters it
+// counts for (its killer and the killer's group or raid near), nil for none.
+func wakerOf(k entity.KillCredit) *entity.WakerParty {
+	if len(k.Players) == 0 {
+		return nil
+	}
+	p := &entity.WakerParty{Name: k.Players[0].Name}
+	if k.Group != 0 {
+		p.Name += "'s group"
+	}
+	for _, kp := range k.Players {
+		if kp.ServerID != 0 {
+			p.Chars = append(p.Chars, kp.ServerID)
+		}
+	}
+	if len(p.Chars) == 0 {
+		return nil
+	}
+	return p
 }
 
 // heardKillLocked counts a credited kill for each run whose awaitkill waits on its
@@ -608,7 +634,7 @@ func (e *TriggerEngine) prepareRun(slot int, by TriggerFirer) (*triggerRun, []st
 		return nil, []string{fmt.Sprintf("%s cannot run: %s", t.Title(), probs[0])}, ErrTriggerBroken
 	}
 	steps, _ := database.ParseTriggerSteps(t.Steps)
-	r := &triggerRun{trig: t, steps: steps, by: strings.TrimSpace(by.Name), quiet: by.Quiet, lock: database.TriggerLockName(steps)}
+	r := &triggerRun{trig: t, steps: steps, by: strings.TrimSpace(by.Name), quiet: by.Quiet, lock: database.TriggerLockName(steps), waker: by.Waker}
 	if by.Player != nil {
 		r.gmChar = by.Player.CharServerID
 		if r.by == "" {
@@ -1658,7 +1684,7 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 	}
 	until := e.now().Add(time.Duration(stay * float64(time.Minute)))
 	name := strings.TrimSpace(s.NPC)
-	placed, spelled := 0, name
+	placed, spelled, reserved := 0, name, ""
 	turn := e.rand() * 2 * math.Pi
 	face, _ := database.TriggerFaceHeading(s.Face) // -1: each faces the ring's middle
 	for i := 0; i < n; i++ {
@@ -1678,6 +1704,15 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 		if s.Untouchable || s.NoLoot {
 			e.gw.MarkSpawn(id, s.Untouchable, s.NoLoot)
 		}
+		if strings.TrimSpace(s.Reserve) == database.TriggerReserveWaker && r.waker != nil {
+			var end time.Time // its whole stay
+			if s.ReserveMinutes > 0 {
+				end = e.now().Add(time.Duration(s.ReserveMinutes * float64(time.Minute)))
+			}
+			if e.gw.ReserveNPC(id, *r.waker, end) {
+				reserved = r.waker.Name
+			}
+		}
 		if len(s.Patrol) > 0 {
 			e.gw.PatrolSpawn(id, s.Patrol, s.PingPong, time.Duration(s.Pause*float64(time.Second)), s.Pace)
 		}
@@ -1696,6 +1731,9 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 	}
 	if s.Engage > 0 {
 		how += fmt.Sprintf(" (to be engaged within %s)", seconds(s.Engage*60))
+	}
+	if reserved != "" {
+		how += " kept for " + reserved
 	}
 	return fmt.Sprintf("spawned %d%s %s within %.0f of (%.0f, %.0f) for %s", placed, how, spelled, spread, cx, cz, seconds(stay*60))
 }

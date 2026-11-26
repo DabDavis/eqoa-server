@@ -77,6 +77,8 @@ type KeptTriggerRun struct {
 	Dead       *KeptTrigPlace `json:"dead,omitempty"`
 	Resummons  []KeptResummon `json:"resummons,omitempty"`
 	Protect    *KeptProtect   `json:"protect,omitempty"`
+	// Waker is the party whose kill fired it (nil none): a later spawn step's reserve
+	Waker *entity.WakerParty `json:"waker,omitempty"`
 }
 
 // KeptTriggerSpawn is one of a run's spawns.
@@ -132,7 +134,7 @@ func (e *TriggerEngine) keep(now time.Time) *KeptTriggers {
 		}
 		kr := KeptTriggerRun{ID: r.id, Trig: r.trig, By: r.by, GMChar: r.gmChar, Quiet: r.quiet, World: r.world, X: r.x, Y: r.y, Z: r.z,
 			Next: r.next, At: r.at, Start: r.start, Lock: r.lock, Reach: r.reach, Deadline: r.deadline, EmptyAfter: r.emptyAfter,
-			LastNear: r.lastNear, Died: append([]string(nil), r.died...)}
+			LastNear: r.lastNear, Died: append([]string(nil), r.died...), Waker: r.waker}
 		if r.await != nil {
 			s := *r.await
 			kr.Await = &s
@@ -192,6 +194,9 @@ func (e *TriggerEngine) restore(k *KeptTriggers, copies map[entity.EntityID]enti
 		gap = 0
 	}
 	gap = min(gap, keepTriggerGapMax)
+	for _, id := range alive {
+		e.gw.DelayReserve(id, gap) // a reservation's end moves on by the restart too (entity/reserve.go)
+	}
 	later := func(t time.Time) time.Time {
 		if t.IsZero() {
 			return t
@@ -217,7 +222,7 @@ func (e *TriggerEngine) restore(k *KeptTriggers, copies map[entity.EntityID]enti
 		}
 		run := &triggerRun{id: kr.ID, trig: kr.Trig, steps: steps, by: kr.By, gmChar: kr.GMChar, quiet: kr.Quiet, world: kr.World,
 			x: kr.X, y: kr.Y, z: kr.Z, next: kr.Next, at: later(kr.At), start: kr.Start, lock: kr.Lock, reach: kr.Reach,
-			deadline: later(kr.Deadline), emptyAfter: kr.EmptyAfter, lastNear: later(kr.LastNear), died: kr.Died}
+			deadline: later(kr.Deadline), emptyAfter: kr.EmptyAfter, lastNear: later(kr.LastNear), died: kr.Died, waker: kr.Waker}
 		if kr.Await != nil {
 			s := *kr.Await
 			run.await = &s

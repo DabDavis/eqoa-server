@@ -59,6 +59,8 @@ type World struct {
 	metal       *metalDuel                        // the Metal Moogie standing and his duel (metalmoogie.go), nil none
 	adds        []*NPC                            // the adds creatures' summons called, standing (summon.go)
 	metalTold   map[EntityID]time.Time            // when each player was last told he is another's (metalmoogie.go)
+	reserved    map[EntityID]*NPC                 // the creatures a trigger reserved for the party that woke them (reserve.go)
+	reserveNext time.Time                         // the reservations' next look (reserve.go)
 	buffers     []*bufferCast                     // Buffer's casts on their way to landing (buffer.go)
 	leaving     []func(*Player)                   // OnPlayerLeaving
 	entered     []func(*session.Session, *Player) // OnPlayerEntered

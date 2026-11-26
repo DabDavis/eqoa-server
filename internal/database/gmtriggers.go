@@ -146,6 +146,10 @@ const (
 	SeasonToggle = "toggle"
 )
 
+// TriggerReserveWaker is a spawn step's reserve that keeps its copies for the party
+// whose kill fired the run (TriggerStep.Reserve).
+const TriggerReserveWaker = "waker"
+
 // TriggerNearHeight is how far above or below a run's place an awaitnear's player
 // may stand: the Plane of Sky's isles lie over one another.
 const TriggerNearHeight float32 = 40
@@ -257,6 +261,15 @@ type TriggerStep struct {
 	// of nothing (the Arbiter's first two lives)
 	Untouchable bool `json:"untouchable,omitempty"`
 	NoLoot      bool `json:"noloot,omitempty"`
+	// Reserve (spawn): "waker" keeps its copies for the party whose kill fired the run
+	// (a death row's: the killer, its group or raid), no one else able to hurt them or
+	// noticed by them, for ReserveMinutes (0: the copies' whole stay), lifting sooner
+	// when that party is all gone from the world or dead (entity/reserve.go). A run
+	// no kill fired (a GM's, a quest's, a start) spawns them free. The owner,
+	// 2026-11-26: Chimareon, woken by the Necrologist's death, killed by a bystander
+	// before the group that woke him got there
+	Reserve        string  `json:"reserve,omitempty"`
+	ReserveMinutes float64 `json:"reserveminutes,omitempty"`
 	// Face (spawn): the way its copies face, a compass word (north, northeast, east, ...,
 	// northwest; +z is south); none: each faces the middle of its ring (Heirloom petition
 	// 2253: Bertoxxulous "facing south")
@@ -552,6 +565,15 @@ func StepProblems(steps []TriggerStep) []string {
 			}
 			if s.Untouchable && (s.Hostile || s.Attackable) {
 				add(i, "spawn untouchable is neither hostile nor attackable")
+			}
+			if r := strings.TrimSpace(s.Reserve); r != "" && r != TriggerReserveWaker {
+				add(i, "spawn's reserve %q: waker or none", s.Reserve)
+			}
+			if s.ReserveMinutes < 0 || s.ReserveMinutes > TriggerMaxMinutes {
+				add(i, "spawn's reserveminutes %.1f: 0 (its whole stay) to %d", s.ReserveMinutes, TriggerMaxMinutes)
+			}
+			if s.ReserveMinutes > 0 && strings.TrimSpace(s.Reserve) == "" {
+				add(i, "spawn's reserveminutes is a reserve's: it has none")
 			}
 			if _, ok := TriggerFaceHeading(s.Face); !ok {
 				add(i, "spawn's face %q: north, northeast, east, southeast, south, southwest, west, northwest or none", s.Face)

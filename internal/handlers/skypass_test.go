@@ -504,3 +504,37 @@ func forgetQuestChar(p *entity.Player) {
 	delete(q.chars, p.CharServerID)
 	q.mu.Unlock()
 }
+
+// Cucumber, 2026-11-26: a finished chain taken up again at the main isle's
+// essence, its later isles crossed with keys kept from the run before, is
+// brought up to each passage's step (it sat at its first kill step, the
+// bishops' kills "told what comes first"); a first run crossing with a key it
+// was handed is not moved past the isles it has not walked.
+func TestAChainAgainCrossesWithKeptKeys(t *testing.T) {
+	r := newSkyRig(t)
+	if _, err := r.db.Exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (101302, 1, 'kill', 'ancient peasant', 'Kill the peasants.')`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.db.Exec(`INSERT OR REPLACE INTO charquests (serverid, questid, step, done, slot) VALUES (?, 101302, 1, 1, 2)`, r.pa.CharServerID); err != nil {
+		t.Fatal(err)
+	}
+	r.on(r.pc, 101302, 1)
+	r.own(r.pa, "Rain Key 2", 1)
+	r.own(r.pc, "Rain Key 2", 1)
+	r.by("rain2")
+	r.talk(r.anna, r.npcs["rain2"])
+	if got := r.msgs(r.anna); !hasMsg(got, "teleport") {
+		t.Fatalf("no passage: %q", got)
+	}
+	if s, d := r.step(r.pa, 101302); s != 5 || d != 1 {
+		t.Errorf("the run again: step %d done %d, want 5 done 1", s, d)
+	}
+	r.by("rain2")
+	r.talk(r.cora, r.npcs["rain2"])
+	if got := r.msgs(r.cora); !hasMsg(got, "teleport") {
+		t.Fatalf("no passage for Cora: %q", got)
+	}
+	if s, d := r.step(r.pc, 101302); s != 1 || d != 0 {
+		t.Errorf("a first run: step %d done %d, want 1 done 0", s, d)
+	}
+}

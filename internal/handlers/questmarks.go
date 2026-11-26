@@ -300,6 +300,11 @@ func (q *QuestEngine) markSpotsLocked(now time.Time) map[string][]entity.NPCSpot
 					names[foldName(t)] = true
 				}
 			}
+			if h := q.dropStep(st); h != nil {
+				for _, t := range h.Targets() {
+					names[foldName(t)] = true
+				}
+			}
 		}
 	}
 	// the travel NPCs and where their trips land, for a step in another world
@@ -422,6 +427,16 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 					wq.line = st.Journal
 					wq.detail = wayLine(h, "")
 					addAt(markStep, h.from, wq)
+				}
+			}
+			// a give step's item that creatures drop, while the player lacks it:
+			// their camp too, as a hunt (questmarksdrops.go; petition 3221)
+			if h := q.dropStep(st); h != nil && q.lackingLocked(p, st) != "" {
+				hq := mq
+				hq.detail = fmt.Sprintf("%s drops it", h.TargetWords())
+				hk, hat := q.stepSpotsLocked(spots, h, c.serverID, world, x, z)
+				for _, s := range hat {
+					addAt(hk, s, hq)
 				}
 			}
 		}

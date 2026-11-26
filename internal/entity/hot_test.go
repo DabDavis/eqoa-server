@@ -264,3 +264,58 @@ func TestHoTSlotOfASpellAndKept(t *testing.T) {
 		t.Fatalf("restored %d: %+v", n, c.p.Effects)
 	}
 }
+
+// wbHotSpell is hotSpell read from the workbook, as the live game's heals are
+// (Light Healing, Healing): its first tick lands twice (the legend's "HoT and
+// PoT tick twice on first effect").
+func wbHotSpell(t *testing.T, id, perTick int, name string) CastSpell {
+	t.Helper()
+	sp := hotSpell(id, perTick, name)
+	d, err := ParseSpellJSON(name, "", `{"v":1,"scope":"target","target_type":"Friendly","harmful":false,"duration_s":24,"stack":1,"level":12,"min_level":1,`+
+		`"sheet_type":"Dmg/Heal","effects":[{"id":"0226","type":"Dmg/Heal","kind":"hp_tick","amount":`+itoaPad(perTick)+`}]}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sp.Def = d
+	return sp
+}
+
+// Live petition 5643 ("all healers heals stack with each other"): a druid's
+// and a shaman's heal over time, one landing over the other's, healed more
+// than the stronger alone. The workbook's first tick twice is a landing at
+// once's alone; one landing over a heal ticking in its slot ticks at the old
+// one's next regular tick, and that tick landed twice, so every heal cast over
+// another (or a recast) added a whole tick: two healers taking turns healed
+// half again as much as one. Only the stronger counts, its first tick once.
+func TestHoTOverAnotherNeverTicksTwice(t *testing.T) {
+	c := newCaster(t)
+	c.p.HP, c.p.MaxHP = 100, 5000
+	land := 2*time.Second + castLand
+	c.w.regenAt = c.at(land - 2*time.Second) // regular ticks at land+4, +10, +16, +22
+	if !c.w.StartCast(c.sess, wbHotSpell(t, 921, 30, "Light Mending"), c.me, c.at(0)) {
+		t.Fatal("not begun")
+	}
+	last := c.p.HP
+	if got := c.healed(land, &last); got != 60 {
+		t.Fatalf("healed %d at the first landing, want 60 (its first tick twice)", got)
+	}
+	// the other healer's stronger heal, begun at the first's landing, lands
+	// 2.5 s later, before the next regular tick
+	if !c.w.StartCast(c.sess, wbHotSpell(t, 922, 70, "Mending"), c.me, c.at(land)) {
+		t.Fatal("second not begun")
+	}
+	if got := c.healed(2*land, &last); got != 0 {
+		t.Fatalf("healed %d at the second landing, want none (over a heal of its slot)", got)
+	}
+	for _, step := range []struct {
+		at   time.Duration
+		want int
+	}{
+		{land + 4*time.Second, 70}, // the stronger's first: once, not twice
+		{land + 10*time.Second, 70}, {land + 16*time.Second, 70}, {land + 22*time.Second, 70},
+	} {
+		if got := c.healed(step.at, &last); got != step.want {
+			t.Fatalf("at %v healed %d, want %d", step.at, got, step.want)
+		}
+	}
+}

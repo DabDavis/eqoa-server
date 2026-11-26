@@ -201,6 +201,95 @@ func TestTheAscendedRecordsFollowTheirBasesAtTheStart(t *testing.T) {
 	}
 }
 
+// Heirloom petition 3235: the owner's "just race all" set the Ascended
+// records of narrower bases to 1023, and the next start's sync put the
+// Ascended Breastplate of the Anointed back to its base's 1439 (no ogre). A
+// copy whose race mask lets every race wear it that its base's does, and
+// more, keeps it through the start (1023 reaches the froglok's bit 1024 as
+// the server reads it); its other columns still follow the base. The
+// controls: a copy narrowed below its base, or widened to other races while
+// losing one of its base's, goes back to the base's mask; a base widened past
+// its copy takes the copy with it.
+func TestTheSyncKeepsAnAscendedRaceMaskWiderThanItsBase(t *testing.T) {
+	db := ascendedDB(t)
+	sword, _, _ := ascendedCopy(t, db, 1026)
+	helm, _, _ := ascendedCopy(t, db, 6207)
+	if _, err := db.Exec(`UPDATE itempattern SET raceuse = 1439 WHERE patternid IN (1026, 6207, ?, ?)`, sword, helm); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`UPDATE itempattern SET raceuse = 1023 WHERE patternid = ?`, sword); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`UPDATE itempattern SET raceuse = 1, str = 30 WHERE patternid = ?`, helm); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := SyncAscendedCopies(db, time.Unix(1_800_000_000, 0)); err != nil {
+		t.Fatal(err)
+	}
+	race := func(id int) int {
+		t.Helper()
+		var r int
+		if err := db.QueryRow(`SELECT raceuse FROM itempattern WHERE patternid = ?`, id).Scan(&r); err != nil {
+			t.Fatal(err)
+		}
+		return r
+	}
+	if r := race(sword); r != 1023 {
+		t.Errorf("the sword's Ascended record widened to every race: %d after the start, want 1023 kept", r)
+	}
+	if r := race(helm); r != 1439 {
+		t.Errorf("the helm's Ascended record narrowed to one race: %d after the start, want its base's 1439", r)
+	}
+	if n, err := SyncAscendedCopies(db, time.Unix(1_800_000_000, 0)); err != nil || n != 0 {
+		t.Errorf("a second start synced %d (%v), want none: the kept mask is the rule's", n, err)
+	}
+	// the copy's other columns still follow its base
+	if _, err := db.Exec(`UPDATE itempattern SET str = 30 WHERE patternid = 1026`); err != nil {
+		t.Fatal(err)
+	}
+	if n, err := SyncAscendedCopies(db, time.Unix(1_800_000_000, 0)); err != nil || n != 1 {
+		t.Errorf("the base's STR changed: synced %d (%v), want the sword's", n, err)
+	}
+	var str int
+	if err := db.QueryRow(`SELECT str FROM itempattern WHERE patternid = ?`, sword).Scan(&str); err != nil || str != 33 || race(sword) != 1023 {
+		t.Errorf("the sword after its base's STR changed: str %d race %d (%v), want 33 and 1023", str, race(sword), err)
+	}
+	// another race for one of its base's: not wider, the base's again
+	if _, err := db.Exec(`UPDATE itempattern SET raceuse = 1438 | 512 WHERE patternid = ?`, sword); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := SyncAscendedCopies(db, time.Unix(1_800_000_000, 0)); err != nil {
+		t.Fatal(err)
+	}
+	if r := race(sword); r != 1439 {
+		t.Errorf("the sword's record trading the base's human for the ogre: %d, want its base's 1439", r)
+	}
+	// a base widened past its copy takes it along
+	if _, err := db.Exec(`UPDATE itempattern SET raceuse = 0 WHERE patternid = 1026`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := SyncAscendedCopies(db, time.Unix(1_800_000_000, 0)); err != nil {
+		t.Fatal(err)
+	}
+	if r := race(sword); r != 0 {
+		t.Errorf("the sword's base opened to every race (0): its record %d, want 0", r)
+	}
+}
+
+func TestAscendedKeepsRace(t *testing.T) {
+	for _, c := range []struct {
+		copy, base int64
+		keep       bool
+	}{
+		{1023, 1439, true}, {1439, 1439, true}, {1471, 1439, true}, {0, 1439, true}, {1023, 0, true},
+		{1, 1439, false}, {1950, 1439, false}, {2047, 1023, true}, {1023, 2047, true},
+	} {
+		if got := AscendedKeepsRace(c.copy, c.base); got != c.keep {
+			t.Errorf("AscendedKeepsRace(%d, %d) = %v, want %v", c.copy, c.base, got, c.keep)
+		}
+	}
+}
+
 // The heirlooms' figures and the balance's kits are made of the regular
 // items (WearablePatterns): an Ascended record is none of them. The control:
 // its base is.

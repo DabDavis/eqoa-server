@@ -221,3 +221,48 @@ func TestMercWaterPetHealsItsMercFirst(t *testing.T) {
 		t.Fatalf("its merc out of reach: picked %d, want Raider %d", got, m.raider.ServerID)
 	}
 }
+
+// Heirloom petition 3186 (2026-11-26): "merc mage pet heals during lion fight in fp": two merc magicians'
+// Ghilan Nobles healed their hirer all through Metal Moogie V3's challenge, a fight no merc helps in
+// (ownfight.go). A merc's pet passes its hirer by in a fight of its own, its member heal and its group heal
+// alike; the controls: a class pet heals its owner in it (a duel's own), and the merc's pet heals its hirer
+// once the fight is over.
+func TestMercPetPassesItsHirerByInAnOwnFight(t *testing.T) {
+	m := newMemberRig(t, true)
+	merc := &NPC{ServerID: 3990, Name: "Mage", World: m.pet.World, X: m.pet.X + 2, Y: m.pet.Y, Z: m.pet.Z, HP: 5000, MaxHP: 5000}
+	ms := &mercState{owner: m.p, slot: 1, npc: merc}
+	if m.w.mercs == nil {
+		m.w.mercs = map[EntityID][]*mercState{}
+	}
+	m.w.mercs[m.p.ServerID] = append(m.w.mercs[m.p.ServerID], ms)
+	m.raider.HP = m.raider.MaxHP // only the hirer (50%) is hurt in reach
+	challenge := func() {
+		m.w.metal = &metalDuel{npc: 999999, name: MetalMoogieV3Name, c: &npcChallenge{player: m.p.ServerID, who: m.p, name: m.p.Name},
+			began: m.at(0)}
+	}
+	group := &templateAbility{TemplateAbility: database.TemplateAbility{Kind: database.AbilityHeal, Target: database.AbilityOnGroup, Below: 60}}
+	m.w.mu.Lock()
+	defer m.w.mu.Unlock()
+
+	// a class pet: its owner healed in its own fight
+	challenge()
+	if got := m.w.petMemberPickLocked(m.ps, m.mending); got != m.p.ServerID {
+		t.Fatalf("a class pet, its owner in the challenge: picked %d, want its owner %d", got, m.p.ServerID)
+	}
+	// a merc's pet: its hirer passed by, member heal and group heal
+	m.ps.merc = ms
+	if got := m.w.petMemberPickLocked(m.ps, m.mending); got != 0 {
+		t.Errorf("a merc's pet, its hirer in the challenge: picked %d, want none", got)
+	}
+	if m.w.petGroupHurtLocked(m.ps, group) {
+		t.Errorf("a merc's pet's group heal is wanted for its hirer in the challenge")
+	}
+	// the fight over: healed again
+	m.w.metal = nil
+	if got := m.w.petMemberPickLocked(m.ps, m.mending); got != m.p.ServerID {
+		t.Errorf("the challenge over: picked %d, want its hirer %d", got, m.p.ServerID)
+	}
+	if !m.w.petGroupHurtLocked(m.ps, group) {
+		t.Errorf("the challenge over: the group heal is not wanted for its hirer")
+	}
+}

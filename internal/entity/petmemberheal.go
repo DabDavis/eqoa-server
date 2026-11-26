@@ -78,13 +78,14 @@ func (w *World) petHealTargetLocked(ps *petState, a *templateAbility) string {
 }
 
 // petMembersLocked is who a member heal of the pet may land on, in the order a
-// tie goes: its owner (alive, wherever it stands), itself, then the rest of its
+// tie goes: its owner (alive, wherever it stands; a merc's pet's hirer not in a
+// fight of its own: petSparesLocked), itself, then the rest of its
 // side in reach. Must be called with the lock held.
 func (w *World) petMembersLocked(ps *petState, reach float32) petSide {
 	pet, owner := ps.npc, ps.owner
 	side := w.petSideLocked(ps, reach)
 	var out petSide
-	if owner != nil && !owner.IsDead() && !owner.respawnPending() {
+	if owner != nil && !owner.IsDead() && !owner.respawnPending() && !w.petSparesLocked(ps, owner) {
 		out.players = append(out.players, owner)
 	}
 	if !pet.Dead {

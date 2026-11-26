@@ -389,6 +389,9 @@ type Player struct {
 	// (dpsmeter.go, opcodes 0x7E3A-0x7E3D): its fight as that client is
 	// shown it; nil when it never asked or stopped
 	dps *dpsMeter
+	// factionTrack: the faction its client follows on the HUD and asked for
+	// (factiontrack.go, opcodes 0x7E86-0x7E88); nil when it follows none
+	factionTrack *factionTrack
 	// dpsSolo: the damage meter's fight of the player alone, in no group
 	// (dpsmeter.go; a group's is Group.dps), counted whatever its client draws
 	dpsSolo *dpsFight

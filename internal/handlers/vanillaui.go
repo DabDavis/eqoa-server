@@ -24,7 +24,7 @@ import (
 //     (mobinfo.go: a vanilla client is answered with the dialogue box a PS2
 //     gets), a target's level in the target box (conlevel.go), the quest
 //     marks, the quest tracker and the marks over quest NPCs' heads
-//     (questmarks.go, questprogress.go, questheadmarks.go); an answer to any of them is taken as "off", and a keep restart into it
+//     (questmarks.go, questprogress.go, questheadmarks.go), the faction tracker (factiontrack.go); an answer to any of them is taken as "off", and a keep restart into it
 //     stops what a client had asked for;
 //   - answers /con (and a PS2's "/t con") as the game does, an unknown
 //     command, for every client, whatever world.con_level says (the owner,
@@ -165,6 +165,7 @@ func stopKeptQoL(w *entity.World, sess *session.Session) {
 		w.SetBuffWindow(sess, false)
 		w.SetDPSMeter(sess, false)
 		w.SetStatFigures(sess, false) // statfigures.go
+		w.SetFactionTrack(sess, "")   // factiontrack.go
 	}
 	sess.SetNumberTagsLayout(0)
 	sess.SetMobInfo(false)

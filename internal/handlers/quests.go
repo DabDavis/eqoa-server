@@ -246,6 +246,13 @@ type QuestEngine struct {
 	unpublished map[int]bool
 	// loadHook runs as a publication begins (tests: a slow load)
 	loadHook func()
+
+	// noTakeCache and noPackCache make every marks pass ask every quest and
+	// read the pack, keeping nothing from the pass before (questtakecache.go;
+	// tests: the reference a kept pass is held to)
+	noTakeCache, noPackCache bool
+	// cacheIgnore switches invalidations off (tests: the controls)
+	cacheIgnore uint8
 }
 
 // questCatalog is the quests as last read.
@@ -311,6 +318,10 @@ type questChar struct {
 	// last set it was sent (questmarks.go)
 	marksOn   bool
 	marksSent string
+	// takes is the quests kept to ask mayTakeLocked of, pack its pack's
+	// last read, kept from one marks pass to the next (questtakecache.go)
+	takes *takeCands
+	pack  *packCache
 	// progressOn is whether its client draws the quest tracker,
 	// progressSent the last one it was sent (questprogress.go)
 	progressOn   bool
@@ -2604,6 +2615,10 @@ func (q *QuestEngine) heldItems(p *entity.Player) []database.CharInventoryEntry 
 		log.Printf("Quests: %s's inventory: %v", p.Name, err)
 		return nil
 	}
+	if ps != nil && ps.kept != nil && ps.kept.heldOK { // made of the same kept read (questtakecache.go)
+		ps.held, ps.heldOK = ps.kept.held, true
+		return ps.held
+	}
 	var out, worn []database.CharInventoryEntry
 	for _, r := range rows {
 		if r.Location != 0 || r.StackLeft <= 0 {
@@ -2618,6 +2633,9 @@ func (q *QuestEngine) heldItems(p *entity.Player) []database.CharInventoryEntry 
 	out = append(out, worn...)
 	if ps != nil { // the same rows the rest of the pass (questpass.go)
 		ps.held, ps.heldOK = out, true
+		if ps.kept != nil {
+			ps.kept.held, ps.kept.heldOK = out, true
+		}
 	}
 	return out
 }

@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"reflect"
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
@@ -105,13 +106,7 @@ func (q *QuestEngine) planHandInLocked(p *entity.Player, st *database.QuestStep)
 		}
 		need[it.PatternID] += it.Count
 	}
-	own, standIn := map[int]int{}, map[int]int{} // units of the record itself, of its Ascended records
-	for _, r := range held {
-		own[r.Pattern.PatternID] += r.StackLeft
-		if b, ok := baseOf(r.Pattern.PatternID); ok {
-			standIn[b] += r.StackLeft
-		}
-	}
+	own, standIn := q.heldTallyLocked(p, held, asc, st.ExactBase, baseOf) // units of the record itself, of its Ascended records
 	some, all := false, true
 	for _, id := range order {
 		if !hasAscended[id] {
@@ -163,6 +158,36 @@ func (q *QuestEngine) planHandInLocked(p *entity.Player, st *database.QuestStep)
 		}
 	}
 	return plan
+}
+
+// heldTallyLocked is the units held of each record, and of each record's
+// Ascended records (none for a step that takes its own records alone): made
+// once a pass for each kind of step (questpass.go), as the marks ask it of
+// every hand-in quest the player may take (questtakecache.go: the owner
+// 2026-11-26, the marks' CPU). Neither map is written once made.
+func (q *QuestEngine) heldTallyLocked(p *entity.Player, held []database.CharInventoryEntry, asc map[int]int, exact bool,
+	baseOf func(int) (int, bool)) (map[int]int, map[int]int) {
+	ps := q.passOf(p)
+	keep := ps != nil && ps.heldOK && ps.asc != nil && reflect.ValueOf(asc).Pointer() == reflect.ValueOf(ps.asc).Pointer()
+	if keep {
+		if t := ps.tally[exact]; t != nil {
+			return t.own, t.standIn
+		}
+	}
+	own, standIn := map[int]int{}, map[int]int{}
+	for _, r := range held {
+		own[r.Pattern.PatternID] += r.StackLeft
+		if b, ok := baseOf(r.Pattern.PatternID); ok {
+			standIn[b] += r.StackLeft
+		}
+	}
+	if keep {
+		if ps.tally == nil {
+			ps.tally = map[bool]*heldTally{}
+		}
+		ps.tally[exact] = &heldTally{own, standIn}
+	}
+	return own, standIn
 }
 
 // invTakes is the plan's takes as the pack's room is worked out with them.

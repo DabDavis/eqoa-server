@@ -344,19 +344,19 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 		}
 		return float32(math.Hypot(float64(s.X-x), float64(s.Z-z)))
 	}
-	byKey := map[string]*questMark{}
+	byKey := map[markKey]*questMark{}
 	var marks []*questMark
 	// the spots a step's mark is at: a giver there shows its "?" alone
-	stepAt := map[string]bool{}
+	stepAt := map[markSpot]bool{}
 	addAt := func(kind byte, s entity.NPCSpot, mq markQuest) {
-		spot := fmt.Sprintf("%d %.0f %.0f", s.World, s.X, s.Z)
+		spot := markSpotOf(s)
 		if kind == markTake && stepAt[spot] {
 			return
 		}
 		if kind == markStep {
 			stepAt[spot] = true
 		}
-		k := fmt.Sprintf("%d %s", kind, spot)
+		k := markKey{kind, spot}
 		m := byKey[k]
 		if m == nil {
 			m = &questMark{kind: kind, world: s.World, x: s.X, z: s.Z, npc: strings.TrimSpace(s.Name), dist: dist(s)}
@@ -368,8 +368,16 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 		}
 	}
 	// a giver's: the nearest maxMarkSpots of its spawns that stand in the
-	// world (its spawn-only originals only where none does)
+	// world (its spawn-only originals only where none does); each giver's
+	// worked out once a pass (the same spots, the same place: the same answer)
+	giverAt := map[string][]entity.NPCSpot{}
 	addGiver := func(name string, mq markQuest) {
+		if out, ok := giverAt[name]; ok {
+			for _, s := range out {
+				addAt(markTake, s, mq)
+			}
+			return
+		}
 		var out, orig []entity.NPCSpot
 		for _, s := range spots[foldName(name)] {
 			if s.SpawnOnly {
@@ -385,6 +393,7 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 		if len(out) > maxMarkSpots {
 			out = out[:maxMarkSpots]
 		}
+		giverAt[name] = out
 		for _, s := range out {
 			addAt(markTake, s, mq)
 		}
@@ -474,10 +483,19 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 		qu   *database.Quest
 		dist float32
 	}
+	// the quests still to be asked, the rest refused by what rarely changes,
+	// kept from the pass before (questtakecache.go; nil: every one)
+	cands := q.takeCandsLocked(p, c, now)
+	giverQuests := func(g string) []*database.Quest {
+		if cands != nil {
+			return cands[g]
+		}
+		return q.cat.givers[g]
+	}
 	byName := map[string]takeAt{}
 	for _, g := range givers {
 		d := float32(-1)
-		for _, qu := range q.cat.givers[g] {
+		for _, qu := range giverQuests(g) {
 			k := q.cat.foldedName(qu)
 			if taken[k] || !markLevelNear(p.Level, qu.MinLevel) {
 				continue
@@ -501,7 +519,7 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 		// in the order the giver offers them (nextOfferLocked): the ones never
 		// finished first, a finished repeatable one after
 		var takes []*database.Quest
-		for _, qu := range q.cat.givers[g] {
+		for _, qu := range giverQuests(g) { // the chosen are among them
 			if chosen[qu.ID] {
 				takes = append(takes, qu)
 			}
@@ -530,6 +548,37 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 		out[i] = *m
 	}
 	return out, true
+}
+
+// markSpot is a mark's place as the marks tell two apart: its world and its
+// x and z each rounded to a whole number, as fmt's "%.0f" rounds them (half to
+// even; -0 apart from 0). Until 2026-11-26 the key was that text, made with
+// fmt.Sprintf twice for every mark of every pass (the owner 2026-11-26, the
+// marks' CPU: questtakecache.go); the same places are the same key.
+type markSpot struct {
+	world uint8
+	x, z  uint64
+}
+
+// markKey is a mark's kind at a place.
+type markKey struct {
+	kind byte
+	spot markSpot
+}
+
+// markSpotOf is a spot's markSpot.
+func markSpotOf(s entity.NPCSpot) markSpot {
+	return markSpot{s.World, markCoord(s.X), markCoord(s.Z)}
+}
+
+// markCoord is a coordinate rounded as "%.0f" rounds it, as bits: every NaN
+// one ("NaN"), each infinity its own.
+func markCoord(f float32) uint64 {
+	v := math.RoundToEven(float64(f))
+	if math.IsNaN(v) {
+		return math.Float64bits(math.NaN())
+	}
+	return math.Float64bits(v)
 }
 
 // clip is s within n bytes, cut at a rune and marked.

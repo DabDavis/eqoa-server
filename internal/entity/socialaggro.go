@@ -43,8 +43,9 @@ import (
 //   - "sight" is a radius in the same world and a line of sight (sight.go) to
 //     the one attacked or its attacker, so a guard behind a house, or on the
 //     floor above, sees no hit;
-//   - the radius: 30 unless its row says, the range of 176 of the server's 402
-//     spells (spellpattern.range's 0x41F0, 30.0) and AggroRadius's own;
+//   - the radius: 10 unless its row says (the owner, 2026-11-26, petition 3234:
+//     "should be only within 10"; it was 30, a spell's usual range, and pulled
+//     a camp's far side onto a single pull);
 //   - a helper already fighting, on its way home after a fight, dead, hidden,
 //     a pet or a charmed creature, a dummy, or with the NPC bit (0x80: it
 //     attacks no one, aggro.go) does not come; nor does anyone for a pet;
@@ -55,8 +56,10 @@ import (
 //   - a GM's #aggro off counts for nothing here: the GM attacked.
 
 // DefaultSocialRadius is how near an attacked NPC a social one must stand to
-// come to its help when its row says nothing: a spell's usual range.
-const DefaultSocialRadius float32 = 30
+// come to its help when its row says nothing: 10, the owner's (2026-11-26,
+// petition 3234), was 30. A creature's kin heal reads it too (kinheal.go); a
+// town guard's watch keeps 30 (GuardWatchRadius, guards.go).
+const DefaultSocialRadius float32 = 10
 
 // SocialRule is a GM's word on the NPCs of one name (table npcsocial):
 // whether they come to the help of their faction, the faction they are of,

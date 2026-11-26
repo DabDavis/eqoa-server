@@ -31,7 +31,7 @@ import (
 //
 // What it does (guardWatchSystem, every aggroScanTicks): a town guard that is
 // free (alive, not fighting, not on its way home, not hidden, no NPC bit)
-// takes on the nearest creature within DefaultSocialRadius (30, the row's own
+// takes on the nearest creature within GuardWatchRadius (30, the row's own
 // radius when it says) of it that is fighting a player (its current enemy)
 // who stands within GuardHelpRadius (10) of the guard, alive and in its world
 // (fightsPlayerNearLocked), as its own fight; a creature that only comes
@@ -91,6 +91,13 @@ const GuardLeash float32 = 100
 // for the guard to take the creature on (the user's "within 10m", 2026-11-04).
 const GuardHelpRadius float32 = 10
 
+// GuardWatchRadius is how near a town guard a creature fighting a player must
+// be for the guard to take it on, when the guard's npcsocial row says no
+// radius: 30, the social radius it shared until the owner cut creatures'
+// help to 10 (2026-11-26, petition 3234), a ruling on creatures pulling
+// friends, not on the guards' watch.
+const GuardWatchRadius float32 = 30
+
 // fightsPlayerNearLocked reports creature c fighting a player who stands
 // within GuardHelpRadius of guard g, alive and in g's world (the file's doc).
 // Must be called with the lock held.
@@ -148,12 +155,12 @@ func (w *World) townGuardLocked(npc *NPC) bool {
 }
 
 // guardRadiusLocked is how near a guard a creature must come: its row's
-// radius, else DefaultSocialRadius. Must be called with the lock held.
+// radius, else GuardWatchRadius. Must be called with the lock held.
 func (w *World) guardRadiusLocked(g *NPC) float32 {
 	if r, ok := w.npcSocial.ruleFor(g.Name); ok && r.Radius > 0 {
 		return r.Radius
 	}
-	return DefaultSocialRadius
+	return GuardWatchRadius
 }
 
 // guardFreeLocked reports a town guard free to take a creature on (the

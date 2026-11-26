@@ -593,7 +593,7 @@ func TestAGroupHealTakesItsGroupAndTheirPets(t *testing.T) {
 }
 
 // Each of an area's hits is the caster's on it: a creature the storm splashed
-// calls the helpers of its faction (socialaggro.go), one 26 from it and 40 from
+// calls the helpers of its faction (socialaggro.go), one 8 from it and 22 from
 // the storm's target coming. The control: with no creature of its faction in
 // the storm, the helper stays.
 func TestEachOfAnAreasHitsCallsItsHelpers(t *testing.T) {
@@ -604,7 +604,7 @@ func TestEachOfAnAreasHitsCallsItsHelpers(t *testing.T) {
 		if splashed {
 			r.creature(2002, "Deathfist Pawn", 1034, 1000) // in the storm, 14 from its target
 		}
-		helper := r.creature(2003, "Deathfist Pawn", 1060, 1000) // 26 from it, 40 from the target
+		helper := r.creature(2003, "Deathfist Pawn", 1042, 1000) // 8 from it, 22 from the target
 		r.cast(t, fireStorm(), target.ServerID)
 		return r, helper
 	}

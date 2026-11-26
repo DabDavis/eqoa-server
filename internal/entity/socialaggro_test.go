@@ -49,14 +49,14 @@ func (f *aggroFix) hit(n *NPC, damage int) {
 	f.w.updateAggro(n, f.p.ServerID, damage)
 }
 
-// A player hits a guard: the guards of its militia within 30 of it come at the
-// player; one 35 off, a guard of another town's guard, a townsperson and a
+// A player hits a guard: the guards of its militia within 10 of it (the
+// default radius, the owner's 2026-11-26) come at the player; one 12 off, a guard of another town's guard, a townsperson and a
 // guard with no row do not.
 func TestAGuardHitCallsTheGuardsOfItsFactionNearIt(t *testing.T) {
 	f := newSocialFix(t)
 	victim := f.npc(100, "Guard Alinon", 30, humanBody, 1000, 1000)
-	near := f.npc(101, "Guard Brenna", 30, humanBody, 1020, 1000)
-	far := f.npc(102, "Guard Cadwell", 30, humanBody, 1035, 1000)
+	near := f.npc(101, "Guard Brenna", 30, humanBody, 1008, 1000)
+	far := f.npc(102, "Guard Cadwell", 30, humanBody, 1012, 1000)
 	other := f.npc(103, "Guard Ely", 30, humanBody, 1000, 1010)
 	baker := f.npc(104, "Baker Dunn", 10, humanBody, 1000, 990)
 	rowless := f.npc(105, "Guard Fenwick", 30, humanBody, 990, 1000)
@@ -67,7 +67,7 @@ func TestAGuardHitCallsTheGuardsOfItsFactionNearIt(t *testing.T) {
 		t.Fatalf("the guard hit fights the player: enemy %d", victim.CurrentEnemy)
 	}
 	if !f.attacks(near) {
-		t.Errorf("a militia guard 20 off came: enemy %d, want the player", near.CurrentEnemy)
+		t.Errorf("a militia guard 8 off came: enemy %d, want the player", near.CurrentEnemy)
 	}
 	for _, n := range []*NPC{far, other, baker, rowless} {
 		if n.CurrentEnemy != 0 {
@@ -94,7 +94,7 @@ func TestAnNPCWithNoRowIsOfTheFactionsItsKillLowers(t *testing.T) {
 	f := newSocialFix(t)
 	f.w.factions.hits[database.NPCClassKey("Guard Gorm")] = []FactionHit{{"Citizens of Freeport", -25}, {"The Freeport Militia", -50}}
 	victim := f.npc(106, "Guard Gorm", 30, humanBody, 1000, 1000)
-	helper := f.npc(101, "Guard Brenna", 30, humanBody, 1015, 1000)
+	helper := f.npc(101, "Guard Brenna", 30, humanBody, 1008, 1000)
 	f.hit(victim, 5)
 	if !f.attacks(helper) {
 		t.Errorf("the militia guard did not come to a rowless militia guard's help (enemy %d)", helper.CurrentEnemy)
@@ -102,30 +102,30 @@ func TestAnNPCWithNoRowIsOfTheFactionsItsKillLowers(t *testing.T) {
 }
 
 // A creature noticing a player on its own (aggro.go) calls no one: a GM's
-// "the other won't assist unless they see you hit them". The friend stands 25
-// off the creature and 45 off the player: out of its own notice, in the call's
+// "the other won't assist unless they see you hit them". The friend stands 8
+// off the creature and 28 off the player: out of its own notice, in the call's
 // radius.
 func TestACreaturesOwnNoticeCallsNoOne(t *testing.T) {
 	f := newSocialFix(t)
 	f.w.SetSocialRules(map[string]SocialRule{"Gnoll Pup": {Social: true, Faction: "Blackburrow Gnolls"}})
 	// level 32: light blue to the level 40, so it notices on sight
 	a := f.npc(200, "Gnoll Pup", 32, bearBody, 1020, 1000)
-	b := f.npc(201, "Gnoll Pup", 32, bearBody, 1045, 1000)
-	c := f.npc(202, "Gnoll Pup", 32, bearBody, 1070, 1000)
+	b := f.npc(201, "Gnoll Pup", 32, bearBody, 1028, 1000)
+	c := f.npc(202, "Gnoll Pup", 32, bearBody, 1045, 1000)
 	f.look()
 	if !f.attacks(a) {
 		t.Fatalf("the near gnoll noticed the player: enemy %d", a.CurrentEnemy)
 	}
 	if b.CurrentEnemy != 0 {
-		t.Errorf("a gnoll 25 off the one that noticed came at the notice (enemy %d); only a hit calls", b.CurrentEnemy)
+		t.Errorf("a gnoll 8 off the one that noticed came at the notice (enemy %d); only a hit calls", b.CurrentEnemy)
 	}
-	// the player hits it: its friend 25 off comes, one 45 off does not
+	// the player hits it: its friend 8 off comes, one 25 off does not
 	f.hit(a, 3)
 	if !f.attacks(b) {
-		t.Errorf("a gnoll 25 off the one hit came: enemy %d", b.CurrentEnemy)
+		t.Errorf("a gnoll 8 off the one hit came: enemy %d", b.CurrentEnemy)
 	}
 	if c.CurrentEnemy != 0 {
-		t.Errorf("a gnoll 45 off the one hit came (enemy %d)", c.CurrentEnemy)
+		t.Errorf("a gnoll 25 off the one hit came (enemy %d)", c.CurrentEnemy)
 	}
 }
 
@@ -179,7 +179,7 @@ func TestHelpersThatDoNotCome(t *testing.T) {
 func TestAPetsHitSendsTheHelpersAtItsOwner(t *testing.T) {
 	f := newSocialFix(t)
 	victim := f.npc(100, "Guard Alinon", 30, humanBody, 1000, 1000)
-	helper := f.npc(101, "Guard Brenna", 30, humanBody, 1025, 1000)
+	helper := f.npc(101, "Guard Brenna", 30, humanBody, 1008, 1000)
 	pet := f.npc(300, "Iron Golem", 30, bearBody, 1002, 1000)
 	pet.Owner = f.p.ServerID
 	f.w.mu.Lock()
@@ -193,23 +193,23 @@ func TestAPetsHitSendsTheHelpersAtItsOwner(t *testing.T) {
 	}
 }
 
-// The helpers' joining calls no one else: a guard 25 off the helper but 45 off
+// The helpers' joining calls no one else: a guard 8 off the helper but 16 off
 // the guard hit stays, until the player hits the helper.
 func TestJoiningCallsNoOneElse(t *testing.T) {
 	f := newSocialFix(t)
 	victim := f.npc(100, "Guard Alinon", 30, humanBody, 1000, 1000)
-	helper := f.npc(101, "Guard Brenna", 30, humanBody, 1020, 1000)
-	third := f.npc(102, "Guard Cadwell", 30, humanBody, 1045, 1000)
+	helper := f.npc(101, "Guard Brenna", 30, humanBody, 1008, 1000)
+	third := f.npc(102, "Guard Cadwell", 30, humanBody, 1016, 1000)
 	f.hit(victim, 4)
 	if !f.attacks(helper) {
 		t.Fatalf("the near guard came: enemy %d", helper.CurrentEnemy)
 	}
 	if third.CurrentEnemy != 0 {
-		t.Errorf("a guard 45 off the guard hit came through the helper (enemy %d)", third.CurrentEnemy)
+		t.Errorf("a guard 16 off the guard hit came through the helper (enemy %d)", third.CurrentEnemy)
 	}
 	f.hit(helper, 4)
 	if !f.attacks(third) {
-		t.Errorf("a hit on the helper called the guard 25 off it: enemy %d", third.CurrentEnemy)
+		t.Errorf("a hit on the helper called the guard 8 off it: enemy %d", third.CurrentEnemy)
 	}
 }
 
@@ -224,8 +224,8 @@ func TestEveryHitCallsAgain(t *testing.T) {
 		t.Fatalf("a guard 60 off came (enemy %d)", late.CurrentEnemy)
 	}
 	f.w.mu.Lock()
-	f.w.SpatialIndex.Update(late.ServerID, late.X, late.Z, 1028, 1000)
-	late.X = 1028
+	f.w.SpatialIndex.Update(late.ServerID, late.X, late.Z, 1008, 1000)
+	late.X = 1008
 	f.w.mu.Unlock()
 	f.hit(victim, 4)
 	if !f.attacks(late) {
@@ -279,7 +279,7 @@ func TestAMeleeHitCallsTheHelpers(t *testing.T) {
 	f := newSocialFix(t)
 	victim := f.npc(100, "Guard Alinon", 30, humanBody, 1002, 1000)
 	victim.HP, victim.MaxHP = 100000, 100000
-	helper := f.npc(101, "Guard Brenna", 30, humanBody, 1020, 1000)
+	helper := f.npc(101, "Guard Brenna", 30, humanBody, 1010, 1000)
 	f.p.Swing = SwingFor(0, 40, [21]bool{}, false, 0, 0)
 	f.w.mu.Lock()
 	f.w.playerHitLocked(f.sess, f.p, victim, 0x1234)
@@ -297,7 +297,7 @@ func TestSocialRulesTakeTheNameInAnyCase(t *testing.T) {
 	f := newSocialFix(t)
 	f.w.SetSocialRules(map[string]SocialRule{"Deathfist Pawn": {Social: true, Faction: "Deathfist Orcs"}})
 	victim := f.npc(300, "Deathfist pawn", 20, bearBody, 1000, 1000)
-	helper := f.npc(301, "deathfist pawn", 20, bearBody, 1015, 1000)
+	helper := f.npc(301, "deathfist pawn", 20, bearBody, 1008, 1000)
 	f.hit(victim, 5)
 	if !f.attacks(helper) {
 		t.Errorf("a pawn spelled otherwise did not come to its kind's help (enemy %d)", helper.CurrentEnemy)

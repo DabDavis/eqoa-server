@@ -2269,6 +2269,12 @@ func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *enti
 	if h.gameWorld != nil {
 		defer h.gameWorld.PetDumped(sess)
 	}
+	// and CLIENT's prompt (Msg000D's SetMode(1) closes it unanswered): a rez's
+	// offer still waiting is shown again after it (entity/resurrect.go's
+	// RezOfferDumped; Live petition 5665, a rez in the 15 s before a respawn)
+	if h.gameWorld != nil {
+		defer h.gameWorld.RezOfferDumped(sess, time.Now())
+	}
 	// and a scene of its own: a client that draws capes is told its view's
 	// capes again whatever it was told before (capes.go)
 	if readsCapes(sess) {

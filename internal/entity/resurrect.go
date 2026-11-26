@@ -67,6 +67,10 @@ import (
 //     resurrect form; petitions 1051, 1130): its Yes goes there, its No stays where
 //     it is, and the share comes off the debt whichever it answers. A rez has no
 //     level to it (petition 1130: "including level 60 res on level 1");
+//   - the offer waits RezOfferFor, and every MemoryDump in that time (a
+//     respawn's above all, which closes CLIENT's prompt) shows it again, its
+//     time left as it was (Live petition 5665: RezOfferDumped). A second rez
+//     is still refused: the dump's prompt is the way back;
 //   - the target need not be in the caster's group, as the user chose: any
 //     player in range;
 //   - the share is rounded to the nearest point of experience, at most 100%;
@@ -124,11 +128,18 @@ func (c RezChance) returns(now time.Time) bool {
 
 // RezReturn is a rez's offer of the way back to where its target died,
 // waiting for the target's answer to CLIENT's prompt (0x00D3's resurrect
-// form; its Yes is 0x00D4 1) until Until.
+// form; its Yes is 0x00D4 1) until Until. Caster is the name the prompt
+// gives, kept to show it again (RezOfferDumped).
 type RezReturn struct {
 	World   uint8
 	X, Y, Z float32
 	Until   time.Time
+	Caster  string
+}
+
+// waiting reports whether the offer still waits for its answer at now.
+func (r RezReturn) waiting(now time.Time) bool {
+	return !r.Until.IsZero() && now.Before(r.Until)
 }
 
 // RezOfferFor is how long a rez's offer waits for its answer (ours).
@@ -398,7 +409,50 @@ func (w *World) offerRezReturnLocked(caster, t *Player, now time.Time) {
 			w.rezOffer(ts, caster.Name)
 		}
 	}
+	t.RezReturn.Caster = caster.Name
 	log.Printf("Rez: %s offers %s the way back to (%.1f, %.1f, %.1f) world %d", caster.Name, t.Name, c.X, c.Y, c.Z, c.World)
+}
+
+// reofferRezReturnLocked shows t its rez's offer again, still waiting, by its
+// caster's name: CLIENT's prompt once more, its time left as it was (an offer
+// waits RezOfferFor from the rez that made it, never longer). Must be called
+// with the lock held.
+func (w *World) reofferRezReturnLocked(t *Player, now time.Time) {
+	r := &t.RezReturn
+	if w.rezOffer != nil {
+		if ts := w.findSessionByEntityIDLocked(t.ServerID); ts != nil {
+			w.rezOffer(ts, r.Caster)
+		}
+	}
+	log.Printf("Rez: %s's offer of the way back to (%.1f, %.1f, %.1f) world %d shown to %s again (%s left)",
+		r.Caster, r.X, r.Y, r.Z, r.World, t.Name, r.Until.Sub(now).Round(time.Second))
+}
+
+// RezOfferDumped shows the session's player its rez's offer again after a
+// MemoryDump, while the offer still waits (Live petition 5665, a player:
+// "when sent rez before left where i died was sent rez and when got back to
+// spiritmaster was unable to get rez"). A rez landing in the 15 s before the
+// respawn puts CLIENT's prompt up (0x00D3, Msg00D3: VIWndGame::Prompt, mode
+// 14), and the respawn's dump took it down unanswered: Msg000D's
+// m_wndGame->SetMode(1) hides every window, m_mbox among them, and sends no
+// 0x00D4 (decomp viclient.cpp, Msg000D; vanilla's world entry the same,
+// set_mode_0 and windows_closed_by_dump). The offer stayed here, waiting for
+// an answer the player had no box to give, and the rez had spent the chance,
+// so a second rez was refused. Called with the dump queued: CLIENT reads its
+// reliable messages in order and Msg000D loads another world before it
+// returns (EnterWorld's LoadWorld and StreamFillCache), so this 0x00D3 is read
+// with the new world in and puts the box up over it; vanilla closes its
+// windows on the dump's event and keeps the next one's box through its
+// loading screen. The offer's time is left as it was. A Yes's own dump finds
+// no offer (TakeRezReturn spent it), and a fallen Hardcore character has none.
+func (w *World) RezOfferDumped(sess *session.Session, now time.Time) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil || p.Fallen || !p.RezReturn.waiting(now) {
+		return
+	}
+	w.reofferRezReturnLocked(p, now)
 }
 
 // DeathPlaceLive reports whether the session's player, alive, may still go back

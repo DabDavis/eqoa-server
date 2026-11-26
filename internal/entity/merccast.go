@@ -1431,8 +1431,8 @@ func (w *World) mercHarmLocked(ms *mercState, s *CastSpell, t *NPC, now time.Tim
 			dealt := mercSpellShare(ms, w.dealtLocked(t, b, -n))
 			killed := w.mercDamageLocked(ms, t, dealt, numberSpell, now)
 			angered = true
-			if e.Drain != DrainNone && m.HP < m.MaxHP {
-				m.HP = min(m.HP+dealt, m.MaxHP) // a life tap's take, whole though it killed (lifetap.go)
+			if e.Drain != DrainNone {
+				w.mercDrainHPLocked(ms, s, e, drainShare(e, dealt)) // a life tap's take, whole though it killed (lifetap.go; dpsmerc.go)
 			}
 			if killed {
 				return

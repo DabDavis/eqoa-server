@@ -243,3 +243,65 @@ func TestACharmTemplatesSpecialAndArea(t *testing.T) {
 		t.Errorf("the area spell: foe %d -> %d, the one beside it %d -> %d", fh, foe.HP, oh, other.HP)
 	}
 }
+
+// Heirloom petitions 3237/3239 (Kalamer): a toxic breath, charmed, "acts how
+// it should till you charm it", and "you could clear kobold slayer camps with
+// this mob on live n it is half dead after tanking 2 phantoms". A creature
+// whose npccharm row names its own template is charmed as itself: its
+// template's resists kept (its 90% PR takes 1,000 down to 100), a creature's
+// melee on it at its template's melee resists (10% of slash, pierce and blunt:
+// 500 lands 50), and its fixed nuke of its own name (no book's spell) lands
+// its 1,000 as a pet's cast. The controls: charmed by another template, none
+// of its own defences is kept; and with no template's melee resists a hit
+// lands whole.
+func TestACharmedCreatureByItsOwnTemplateKeepsItsDefences(t *testing.T) {
+	defer withResistModel(ResistModel{Version: ResistModelElemental})()
+	defer func(f func(int) int) { charmIntn = f }(charmIntn)
+	charmIntn = dice(99)
+	r, _, _ := charmRig(t)
+	own := &ClassTemplate{ClassTemplate: database.ClassTemplate{Name: "toxic", Class: -1, HPPct: 100, TakenPct: 100, MeleePct: 100,
+		ResistKind: "FR,CR,LR,AR,PR,DR", ResistPct: 90}}
+	own.kindTaken = map[Stat]int{StatSlash: 10, StatPierce: 10, StatBlunt: 10}
+	fixed := database.TemplateAbility{Kind: database.AbilityNuke, Name: "Toxic Breath", Damage: 1000, Resist: "PR", Every: 20}
+	own.abilities = []templateAbility{{TemplateAbility: fixed, every: 20 * time.Second, pinned: fixedHitSpell(fixed)}}
+	other := &ClassTemplate{ClassTemplate: database.ClassTemplate{Name: "charm other", Class: -1, HPPct: 100, TakenPct: 100, MeleePct: 100}}
+	r.w.templates.byName = map[string]*ClassTemplate{"toxic": own, "charm other": other}
+	r.w.templates.use = map[string]string{"desert crab": "toxic"}
+	r.w.SetCharmRules(map[string]database.CharmRule{"desert crab": {Charmable: true, Template: "toxic"}})
+	if began, _ := castCharm(t, r, captivation(), crabID, 0); !began || r.enemy.Owner != r.p.ServerID {
+		t.Fatalf("not charmed")
+	}
+	crab := r.enemy
+	r.w.mu.Lock()
+	defer r.w.mu.Unlock()
+	ps := r.w.pets[r.p.ServerID]
+	if ps.tmpl == nil || ps.tmpl.tmpl != own || crab.charmResists() != own {
+		t.Fatalf("charmed by its own template: pet template %v, resists kept %v", ps.tmpl, crab.charmResists())
+	}
+	if got, _ := crab.petElementalHit(StatPR, 1000, r.at(time.Second), 1); got != 100 {
+		t.Errorf("1,000 poison on it charmed: took %d, want 100 (its 90%%)", got)
+	}
+	if got := r.w.petTakenLocked(crab, 500); got != 50 {
+		t.Errorf("a creature's 500 melee on it charmed: took %d, want 50 (its 10%% of each melee kind)", got)
+	}
+	foe := &NPC{ServerID: 3400, Name: "sand giant", Level: 33, HP: 50000, MaxHP: 50000, ModelID: 0x55432169, Size: 1,
+		X: crab.X + 2, Y: crab.Y, Z: crab.Z, World: 2}
+	r.w.NPCs[foe.ServerID] = foe
+	ps.target = foe.ServerID
+	a := &ps.tmpl.tmpl.abilities[0]
+	r.w.petLandLocked(&petCast{ps: ps, tmpl: ps.tmpl, a: a, spell: a.pinned, target: foe.ServerID}, r.at(2*time.Second))
+	if foe.HP == foe.MaxHP {
+		t.Errorf("its fixed Toxic Breath as a pet landed nothing")
+	}
+
+	// the controls
+	r.w.charmRules["desert crab"] = database.CharmRule{Charmable: true, Template: "charm other"}
+	crab.Charm.resists = r.w.charmResistsLocked(crab)
+	ps.tmpl = r.w.charmTemplateLocked(crab)
+	if crab.charmResists() != nil {
+		t.Errorf("charmed by another template: its own resists kept")
+	}
+	if got := r.w.petTakenLocked(crab, 500); got != 500 {
+		t.Errorf("charmed by a template of no melee resists: took %d of 500", got)
+	}
+}

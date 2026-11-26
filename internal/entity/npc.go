@@ -385,6 +385,9 @@ type NPC struct {
 	// siege marks a siege's King or gate (siege.go): its match, the one side
 	// that may hurt it; nil for every other NPC. Its corpse keeps it.
 	siege *npcSiege
+	// reserve keeps it for the party that woke it (reserve.go): no one else may hurt it, and it
+	// notices no one else; nil for every other NPC
+	reserve *npcReserve
 
 	// add is its tie to the creature whose summon called it (summon.go): whose
 	// fight it joined, and its share of that creature's figures; nil for every

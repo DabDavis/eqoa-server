@@ -46,7 +46,7 @@ const triggerStepsHelp = `the steps in order, each {"do", ...}: broadcast {text}
 	`questset {quest, step, from}: every player the scope takes on that quest at from..step-1 set on to step, or with from past step those at ` +
 	`step+1..from put back to it (its count started again); queststep {quest, step} that step done for each on it; walk also takes points [[x,y,z],...] a route before x/y/z and pace (under 7 walked); spawn also takes spots [[x,y,z],...] and patrol [[x,y,z],...] (a route its copies walk while they live, a loop, or back and forth with pingpong true; pause seconds at each point, pace its speed) ` +
 	`(the one nearest the run's place), untouchable (its copies carry the NPC bit: no one hurts them, they attack no one) and noloot (their ` +
-	`corpses are of nothing). weather {weather: rain|snow|sand|whiteout|clear, strength: light|moderate|heavy (heavy), ` +
+	`corpses are of nothing); reserve "waker" keeps its copies for the party whose kill fired the run (the killer, its group or raid): no one else may hurt them or is noticed by them, for reserveminutes (0: their whole stay), lifted sooner when that party is all gone from the world or dead for a minute (a run no kill fired spawns them free). weather {weather: rain|snow|sand|whiteout|clear, strength: light|moderate|heavy (heavy), ` +
 	`minutes (2 to 120; 0: 10), where: here|near|world (here), near (1 to 5 zones, for near), text (said to the players in those zones), ` +
 	`world/x/z optional (none: the run's place)} a GM's weather on the zones round the place, ended when the run stops. ` +
 	`season {season, turn (on, off or toggle; none: toggle), text, offtext} turns a season (Seasons): its ` +

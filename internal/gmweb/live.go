@@ -37,7 +37,7 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveStoryteller(before, after)
 	case "characters":
 		return s.liveCharacter(a, action, before, after)
-	case "factions", "factionhits", "factionstart", "npcfaction":
+	case "factions", "factionhits", "factionstart", "npcfaction", "factionrefusetalk":
 		return s.liveFactions(t.Name)
 	case "npcaggro":
 		return s.liveAggro()
@@ -211,6 +211,8 @@ func (s *Server) liveFactions(table string) string {
 		return "at once: every faction window, target box and the next kill read it"
 	case "factionstart":
 		return "at once: every faction window, target box and look round (half a second) after it use it, for every faction a character has not moved"
+	case "factionrefusetalk":
+		return "at once: the next talk to one of the faction's people uses it"
 	case "npcfaction":
 		return "at once: " + s.d.World.FactionMembersSummary() + "; the next look round (half a second) and the next target box use it"
 	}

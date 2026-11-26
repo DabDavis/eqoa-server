@@ -75,6 +75,11 @@ func (h *NPCWindowHandler) HandleBankOpen(sess *session.Session, msg *protocol.M
 		refuse(sess)
 		return nil
 	}
+	// a banker of a people who will not speak to the player (talkrefusal.go)
+	if h.windowRefuses(sess, player, npc) {
+		refuse(sess)
+		return nil
+	}
 	// a quest's step to do at it is done first (questevents.go: CLIENT
 	// never talks to an NPC with a window)
 	if questsAtWindow(sess, player, npc) {

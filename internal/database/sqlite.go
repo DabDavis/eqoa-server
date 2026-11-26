@@ -584,6 +584,17 @@ func (db *SQLiteDB) initSchema() error {
 		source   TEXT NOT NULL DEFAULT 'gm'
 	);
 
+	-- factionrefusetalk: the factions whose people will not speak to a player
+	-- at or below -350 with them (no talk, no quest, no bank or blacksmith
+	-- window; line their refusal, '' the default: entity/talkrefusal.go;
+	-- petition 3111, Graumord's citizens)
+	CREATE TABLE IF NOT EXISTS factionrefusetalk (
+		faction TEXT PRIMARY KEY,
+		line    TEXT NOT NULL DEFAULT '',
+		note    TEXT NOT NULL DEFAULT '',
+		source  TEXT NOT NULL DEFAULT 'gm'
+	);
+
 	-- charmastery: a character's class mastery points, unspent and spent, the
 	-- share of its experience going to them and the experience gathered
 	-- toward the next (mastery.go, entity/mastery.go)

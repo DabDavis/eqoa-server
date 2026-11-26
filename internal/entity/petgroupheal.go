@@ -143,7 +143,7 @@ func (w *World) petGroupHealLocked(ps *petState, spell *CastSpell, n int) {
 			p.HP += h
 			p.StatsDirty = true
 			healed, total = healed+1, total+h
-			w.dpsAddLocked(ps.owner, dpsHeal, h, true, dpsMeterNow()) // its owner's healing, its pet's share (dpsheal.go)
+			w.dpsPetAddLocked(ps, dpsHeal, h) // its owner's healing, its pet's share (dpsheal.go); a merc's pet's its merc's (dpsmerc.go)
 		}
 		// told whole, a full one too: what the heal was worth (cast.go's
 		// healLocked, petition 2016); told to the one healed, so counted above
@@ -165,7 +165,7 @@ func (w *World) petGroupHealLocked(ps *petState, spell *CastSpell, n int) {
 		}
 		t.HP += h
 		healed, total = healed+1, total+h
-		w.dpsAddLocked(ps.owner, dpsHeal, h, true, dpsMeterNow()) // dpsheal.go
+		w.dpsPetAddLocked(ps, dpsHeal, h) // dpsheal.go, dpsmerc.go
 		if t.isMerc() {
 			syncMercBody(t.merc)
 		}

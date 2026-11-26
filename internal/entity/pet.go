@@ -1439,12 +1439,12 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 			// spectre's owner no hit of theirs (petrotation.go); the damage
 			// meters count them where the figure would be (dpsmeter.go)
 			if sess != nil && w.objectIDForEntityLocked(sess, t.ServerID) != 0 {
-				w.dpsCountLocked(owner, n, true, dpsMeterNow())
+				w.dpsPetAddLocked(ps, dpsDamage, n) // a merc's own pet's: its merc's line (dpsmerc.go)
 			}
 			return
 		}
 		if tid := w.objectIDForEntityLocked(sess, t.ServerID); tid != 0 {
-			w.sendDamageIndication(sess, sess.PlayerObjectID(), -n, tid, kind.byPet())
+			w.dpsByPetLocked(ps, func() { w.sendDamageIndication(sess, sess.PlayerObjectID(), -n, tid, kind.byPet()) }) // a merc's own pet's: its merc's line (dpsmerc.go)
 		}
 	}
 	raw := n

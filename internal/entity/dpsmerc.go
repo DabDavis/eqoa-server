@@ -28,13 +28,26 @@ import "sort"
 // any power, its "Drain Group" power effect unread by mercHarmLocked, so its
 // owner's meter had no power of it at all. It now gives its team the power a
 // player's cast does (mercDrainPowerLocked), counted as the merc's.
+//
+// A merc's own pet (mercpet.go) is its merc's (Heirloom petition 3252,
+// Cucumber: "My Power Scholar NEC Merc did not report anything in the DPS
+// meters"): its hits, its damage over time's ticks, its procs and abilities,
+// its heals and the power it gives count on its merc's line as that line's pet
+// share (dpsByPetLocked round its told figures, dpsPetAddLocked for the ones
+// counted with no figure), and so on its owner's line as its merc share, not
+// as the owner's own pet's. A necromancer merc's Swarming Death made seven
+// times its merc's own damage in the fight the petition named, all of it on
+// its hirer's line as a pet of his. And a merc that dies and comes back in a
+// fight (another NPC, another id) goes on on its one line, by its owner, its
+// slot and its name: it was split in two lines of the same name.
 
-// dpsMercLine is a merc's own line of a fight: its line (pet, healPet none),
-// and its owner's id and name.
+// dpsMercLine is a merc's own line of a fight: its line (pet and healPet its
+// own pet's share), its owner's id and name, and its hire's slot.
 type dpsMercLine struct {
 	dpsLine
 	owner     EntityID
 	ownerName string
+	slot      int
 }
 
 // add counts n of what on the line.
@@ -46,6 +59,17 @@ func (l *dpsLine) add(what dpsWhat, n int) {
 		l.power += int64(n)
 	default:
 		l.damage += int64(n)
+	}
+}
+
+// addPet counts n of what on the line as its pet's share too (a merc's own
+// pet's: dpsmerc.go's doc).
+func (l *dpsLine) addPet(what dpsWhat, n int) {
+	switch what {
+	case dpsHeal:
+		l.healPet += int64(n)
+	case dpsDamage:
+		l.pet += int64(n)
 	}
 }
 
@@ -65,6 +89,36 @@ func (w *World) dpsByLocked(merc EntityID, tell func()) {
 	tell()
 }
 
+// dpsMercOfPet is the id of the merc whose own pet ps is (mercpet.go), 0 for
+// a player's pet.
+func dpsMercOfPet(ps *petState) EntityID {
+	if ps != nil && ps.merc != nil && ps.merc.npc != nil {
+		return ps.merc.npc.ServerID
+	}
+	return 0
+}
+
+// dpsByPetLocked runs tell, figures ps (a pet) made: a merc's own pet's count
+// on that merc's line as its pet's share (dpsFigureMercLocked); a player's
+// pet's are its owner's pet's as before. Must be called with the lock held.
+func (w *World) dpsByPetLocked(ps *petState, tell func()) {
+	was := w.dpsByPet
+	w.dpsByPet = dpsMercOfPet(ps)
+	defer func() { w.dpsByPet = was }()
+	tell()
+}
+
+// dpsPetAddLocked counts n of what of ps's (a pet's) making, with no figure
+// told: its owner's pet's share, and when ps is a merc's own pet that merc's
+// too, on its line as its pet's share. Must be called with the lock held.
+func (w *World) dpsPetAddLocked(ps *petState, what dpsWhat, n int) {
+	if ps == nil {
+		return
+	}
+	merc := w.dpsMercOfLocked(ps.owner, dpsMercOfPet(ps))
+	w.dpsAddByLocked(ps.owner, what, n, numberByPet, merc, dpsMeterNow())
+}
+
 // dpsMercOfLocked is the merc of maker's that id names (a merc's id), 0 when
 // it names none of maker's. Must be called with the lock held.
 func (w *World) dpsMercOfLocked(maker *Player, id EntityID) EntityID {
@@ -82,7 +136,13 @@ func (w *World) dpsMercOfLocked(maker *Player, id EntityID) EntityID {
 // (dpsByLocked), else maker's only merc out, else none. Must be called with the
 // lock held.
 func (w *World) dpsFigureMercLocked(maker *Player, kind numberKind) EntityID {
-	if kind&numberByMerc == 0 || maker == nil {
+	if maker == nil {
+		return 0
+	}
+	if kind&numberByMerc == 0 {
+		if kind&numberByPet != 0 {
+			return w.dpsMercOfLocked(maker, w.dpsByPet) // a merc's own pet's (dpsByPetLocked)
+		}
 		return 0
 	}
 	if id := w.dpsMercOfLocked(maker, w.dpsBy); id != 0 {
@@ -105,7 +165,16 @@ func (w *World) dpsMercLineLocked(f *dpsFight, maker *Player, merc EntityID) *dp
 	if n := w.NPCs[merc]; n != nil {
 		l.name, l.class = n.Name, n.Class
 		if n.merc != nil {
-			l.class = n.merc.kit.Class
+			l.class, l.slot = n.merc.kit.Class, n.merc.slot
+		}
+	}
+	// the same merc come back in the fight (dead and risen, or called again)
+	// under another id: its line goes on, one line a merc
+	if l.slot != 0 {
+		for _, o := range f.mercs {
+			if o.owner == l.owner && o.slot == l.slot && o.name == l.name {
+				return &o.dpsLine
+			}
 		}
 	}
 	if f.mercs == nil {

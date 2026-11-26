@@ -379,7 +379,6 @@ func (w *World) engageLocked(sess *session.Session, p *Player, objectID uint32, 
 	p.AttackObjectID = objectID
 	p.pressed(now)
 	w.breakInvisLocked(p, "an attack")     // invis.go
-	w.breakBoardWolfLocked(p, "an attack") // boardwolf.go
 	w.seenThroughLocked(p, "an attack")    // racefaction.go
 	log.Printf("Combat: %s engages %s (swing %d, %v, reach %.1f)", p.Name, npc.Name, swing.Kind, swing.Delay, swing.Reach)
 	return true
@@ -687,11 +686,15 @@ func (w *World) playerRoundHitsLocked(p *Player, npc *NPC, now time.Time) bool {
 		if p.RoundHits == 1 {
 			// the client swung: a round a 0x00D8 calls off ends nothing
 			w.breakInvisLocked(p, "a swing")     // invis.go
-			w.breakBoardWolfLocked(p, "a swing") // boardwolf.go
 			w.ownHitLocked(p, "a swing")         // workbook.go: a run speed
 		}
 		if !inReach(p, npc) {
 			continue // swung at a target that stepped away
+		}
+		if p.RoundHits == 1 {
+			// a swing that reaches its target is the hostile act; one at the air of a
+			// distant foe ends nothing (Heirloom petition 3253)
+			w.breakBoardWolfLocked(p, "a swing") // boardwolf.go
 		}
 		sess := w.findSessionByEntityIDLocked(p.ServerID)
 		if sess == nil {

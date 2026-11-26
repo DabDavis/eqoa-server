@@ -314,7 +314,6 @@ func (w *World) pvpEngageOnLocked(p *Player, id EntityID, name string, objectID 
 	p.AttackTarget, p.AttackObjectID = id, objectID
 	p.pressed(now)
 	w.breakInvisLocked(p, "an attack")
-	w.breakBoardWolfLocked(p, "an attack")
 	log.Printf("PvP: %s engages %s (swing %d, %v, reach %.1f)", p.Name, name, swing.Kind, swing.Delay, swing.Reach)
 }
 

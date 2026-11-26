@@ -1268,9 +1268,11 @@ func (w *World) duelRoundLocked(p *Player, now time.Time) bool {
 				w.breakInvisLocked(p, "a swing")
 				if d.pvp {
 					p.pvp.hold = now.Add(PvPHoldTime)    // a swing given, landed or not (pvp.go)
-					w.breakBoardWolfLocked(p, "a swing") // boardwolf.go
 					w.ownHitLocked(p, "a swing")         // workbook.go: a run speed
 				}
+			}
+			if p.RoundHits == 1 && d.pvp && reach() {
+				w.breakBoardWolfLocked(p, "a swing") // boardwolf.go: a swing that reaches (petition 3253)
 			}
 			if hit() {
 				p.disengage()

@@ -1835,7 +1835,7 @@ func (w *World) healLocked(caster *Player, casterSess *session.Session, t *Playe
 	if owner, merc := w.dpsMercBodyLocked(caster); merc && kind.tagged() {
 		// a merc's heal: its owner's healing, its merc's share, wherever it
 		// landed (told as the merc's to its owner alone: dpsheal.go)
-		w.dpsAddByLocked(owner, dpsHeal, filled, true, w.dpsMercOfLocked(owner, caster.ServerID), dpsMeterNow())
+		w.dpsAddByLocked(owner, dpsHeal, filled, numberByMerc, w.dpsMercOfLocked(owner, caster.ServerID), dpsMeterNow())
 		filled = 0
 	}
 	w.dpsWorthLocked(filled, func() { w.tellAmountLocked(caster, casterSess, t.ServerID, n, kind) }) // the meter's: what it restored (dpsheal.go)

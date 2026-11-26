@@ -187,7 +187,7 @@ func (w *World) mercDrainHPLocked(ms *mercState, s *CastSpell, e SpellEffect, n 
 		if o.isMerc() {
 			syncMercBody(o.merc)
 		}
-		w.dpsAddByLocked(ms.owner, dpsHeal, o.HP-was, true, m.ServerID, dpsMeterNow())
+		w.dpsAddByLocked(ms.owner, dpsHeal, o.HP-was, numberByMerc, m.ServerID, dpsMeterNow())
 	}
 	if e.Drain != DrainGroup {
 		healNPC(m)

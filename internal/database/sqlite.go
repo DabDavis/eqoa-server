@@ -22,6 +22,8 @@ type SQLiteDB struct {
 	path string
 	// view is the characters' view of item records (heirlooms.go)
 	view atomic.Pointer[PatternView]
+	// writers is its PRAGMA data_version as last asked (invversion.go)
+	writers otherWriters
 }
 
 // BusyTimeoutDSN is the query a database is opened with: how long a
@@ -91,6 +93,7 @@ func NewSQLite(dbPath string) (*SQLiteDB, error) {
 		db.Close()
 		return nil, err
 	}
+	sqlite.checkInventoryColumns() // the pack versions' hooks read serverid there (invversion.go)
 
 	log.Printf("SQLite database opened: %s", dbPath)
 	return sqlite, nil

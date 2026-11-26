@@ -315,9 +315,14 @@ func (q *QuestEngine) headMarksLocked(look *factionLook, p *entity.Player, c *qu
 	}
 	// "!": a quest to take; "?" in its place for a hand-in held now
 	all := questHeadMode.Load() == headAll
+	// the quests still to be asked, as the map's marks keep them (questtakecache.go)
+	cands := q.takeCandsLocked(p, c, time.Now())
 	for giver, quests := range q.cat.givers {
 		if m.Names[giver] == entity.QuestMarkStep {
 			continue
+		}
+		if cands != nil {
+			quests = cands[giver]
 		}
 		for _, qu := range quests {
 			if !q.headShows(qu) || all && !markLevelNear(p.Level, qu.MinLevel) {

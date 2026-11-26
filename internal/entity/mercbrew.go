@@ -710,6 +710,17 @@ func (w *World) mercEatTurnLocked(ms *mercState, now time.Time) bool {
 		}
 		hot = ration
 	}
+	w.mercMealLocked(ms, name, hot, carried, now)
+	return true
+}
+
+// mercMealLocked puts a meal on the merc (the eat turn's, or its owner's Use:
+// mercmeal.go's MercUse): the last meal's place taken, its first tick at once,
+// the carried record's one used (0 none), shown. Must be called with the lock
+// held.
+func (w *World) mercMealLocked(ms *mercState, name string, hot, carried int, now time.Time) {
+	m := ms.npc
+	w.dropNPCEffect(m, FoodEffectID)
 	ae := &ActiveEffect{SpellID: FoodEffectID, Name: name, Icon: mercMealIcon, Caster: m.ServerID, Until: now.Add(ConsumableDuration)}
 	ae.Mods.HoT = hot
 	m.Effects = append(m.Effects, ae)
@@ -720,7 +731,6 @@ func (w *World) mercEatTurnLocked(ms *mercState, now time.Time) bool {
 	}
 	w.broadcastNPCCastLocked(m, m.ServerID, 0, fxConsumed)
 	log.Printf("Merc: %s's %q eats %q: %d health a tick (%d/%d HP)", ms.owner.Name, m.Name, name, hot, m.HP, m.MaxHP)
-	return true
 }
 
 // dropNPCEffect takes the NPC's effects of the id off.

@@ -75,17 +75,17 @@ type coachWords struct {
 // label is a destination in his words.
 func (w coachWords) label(d entity.CoachDest) string { return w.labelTagged(d, "") }
 
-// labelTagged is label with tag after the place's name (a quest's stop's " ?":
-// questcoachway.go).
+// labelTagged is label with tag at its very end, after his sentence's period
+// (a quest's stop's " ?": questcoachway.go; petition 3191: vanilla draws a
+// trailing " ?" yellow, as its quest marks).
 func (w coachWords) labelTagged(d entity.CoachDest, tag string) string {
 	if n, ok := w.Names[d.Name]; ok && w.Dest != "" {
 		d.Name = n
 	}
-	d.Name += tag
 	if w.Dest == "" {
-		return destLabel(d)
+		return tagged(destLabel(d), tag)
 	}
-	return fmt.Sprintf(w.Dest, destLabel(d))
+	return tagged(fmt.Sprintf(w.Dest, destLabel(d)), tag)
 }
 
 // coachWordsByName are the filmed coachmen's (board 659: live tapes of

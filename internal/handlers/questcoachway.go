@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"math"
+	"strings"
 	"time"
 
 	"github.com/eqoa/server/internal/entity"
@@ -32,8 +33,30 @@ import (
 //     place), else the stop the way there goes on by. The menu is the
 //     server's text, so a PS2 shows it too.
 
-// questStopTag is what a coach menu's stop of a quest's step says after it.
+// questStopTag is what a coach menu's stop of a quest's step says at the end
+// of its line, after any fee or period (petition 3191: "...Aviak Village. ?";
+// vanilla draws a trailing " ?" yellow).
 const questStopTag = " ?"
+
+// optionChars is the most of an answer a 0x0034 carries (writeWideString's 63).
+const optionChars = 63
+
+// tagged is line with tag at its end, kept inside optionChars: a line that
+// would run past them with it loses its closing period, then its tail, so the
+// cut (writeWideString's) never takes the mark.
+func tagged(line, tag string) string {
+	if tag == "" {
+		return line
+	}
+	r, t := []rune(line), []rune(tag)
+	if len(r)+len(t) > optionChars && len(r) > 0 && r[len(r)-1] == '.' {
+		r = r[:len(r)-1]
+	}
+	if len(r)+len(t) > optionChars {
+		r = []rune(strings.TrimRight(string(r[:max(optionChars-len(t), 0)]), " "))
+	}
+	return string(r) + tag
+}
 
 // signedEvery is how long a character's signed ledgers are kept for the way
 // marks before they are read again.

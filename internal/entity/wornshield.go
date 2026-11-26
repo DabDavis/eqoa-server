@@ -155,6 +155,15 @@ var wornShields = map[string]WornShield{
 	// WornShieldOf)
 }
 
+// ascendedAnointedPattern is the Ascended Breastplate of the Anointed's record, 980040.
+const ascendedAnointedPattern = 980040
+
+// ascendedAnointed is the Ascended Breastplate of the Anointed's: the Seraphic
+// Planar's curve driven by CHA, 75 at none of it to 120 at its cap, its heal still
+// hate (Heirloom petition 3210, the owner's word: "match the SK"). It is taken
+// as written, not a tenth more (WornShieldOf).
+var ascendedAnointed = WornShield{Heal: 75, HealMax: 120, Scale: StatCha, Line: true, Hate: true}
+
 var wornShieldsByPattern = map[int]WornShield{
 	2251: {Power: 15}, // Mithril Breastplate
 }
@@ -217,6 +226,9 @@ func WornShieldOf(patternID int, itemName string) (WornShield, bool) {
 	if !ok && ascended {
 		s.Buff = skyRaidWornBuff(record, imported)
 		ok = s.Buff != nil
+	}
+	if patternID == ascendedAnointedPattern && record == 1076 && ascended {
+		s, ok, ascended = ascendedAnointed, true, false
 	}
 	if ok {
 		s.Item = itemName

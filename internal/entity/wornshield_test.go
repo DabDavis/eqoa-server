@@ -437,3 +437,29 @@ func TestThePositronianShieldsAnswer(t *testing.T) {
 		}
 	}
 }
+
+// The Ascended Breastplate of the Anointed (980040, Heirloom petition 3210) heals on the
+// Seraphic Planar's curve driven by CHA: 75 at none to exactly 120 at the cap (not a
+// tenth more), its heal hate; the base record and an Ascended copy of another keep theirs.
+func TestAscendedAnointedHealsOnTheSeraphicCurveByCha(t *testing.T) {
+	SetAscendedItems(map[int]int{980040: 1076})
+	defer SetAscendedItems(nil)
+	s, ok := WornShieldOf(980040, "Ascended Breastplate of the Anointed")
+	if !ok || !s.Line || s.Scale != StatCha || s.Heal != 75 || s.HealMax != 120 || !s.Hate || s.Damage != 0 {
+		t.Fatalf("Ascended Anointed: %+v %v", s, ok)
+	}
+	c, _ := casterAndCrab(t)
+	capCha := c.p.StatCapOf(StatCha)
+	for _, k := range []struct{ cha, want int }{{0, 75}, {capCha / 2, 75 + 45*(capCha/2)/capCha}, {capCha, 120}, {capCha + 100, 120}} {
+		c.p.Cha, c.p.Mods.Cha = k.cha, 0
+		if _, heal, _ := s.forWearer(c.p, procIntn); heal != k.want {
+			t.Errorf("CHA %d: heals %d, want %d", k.cha, heal, k.want)
+		}
+	}
+	if b, _ := WornShieldOf(1076, "Breastplate of the Anointed"); b != func() WornShield { x := anointed; x.Item = "Breastplate of the Anointed"; return x }() {
+		t.Errorf("the base changed: %+v", b)
+	}
+	if h, _ := WornShieldOf(990165, "Breastplate of the Anointed"); h.Heal != 15 || h.HealMax != 75 || h.Line {
+		t.Errorf("the Heirloom copy changed: %+v", h)
+	}
+}

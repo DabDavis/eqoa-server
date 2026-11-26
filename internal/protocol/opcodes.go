@@ -1542,6 +1542,29 @@ const (
 	OpcodeNpcRoles GameOpcode = 0x7EE0
 )
 
+// The bestiary (handlers/bestiary.go). Not retail, away from the other lanes' ranges
+// (0x7EC0-0x7EC3 the group effects' and the creatures' debuffs, 0x7ED0-0x7ED2 another
+// lane's, 0x7EF0 a test's unknown opcode).
+const (
+	// OpcodeBestiary is the bestiary's offer (Heirloom petition 3192: "some
+	// type of bestiary that shows mobs you encounter and the zones they are
+	// from"; handlers/bestiary.go): a u32 1, both ways, sent at the world entry
+	// by a server that keeps one (a database) to a session the quality-of-life
+	// additions are on for (not world.vanilla_ui, not an [OG] character). A
+	// client that shows one (vanilla's Character > Bestiary) answers 1; a PS2
+	// ignores it.
+	OpcodeBestiary GameOpcode = 0x7EF4
+	// OpcodeBestiaryData is a page of the bestiary. Client to server: a u16
+	// page (0 the first), asked as the window opens and at each turn. Server
+	// to client: a u8 version (1), a u16 page, a u16 count of pages, a u16 of
+	// the kinds met, then a u8 count of rows, each a u8 style (0 a zone's
+	// heading, 1 a kind) and two strings (u8 byte count, UTF-8): a heading's
+	// zone and "", or a kind and what is known of it ("12 killed, first Nov
+	// 3"). The kinds go by zone, then by name; a page holds bestiaryPageLines
+	// rows, its zone's heading again at its top.
+	OpcodeBestiaryData GameOpcode = 0x7EF5
+)
+
 // =============================================================================
 // Game Version Constants
 // =============================================================================

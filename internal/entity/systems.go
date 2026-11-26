@@ -28,6 +28,8 @@ func (w *World) Tick(now time.Time) {
 	w.ticks.markPost("duel purse")
 	w.runCombatRecords() // a PvP death or a duel's end counted (combatrecord.go)
 	w.ticks.markPost("combat records")
+	w.runBestiary() // the creatures met and killed, written (bestiary.go)
+	w.ticks.markPost("bestiary")
 	w.runProgressSaves(now) // a level gained, and experience every few minutes, written (progresssave.go)
 	w.ticks.markPost("progress saves")
 	w.runRespawns(due)

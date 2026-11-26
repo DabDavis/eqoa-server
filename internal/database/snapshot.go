@@ -189,6 +189,10 @@ var snapshotRules = map[string]snapshotRule{
 	"hotzones":       {why: "the GMs' Hot zones: places and quest sets with a marks bonus; created_by is a GM's name, kept as the panel names GMs"},
 	"heirloomrankac": {why: "the AC an Heirloom Rank adds to each heirloom armour piece, by class and rank (marks.go)"},
 
+	// The bestiary (bestiary.go, petition 3192): game state, no person's data; kept whole, said here so a
+	// snapshot's reader knows it.
+	"charbestiary": {why: "each character's bestiary: the creature kinds it met, by zone, when first, how many it killed (bestiary.go)"},
+
 	// A player's own setting, no person's data: kept whole, said here so a snapshot's reader knows it.
 	"charprefarm": {why: "each character's /prefarm choice (on or off: quest items dropped ahead on its kills) and when (handlers/prefarm.go)"},
 

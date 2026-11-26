@@ -723,6 +723,11 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	if charStore != nil && charStore.DB() != nil {
 		NewCombatRecordHandler(gameWorld, charStore.DB()).RegisterHandlers(r)
 	}
+	// Each character's bestiary, the creatures met by zone (bestiary.go): its notes
+	// written, a window's 0x7EC0/0x7EC1
+	if charStore != nil && charStore.DB() != nil {
+		NewBestiaryHandler(gameWorld, charStore.DB()).RegisterHandlers(r)
+	}
 	NewQuestMarkersHandler(gameWorld).RegisterHandlers(r)
 	NewQuestHeadMarksHandler(gameWorld).RegisterHandlers(r) // questheadmarks.go
 	NewQuestProgressHandler(gameWorld).RegisterHandlers(r)

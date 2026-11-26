@@ -103,6 +103,7 @@ func (w *World) creditKillLocked(sess *session.Session, p *Player, npc *NPC) {
 	}
 	openAt := w.corpseOpenLocked(npc) // the corpse anyone's six minutes after the death (corpseopen.go)
 	if len(w.onKill) == 0 {
+		w.bestiaryKillLocked(npc, []uint32{p.CharServerID}, time.Now()) // the killer's, with no other hearer (bestiary.go)
 		return
 	}
 	spawn := npc.ServerID
@@ -139,6 +140,13 @@ func (w *World) creditKillLocked(sess *session.Session, p *Player, npc *NPC) {
 			c.Players = append(c.Players, KillPlayer{Session: w.sessionOfLocked(m), ServerID: m.CharServerID, Name: m.Name})
 		}
 	}
+	// the bestiary's kill: each player credited, and the killer whatever the
+	// Hardcore rules gave it (bestiary.go)
+	chars := []uint32{p.CharServerID}
+	for _, kp := range c.Players {
+		chars = append(chars, kp.ServerID)
+	}
+	w.bestiaryKillLocked(npc, chars, time.Now())
 	for _, fn := range w.onKill {
 		fn(c)
 	}

@@ -271,6 +271,8 @@ type World struct {
 
 	// The combat records' counts waiting to be written (combatrecord.go)
 	records combatRecords
+	// bestiary is the creatures each player meets and kills, for its writer (bestiary.go)
+	bestiary bestiaryState
 	// The characters whose level and experience wait to be written (progresssave.go)
 	progress progressSaves
 

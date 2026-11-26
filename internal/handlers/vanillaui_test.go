@@ -26,6 +26,16 @@ var qolOffers = []protocol.GameOpcode{
 	protocol.OpcodeConLevelOffer, protocol.OpcodeQuestMarkers, protocol.OpcodeQuestProgress,
 	protocol.OpcodeQuestHeadMarksOffer, protocol.OpcodeGroupEffects, protocol.OpcodeNPCDebuffs,
 	protocol.OpcodeStatFigures, // its stat caps the game's (QoLStatCaps): no Stat Window
+	protocol.OpcodeBestiary,    // the bestiary (bestiary.go): none where the QoL additions are off
+}
+
+// bestiaryKept has the bestiary offered for one test (a server with a database keeps
+// one: bestiary.go), whatever another test left.
+func bestiaryKept(t *testing.T) {
+	t.Helper()
+	was := bestiaries.Load()
+	bestiaries.Store(&BestiaryHandler{})
+	t.Cleanup(func() { bestiaries.Store(was) })
 }
 
 // worldEntryOps is what a world entry (two 0x0014s, as a client sends) queues,
@@ -48,6 +58,7 @@ func worldEntryOps(t *testing.T) []protocol.GameOpcode {
 // still nothing of OpcodeVanillaUI (it goes only to a client that answered the
 // bug report offer). The world entry's other offers stay either way.
 func TestVanillaUIStopsTheWorldEntrysOffers(t *testing.T) {
+	bestiaryKept(t) // the bestiary offered, as by a server with a database
 	SetConLevel(true)
 	SetMobInfo(true)
 	t.Cleanup(func() { SetConLevel(false); SetMobInfo(false) })

@@ -422,6 +422,10 @@ type Player struct {
 	RecordWindow bool
 	record       RecordSummary
 
+	// bestiaryMet is each creature kind and zone this login already told the
+	// bestiary of (bestiary.go): a meeting is written once a login, not a hit.
+	bestiaryMet map[string]bool
+
 	// Breath / underwater
 	Breath          int    // 0-255 (255 full), as the dump and stat channel byte 232 carry it; 32 every 6 s under liquid
 	Underwater      bool   // under a liquid's surface (UnderLiquid on WalkFlags)

@@ -220,9 +220,11 @@ world:
   # Capture the flag (entity/ctf.go, handlers/ctf.go): an arena world of the
   # server's own (built by cmd/worldbuild and listed in server_worlds), joined
   # at the PvP Events herald beside Dabrish (tools/place_ctf_herald.py) or with
-  # /ctf join. Two arenas are kept: slot 12, the Spirit Ring
-  # (tools/worlds/ring.json: a round hollow, the default), and slot 11, the
-  # Canyon of Banners (tools/worlds/arena.json: the first, much larger field).
+  # /ctf join. Three arenas are kept: slot 12, the Spirit Ring
+  # (tools/worlds/ring.json: a round hollow, the default), slot 11, the
+  # Canyon of Banners (tools/worlds/arena.json: the first, much larger field),
+  # and slot 17, the Lightwolf Vale (tools/worlds/lightwolf.json: Castle
+  # Lightwolf against the werewolves' village south of it, as large a field).
   # Only the one `world` names is played; a world a server does not play need
   # not be in server_worlds (every client builds each listed world). Off unless
   # enabled; every number left out is its default (shown here;

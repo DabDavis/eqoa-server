@@ -107,8 +107,9 @@ func TestQuestWayIsTheCoach(t *testing.T) {
 	}
 }
 
-// The coach menu puts " ?" after the stop of a step under way, in the
-// coachman's own words (Ronks's "Get me a horse to Aviak Village ?."), and
+// The coach menu puts " ?" at the end of the stop of a step under way, in the
+// coachman's own words after his period (Ronks's "Get me a horse to Aviak
+// Village. ?": petition 3191), and
 // after no other; from a home with no stop in the step's home the stop the
 // way goes on by (Freeport). The control: with the step done, no " ?".
 func TestCoachMenuMarksTheQuestsStop(t *testing.T) {
@@ -131,8 +132,8 @@ func TestCoachMenuMarksTheQuestsStop(t *testing.T) {
 	if !slices.Equal(got, want) {
 		t.Fatalf("Ronks's menu %q, want %q", got, want)
 	}
-	if !strings.Contains(got[0], "Aviak Village ?") {
-		t.Errorf("the tag after the place: %q", got[0])
+	if got[0] != "Get me a horse to Aviak Village. ?" {
+		t.Errorf("the tag at the line's end, after the period: %q", got[0])
 	}
 
 	// the stop the way goes on by: Grumm's coach runs to the homes and Freeport
@@ -157,5 +158,29 @@ func TestCoachMenuMarksTheQuestsStop(t *testing.T) {
 	q.CoachStops(f.tw.p, grumm, dests)
 	if dests[0].QuestStop {
 		t.Errorf("the quest done, still %+v", dests)
+	}
+}
+
+// A stop's tag ends the line in every form (petition 3191): after a filmed
+// coachman's period or question mark, and after a plain stop's fee, so the
+// client's yellow trailing " ?" (vanilla) is always the line's last two runes.
+func TestQuestStopTagEndsTheLine(t *testing.T) {
+	d := entity.CoachDest{Name: "Fayspire", Fee: 40}
+	for _, c := range []struct{ got, want string }{
+		{coachWordsByName["Coachman Ronks"].labelTagged(entity.CoachDest{Name: "Aviak Village"}, questStopTag), "Get me a horse to Aviak Village. ?"},
+		{coachWordsByName["Coachman Huff"].labelTagged(d, questStopTag), "How about one to Fayspires (40 tunar)? ?"},
+		{coachWordsByName["Coachman Frender"].labelTagged(d, questStopTag), "Fayspire (40 tunar) ?"},
+		{coachWordsByName["Coachman Huff"].label(d), "How about one to Fayspires (40 tunar)?"},
+		// past 63 with the mark: the period goes, then the tail, never the mark
+		{coachWordsByName["Coachman Dudley"].labelTagged(entity.CoachDest{Name: "Castle Lightwolf", Fee: 40}, questStopTag), "Travel sir, I would like to go to Castle Lightwolf (40 tunar) ?"},
+		{coachWordsByName["Coachman Dudley"].labelTagged(entity.CoachDest{Name: "Gerntar Mines (the Homelands)", Fee: 120}, questStopTag), "Travel sir, I would like to go to Gerntar Mines (the Homeland ?"},
+		{coachWordsByName["Coachman Dudley"].label(entity.CoachDest{Name: "Castle Lightwolf", Fee: 40}), "Travel sir, I would like to go to Castle Lightwolf (40 tunar)."},
+	} {
+		if c.got != c.want {
+			t.Errorf("%q, want %q", c.got, c.want)
+		}
+		if len(c.got) > 63 || strings.Contains(c.got, "|") {
+			t.Errorf("%q breaks the PS2 TextBox's rules", c.got)
+		}
 	}
 }

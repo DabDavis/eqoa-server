@@ -732,8 +732,7 @@ func (h *InteractHandler) sendCoachPage(sess *session.Session, player *entity.Pl
 			options = append(options, words.labelTagged(d, tag))
 			continue
 		}
-		d.Name += tag
-		options = append(options, destLabel(d))
+		options = append(options, tagged(destLabel(d), tag)) // after the fee, at the end
 	}
 	if hasMore {
 		options = append(options, "More...")

@@ -1358,8 +1358,8 @@ func (w *World) templateAreaLocked(npc *NPC, spell *CastSpell, target EntityID) 
 			continue
 		}
 		if p := w.Players[id]; p != nil {
-			// a player in safe mode (/testinvis, safemode.go) only once it is part of this fight
-			if w.npcSharesLocked(npc, p) && w.noticeableByLocked(npc, p) && (!w.safeLocked(p) || inFightLocked(npc, p)) && !w.apartLocked(p, npc) {
+			// a player in safe mode or a GM's Safe Mode only once it is part of this fight (safemode.go)
+			if w.areaTakesPlayerLocked(npc, p) {
 				if in, d := inArea(cone, cx, cy, cz, r, p.X, p.Y, p.Z, 0); in {
 					reached := w.reachesLocked(place, p.X, p.Y, p.Z)
 					seen.note(reached, p.Name, p.X, p.Y, p.Z)

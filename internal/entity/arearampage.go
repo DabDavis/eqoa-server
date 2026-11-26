@@ -26,8 +26,8 @@ import (
 //   - who it reaches: the one it fights (in its reach, whom its rounds are at), and every player,
 //     pet and mercenary within its radius that it has a clear line to from its own heights
 //     (sight.go: npcAreaPlace, as its area spells and a sethp); the players a creature notices
-//     (aggro.go) and one in safe mode (/testinvis, safemode.go) only when it is part of this fight,
-//     as templateAreaLocked's; none across the water's edge from it, dead, or on the way back from
+//     (aggro.go) and one in safe mode (/testinvis or a GM's #aggro off) only when it is part of this
+//     fight (areaTakesPlayerLocked, safemode.go); none across the water's edge from it, dead, or on the way back from
 //     a death. No cap. Never a creature that is not a player's: its own side is not hit;
 //   - each of them takes one full melee hit of its, rolled on its own as its rounds' hits are
 //     (npcMeleeOnPlayerLocked: the player's AC, AGI and archetype, defence.go; its template's
@@ -202,8 +202,7 @@ func (w *World) areaRampageReachLocked(npc *NPC, target EntityID, now time.Time)
 			return
 		}
 		seen[p.ServerID] = true
-		if p.IsDead() || p.respawnPending() || !w.npcSharesLocked(npc, p) || !w.noticeableByLocked(npc, p) ||
-			(w.safeLocked(p) && !inFightLocked(npc, p)) || w.apartLocked(p, npc) {
+		if !w.areaTakesPlayerLocked(npc, p) { // safemode.go
 			return
 		}
 		if !main && (dist3(p.X, p.Y, p.Z, npc.X, npc.Y, npc.Z) > r || !w.reachesLocked(place, p.X, p.Y, p.Z)) {

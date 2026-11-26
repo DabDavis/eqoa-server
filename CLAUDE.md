@@ -267,9 +267,10 @@ Each system's file is its long form; its tests document the edge cases. `world.<
 | [OG] and [HC] (hardcore) characters, memorial | `handlers/ogaccount.go`, `hardcore*.go`, `hc*.go`, `memorial.go`, `entity/hcrules.go`, `internal/fallen`, `world.og_accounts`, `world.hardcore` |
 | Profanity filter, item links in chat | `handlers/profanity.go`, `handlers/itemlinks.go` |
 | Combat record (PvP, duels) | `entity/combatrecord.go`, table `charrecord` |
+| Bestiary: the creature kinds each character met (hate) and killed, by the zone they spawn in (the map's camps' zones, a heroic dungeon, a town's wilds); vanilla's Character > Bestiary pages (0x7EF4/0x7EF5); off where the QoL additions are | `entity/bestiary.go`, `handlers/bestiary.go`, table `charbestiary` |
 | Capture the flag, the siege | `entity/ctf*.go`, `entity/siege.go`, `handlers/ctf.go`, `handlers/siege.go`, `world.ctf`, `world.siege` |
 | Player homes (instanced world) | `entity/homes.go`, `handlers/homes.go`, `world.homes` |
-| Instanced raid dungeons (world 14), the lockout before a new instance | `entity/dungeons.go`, `dungeonlockout.go`, `handlers/dungeons.go`, `world.dungeons` |
+| Instanced raid dungeons (world 14), the lockout before a new instance; the Scroll of Returning (read in an instance: home, the place marked; read again within 30 min: back to it, spent; kept over a keep restart; no Hardcore, no QoL-off session) | `entity/dungeons.go`, `dungeonlockout.go`, `dungeonreturn.go`, `handlers/dungeons.go`, `handlers/dungeonreturn.go`, `tools/scroll_of_returning_20261126.py` (record + Freeport's Spell Archivist), `world.dungeons` |
 | Mail, resets, Master Class, petitions (the live client's) | `handlers/mail.go`, `mailattach.go`, `gmresets.go`, `classmastery.go`, `petitionview.go` |
 | Bug reports as petitions with the server's view | `handlers/bugreport.go`, `petitionview.go`; bug board `handlers/bugboard.go` |
 | Idea Contributors board (adopted feature requests) | `handlers/ideaboard.go`, table `petitionadopted`; mark with `tools/adopt_feature.py` or the panel's Adopted features |

@@ -54,6 +54,8 @@ type KeptDungeons struct {
 	Stays []KeptDungeonStay `json:"stays,omitempty"`
 	// Lockouts are the lockouts still running (dungeonlockout.go)
 	Lockouts []KeptDungeonLock `json:"lockouts,omitempty"`
+	// Returns are the Scrolls of Returning's ways back still in their window (dungeonreturn.go)
+	Returns []KeptDungeonReturn `json:"returns,omitempty"`
 }
 
 // KeptDungeonInst is one open instance.
@@ -119,7 +121,7 @@ func (w *World) KeepDungeons(now time.Time) *KeptDungeons {
 	if !w.dungeons.on || len(w.dungeons.insts) == 0 && len(w.dungeons.stays) == 0 && len(locks) == 0 {
 		return nil
 	}
-	k := &KeptDungeons{Next: w.dungeons.next, Lockouts: locks}
+	k := &KeptDungeons{Next: w.dungeons.next, Lockouts: locks, Returns: w.keptReturnsLocked(now)}
 	ids := make([]uint32, 0, len(w.dungeons.insts))
 	for id := range w.dungeons.insts {
 		ids = append(ids, id)
@@ -193,6 +195,8 @@ func (w *World) RestoreDungeons(k *KeptDungeons) (ids map[EntityID]EntityID, r D
 	if w.dungeons.lockouts == nil {
 		w.dungeons.lockouts = map[dungeonLock]time.Time{}
 	}
+	// the Scrolls of Returning's ways back (dungeonreturn.go)
+	w.restoreReturnsLocked(k.Returns)
 	for _, l := range k.Lockouts { // dungeonlockout.go: a dungeon gone from the recipe keeps none
 		for _, d := range w.dungeons.defs {
 			if strings.EqualFold(d.Key, l.Key) {

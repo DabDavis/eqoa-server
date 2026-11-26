@@ -172,6 +172,9 @@ type dungeonsState struct {
 	resumeIn map[uint32]uint32
 	// lockouts are when each character's lockout from a dungeon (by key) began (dungeonlockout.go)
 	lockouts map[dungeonLock]time.Time
+	// returns are each character's way back into an instance, kept by a Scroll of Returning read in it
+	// (dungeonreturn.go)
+	returns map[uint32]dungeonReturn
 	// clock is the time of a call that takes none (nil: time.Now; tests set it)
 	clock func() time.Time
 }
@@ -674,6 +677,7 @@ func (w *World) dungeonsSystem(now time.Time) {
 	}
 	w.dungeons.checkAt = now.Add(dungeonsCheckEvery)
 	w.dungeonLockoutsPruneLocked(now)
+	w.dungeonReturnsPruneLocked(now)
 	for id, at := range w.dungeons.movedAt {
 		if now.Sub(at) > time.Minute {
 			delete(w.dungeons.movedAt, id)

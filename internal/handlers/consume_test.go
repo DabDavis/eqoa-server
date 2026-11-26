@@ -61,6 +61,42 @@ func (f *scribeFixture) stackOf(name string) int {
 	return 0
 }
 
+func TestUseMerchantMealKeepsTheStackOnDuelRefusal(t *testing.T) {
+	f := newScribeFixture(t)
+	ration := f.ware("Field Rations", "A field lunch.", -1, 1, 0, 0)
+	water := f.ware("Market water", drinkText, -1, 1, 0, 8)
+	other := f.ware("Crafted water", drinkText, -1, 1, 0, 8)
+	if _, err := f.db.Exec(`INSERT INTO npcs (npc_id, npc_name) VALUES (5001, 'Heirloom Outfitter'), (5002, 'Grocer')`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.db.Exec(`INSERT INTO npcitem (npcid, patternid) VALUES (5001, ?), (5002, ?)`, ration, water); err != nil {
+		t.Fatal(err)
+	}
+	for _, id := range []int{ration, water, other} {
+		f.own(id, 2)
+	}
+	f.loadList()
+	var got []entity.Consumable
+	f.h.eat = func(_ *session.Session, c entity.Consumable, _ time.Time) error {
+		got = append(got, c)
+		if c.Merchant {
+			return entity.ErrConsumeDueling
+		}
+		return nil
+	}
+	for i, name := range []string{"Field Rations", "Market water"} {
+		msgs := f.use(uint32(i))
+		mustOps(t, msgs, protocol.OpcodeColoredChat)
+		if !bytes.Contains(msgs[0], utf16le(consumeDueling)) || f.stackOf(name) != 2 {
+			t.Fatalf("%s: missing refusal or stack changed", name)
+		}
+	}
+	mustOps(t, f.use(2), protocol.OpcodeRemoveInvItem)
+	if len(got) != 3 || !got[0].Merchant || !got[0].Genie || !got[0].Ration || !got[1].Merchant || got[1].Genie || got[2].Merchant || f.stackOf("Crafted water") != 1 {
+		t.Fatalf("consumables classified as %+v", got)
+	}
+}
+
 // A meal with no HoT of its own gives its level; one of a stack of five is
 // eaten and leaves by 0x003C (index, sound 0, one); a drink gives its own
 // PoT. The last of a stack leaves the list. Each is shown by its item's name

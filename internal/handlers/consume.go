@@ -86,6 +86,7 @@ const rationEffectName = "Food"
 // once. A drink is taken mid-fight, as the reference server took one.
 const (
 	consumeFighting = "You can't eat or drink that while you are fighting."
+	consumeDueling  = "You can't use store-bought food or drink in a duel."
 	consumeTooLow   = scribeTooLow
 )
 
@@ -141,6 +142,13 @@ func (h *EquipHandler) consume(sess *session.Session, player *entity.Player, idx
 	}
 	c.Ration = isRation(&row.Pattern)
 	if h.inventoryStore != nil {
+		merchant, genie, err := h.inventoryStore.FoodVendors(row.Pattern.PatternID)
+		if err != nil {
+			log.Printf("Consume: %s, %q: looking up merchant stock: %v", player.Name, row.Pattern.ItemName, err)
+			refuse("That item could not be used. Try again.")
+			return
+		}
+		c.Merchant, c.Genie = merchant, genie
 		switch fe, ok, err := h.inventoryStore.FoodEffect(row.Pattern.PatternID); {
 		case err != nil:
 			log.Printf("Consume: %s, %q: its foodeffect row: %v", player.Name, row.Pattern.ItemName, err)
@@ -150,6 +158,9 @@ func (h *EquipHandler) consume(sess *session.Session, player *entity.Player, idx
 		}
 	}
 	switch err := h.eat(sess, c, time.Now()); {
+	case errors.Is(err, entity.ErrConsumeDueling):
+		refuse(consumeDueling)
+		return
 	case errors.Is(err, entity.ErrConsumeFighting):
 		refuse(consumeFighting)
 		return

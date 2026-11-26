@@ -30,6 +30,81 @@ const (
 	waterIcon = 0xB10ADA3A
 )
 
+func TestMerchantFoodAndDrinkInDuel(t *testing.T) {
+	d := newDuelists(t)
+	d.a.HP, d.a.Power = 500, 100
+	meal := Consumable{Name: "Market bread", Amount: 20, Merchant: true}
+	drink := Consumable{Name: "Market water", Drink: true, Amount: 10, Merchant: true}
+	d.w.DuelChallenge(d.sa, d.aSeesB, "", 0, d.at(0))
+	match := d.w.duels.of[d.a.ServerID]
+	if match == nil {
+		t.Fatal("duel invitation missing")
+	}
+	for _, c := range []Consumable{meal, drink} {
+		if err := d.w.Consume(d.sa, c, d.at(0)); err != nil {
+			t.Fatalf("a pending invitation blocked %s: %v", c.Name, err)
+		}
+	}
+	// A logout and return preserve the vendor classification on both buffs.
+	rows, _ := d.w.SavedEffects(d.a.ServerID, d.at(0))
+	d.a.Effects, d.a.Buffs = nil, nil
+	if n := d.w.RestoreEffects(d.sa, rows, d.at(0)); n != 2 {
+		t.Fatalf("restored %d effects, want 2", n)
+	}
+	d.w.DuelBoxAnswer(d.sb, DuelBoxID(match.ID), 0, d.at(time.Second))
+	if match.Phase != duelCountdown || len(d.a.Effects) != 0 || len(d.a.Buffs) != 0 {
+		t.Fatalf("accepting the duel left vendor effects: %+v", d.a.Buffs)
+	}
+	assertBlocked := func(at time.Time) {
+		t.Helper()
+		hp, power := d.a.HP, d.a.Power
+		for _, c := range []Consumable{meal, drink} {
+			if err := d.w.Consume(d.sa, c, at); err != ErrConsumeDueling {
+				t.Fatalf("duel use of %s: %v", c.Name, err)
+			}
+		}
+		if d.a.HP != hp || d.a.Power != power || len(d.a.Effects) != 0 {
+			t.Fatal("a refused consumable restored resources or applied an effect")
+		}
+	}
+	assertBlocked(d.at(time.Second))
+	d.countDown(t, match, time.Second)
+	assertBlocked(d.at(time.Second))
+	if err := d.w.Consume(d.sa, Consumable{Name: "Crafted meal", Amount: 15}, d.at(2*time.Second)); err != nil {
+		t.Fatalf("duel blocked a non-merchant meal: %v", err)
+	}
+	d.w.DuelCancel(d.sa, d.at(3*time.Second))
+	if err := d.w.Consume(d.sa, drink, d.at(4*time.Second)); err != nil {
+		t.Fatalf("vendor drink still blocked after the duel: %v", err)
+	}
+}
+
+func TestMerchantFoodBlockedWhileDuelArenaLoads(t *testing.T) {
+	d, match := privateDuel(t)
+	if !match.Starts.IsZero() {
+		t.Fatal("arena countdown already started")
+	}
+	if err := d.w.Consume(d.sa, Consumable{Name: "Outfitter rations", Merchant: true, Genie: true, Ration: true}, d.at(time.Second)); err != ErrConsumeDueling {
+		t.Fatalf("vendor ration in the arena before the countdown: %v", err)
+	}
+}
+
+func TestGenieRationReducesBothRestoresByTwentyPercent(t *testing.T) {
+	w, sess, p, now := newEater(t)
+	if err := w.Consume(sess, Consumable{Name: "Food", Ration: true, Merchant: true, Genie: true}, now); err != nil {
+		t.Fatal(err)
+	}
+	// The unscaled ration gives 100 HP and 50 power. The as-eaten restore
+	// and each later food tick get 80% of that, alongside natural regen.
+	if p.HP != 580 || p.Power != 140 || p.HoTNow() != 100 || p.PoTNow() != 50 {
+		t.Fatalf("after eating: HP/power %d/%d, HoT/PoT %d/%d", p.HP, p.Power, p.HoTNow(), p.PoTNow())
+	}
+	p.regenTick()
+	if p.HP != 680 || p.Power != 190 {
+		t.Fatalf("after a tick: HP/power %d/%d, want 680/190", p.HP, p.Power)
+	}
+}
+
 // A meal adds its HoT and a drink its PoT to the six-second regen and to the
 // stat channel's HoT and PoT, each shown on the effects channel by its
 // item's name and icon; a new meal replaces the last, and a meal and a drink

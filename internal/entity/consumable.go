@@ -8,11 +8,11 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// What Consume refuses: no player (or a dead one), and a meal for one in a
-// fight, which would end at once (consumableSystem).
+// Consume refusal reasons.
 var (
 	ErrConsumeNoPlayer = errors.New("no living player")
 	ErrConsumeFighting = errors.New("in a fight")
+	ErrConsumeDueling  = errors.New("merchant food or drink in a duel")
 )
 
 // consumable.go — food and drink (F3 20261025-172627, a GM's account of the
@@ -69,6 +69,9 @@ type Consumable struct {
 	// Ration is a plain ration's (handlers/consume.go): its HoT and PoT are
 	// its eater's, RationRestore's, in place of Amount and Also
 	Ration bool
+	// Merchant stock cannot be used in duels. A genie meal restores 80%.
+	Merchant bool
+	Genie    bool
 }
 
 // RationShare is the share of its eater's most health and power a ration
@@ -92,10 +95,11 @@ func RationRestore(p *Player) (hot, pot int) {
 // FoodRule is what ends a meal or a drink, as its item's foodeffect row
 // says: a spell its eater casts, a fight. Since is when it was taken (a
 // fight from then on ends it); a rule kept over a logout starts again at the
-// login.
+// login. Merchant marks an effect that ends on duel acceptance.
 type FoodRule struct {
 	EndsOnCast    bool      `json:",omitempty"`
 	EndsOnContact bool      `json:",omitempty"`
+	Merchant      bool      `json:",omitempty"`
 	Since         time.Time `json:"-"`
 }
 
@@ -116,16 +120,16 @@ func (c Consumable) effectID() int {
 
 // Consume puts a meal or a drink on the session's player for
 // ConsumableDuration: its effect replaces the last of its kind. It refuses
-// no player or a dead one (ErrConsumeNoPlayer) and a meal in a fight
-// (ErrConsumeFighting): auto-attack on, or a creature fighting it (its threat
-// on it, or it its enemy: linkdead.go's fightingLocked); a drink is taken in
-// a fight, as the reference server took one.
+// use by an absent or dead player and merchant food or drink during a duel.
 func (w *World) Consume(sess *session.Session, c Consumable, now time.Time) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
 	if p == nil || p.IsDead() {
 		return ErrConsumeNoPlayer
+	}
+	if c.Merchant && w.duelingLocked(p.ServerID) {
+		return ErrConsumeDueling
 	}
 	// a meal or a drink is taken in a fight (the owner, 2026-11-13; petition
 	// 1919 had refused a meal in one), its first tick at once, and the fight
@@ -139,15 +143,20 @@ func (w *World) Consume(sess *session.Session, c Consumable, now time.Time) erro
 	if c.Ration {
 		c.Amount, c.Also = RationRestore(p)
 	}
+	if c.Genie && !c.Drink {
+		c.Amount, c.Also = c.Amount*4/5, c.Also*4/5
+	}
 	ae := &ActiveEffect{SpellID: c.effectID(), Name: c.Name, Icon: c.Icon, Caster: p.ServerID, Until: now.Add(d)}
 	if c.Drink {
 		ae.Mods.PoT, ae.Mods.HoT = c.Amount, c.Also
 	} else {
 		ae.Mods.HoT, ae.Mods.PoT = c.Amount, c.Also
 	}
-	if c.Rule != nil {
-		r := *c.Rule
-		r.Since = now
+	if c.Rule != nil || c.Merchant {
+		r := FoodRule{EndsOnContact: c.endsInFight(), Since: now, Merchant: c.Merchant}
+		if c.Rule != nil {
+			r.EndsOnCast = c.Rule.EndsOnCast
+		}
 		ae.Food = &r
 	}
 	w.addEffectLocked(p, ae, now)
@@ -163,6 +172,15 @@ func (w *World) Consume(sess *session.Session, c Consumable, now time.Time) erro
 	}
 	log.Printf("Consume: %s has %q (HoT %d, PoT %d for %v)", p.Name, c.Name, ae.Mods.HoT, ae.Mods.PoT, d)
 	return nil
+}
+
+// endMerchantFoodLocked removes vendor effects when the duel is accepted.
+func (w *World) endMerchantFoodLocked(p *Player) {
+	for _, ae := range append([]*ActiveEffect(nil), p.Effects...) {
+		if ae.Food != nil && ae.Food.Merchant {
+			w.removeEffectLocked(p, ae.SpellID)
+		}
+	}
 }
 
 // endFoodOnCastLocked ends the eater's meal and drink whose rule says a spell

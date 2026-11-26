@@ -346,6 +346,7 @@ func (db *SQLiteDB) initSchema() error {
 		FOREIGN KEY (npcid) REFERENCES npcs(id),
 		FOREIGN KEY (patternid) REFERENCES itempattern(patternid) ON DELETE CASCADE
 	);
+	CREATE INDEX IF NOT EXISTS idx_npcitem_pattern_npc ON npcitem(patternid, npcid);
 
 	-- npcs
 	CREATE TABLE IF NOT EXISTS npcs (
@@ -394,6 +395,7 @@ func (db *SQLiteDB) initSchema() error {
 		unk_n INTEGER,
 		unk_o INTEGER
 	);
+	CREATE INDEX IF NOT EXISTS idx_npcs_name_npc_id ON npcs(npc_name, npc_id);
 
 	-- quests, queststeps, charquests: initQuests (quests.go), which first
 	-- moves Return Home's quests and playerquest aside

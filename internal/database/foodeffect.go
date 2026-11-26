@@ -53,3 +53,13 @@ func (s *InventoryStore) FoodEffect(patternID int) (row FoodEffectRow, ok bool, 
 	row.EndsOnCast, row.EndsOnContact = cast != 0, contact != 0
 	return row, true, nil
 }
+
+// FoodVendors reports whether a meal or drink is in merchant stock and
+// whether it is in the Heirloom Outfitter stock used by the genie. Inventory
+// stacks from different sources share a pattern, so this is a pattern rule.
+func (s *InventoryStore) FoodVendors(patternID int) (merchant, genie bool, err error) {
+	err = s.db.QueryRow(`SELECT EXISTS (SELECT 1 FROM npcitem WHERE patternid = ?),
+		EXISTS (SELECT 1 FROM npcitem i JOIN npcs n ON n.npc_id = i.npcid
+			WHERE i.patternid = ? AND n.npc_name = 'Heirloom Outfitter')`, patternID, patternID).Scan(&merchant, &genie)
+	return merchant, genie, err
+}

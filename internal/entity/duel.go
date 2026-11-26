@@ -255,7 +255,11 @@ func (w *World) DuelOf(p *Player) (id uint32, on bool) {
 func (w *World) Dueling(p *Player) bool {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
-	d := w.duels.of[p.ServerID]
+	return w.duelingLocked(p.ServerID)
+}
+
+func (w *World) duelingLocked(id EntityID) bool {
+	d := w.duels.of[id]
 	return d != nil && (d.Phase == duelOn || d.Phase == duelCountdown)
 }
 
@@ -561,6 +565,8 @@ func (w *World) duelGoneToChallengedLocked(b *Player, d *Duel, line string) {
 // first line. duelSystem says the rest and begins the fight.
 func (w *World) countdownDuelLocked(d *Duel, a, b *Player, now time.Time) {
 	d.Phase = duelCountdown
+	w.endMerchantFoodLocked(a)
+	w.endMerchantFoodLocked(b)
 	duration := DuelCountdown
 	if d.Arena {
 		duration = time.Minute

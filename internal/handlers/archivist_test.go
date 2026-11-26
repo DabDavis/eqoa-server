@@ -637,7 +637,8 @@ func TestTheArchivistsWordsFitTheirBoxes(t *testing.T) {
 	for _, s := range []string{archivistClearIs, fmt.Sprintf(archivistGranted, spellCount(251), 60),
 		fmt.Sprintf(archivistGrantedSome, spellCount(251), 251), fmt.Sprintf(archivistHasAll, 60), archivistBookFull,
 		fmt.Sprintf(archivistCleared, spellCount(251)), archivistNothingToClear, archivistKept, archivistTrouble,
-		fmt.Sprintf(archivistUnlocked, joinAnd(archivistUnlockLines)), fmt.Sprintf(archivistUnlockedAll, joinAnd(archivistUnlockLines)),
+		fmt.Sprintf(archivistUnlocked, unlockNames(archivistUnlockLines)), fmt.Sprintf(archivistUnlockedAll, unlockNames(archivistUnlockLines)),
+		fmt.Sprintf(archivistUnlocked, unlockNames(archivistUnlockLines[:6])), fmt.Sprintf(archivistUnlocked, unlockNames(archivistUnlockLines[:3])),
 		archivistUnlockNone} {
 		if n := len([]rune(SpellArchivistName + ": " + s)); n > questBoxChars {
 			t.Errorf("%q is %d characters with his name, a box shows %d", s, n, questBoxChars)

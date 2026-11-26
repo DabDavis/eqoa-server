@@ -12,13 +12,14 @@ import (
 // database, the quests running and the mastery window's handler over the same
 // books and quests (the server's wiring). A human warrior of 30 beside him,
 // with points to spend: Bulging Muscles 1 and 2 (levels 20 and 30) and
-// Superior Intellect 1, each behind its trial (cmcatalog.require_quests), and
-// Unrivaled Grace 1 behind its own, a line he does not open; the trials made
-// up as the import keys them, Bulging Muscles' second requiring the first.
+// Superior Intellect 1 and Unrivaled Grace 1 (a line added for petition 3147),
+// each behind its trial (cmcatalog.require_quests), and Arcane Might 1 behind
+// its own, a line he does not open; the trials made up as the import keys
+// them, Bulging Muscles' second requiring the first.
 
 const (
-	uqStr1, uqStr2, uqInt1, uqDex1 = 101195, 101196, 101215, 101207
-	ucStr1, ucStr2, ucInt1, ucDex1 = 11, 12, 111, 91
+	uqStr1, uqStr2, uqInt1, uqDex1, uqArc1 = 101195, 101196, 101215, 101207, 101390
+	ucStr1, ucStr2, ucInt1, ucDex1, ucArc1 = 11, 12, 111, 71, 900142
 )
 
 func newUnlockRig(t *testing.T) (*archivistFixture, *ClassMasteryHandler, *QuestEngine) {
@@ -42,6 +43,7 @@ func newUnlockRig(t *testing.T) (*archivistFixture, *ClassMasteryHandler, *Quest
 	trial(uqStr2, "Misc/stat-boost-quests/str2", "Bulging Muscles: The Second Trial", 30, fmt.Sprint(uqStr1))
 	trial(uqInt1, "Misc/stat-boost-quests/int1", "Superior Intellect: Three Riddles", 20, "")
 	trial(uqDex1, "Misc/stat-boost-quests/dex1", "Unrivaled Grace: The First Step", 20, "")
+	trial(uqArc1, "Misc/werehunter", "The Werehunter", 20, "")
 	rank := func(id int, mastery, name string, parent, level, quest int) {
 		t.Helper()
 		if _, err := f.db.Exec(`INSERT INTO cmcatalog (id, category, classes, races, mastery, rank, name, parent, cost, level,
@@ -54,6 +56,7 @@ func newUnlockRig(t *testing.T) (*archivistFixture, *ClassMasteryHandler, *Quest
 	rank(ucStr2, "Buldging Muscles", "Bulging Muscles 2", ucStr1, 30, uqStr2)
 	rank(ucInt1, "Superior Intellect", "Superior Intellect 1", 0, 20, uqInt1)
 	rank(ucDex1, "Unrivaled Grace", "Unrivaled Grace 1", 0, 20, uqDex1)
+	rank(ucArc1, "Arcane Might", "Arcane Might 1", 0, 20, uqArc1)
 	qe, err := NewQuestEngine(f.db, f.w, f.mgr, f.inv, f.spells)
 	if err != nil {
 		t.Fatal(err)
@@ -77,12 +80,12 @@ func newUnlockRig(t *testing.T) (*archivistFixture, *ClassMasteryHandler, *Quest
 // character who has not asked cannot buy them). Asked, he marks the trials of
 // the lines he opens finished, no other, gives no rank and spends no point,
 // and says so; then each rank of them is bought in the window as any, its
-// level and the rank before it still needed, while Unrivaled Grace 1 is still
+// level and the rank before it still needed, while Arcane Might 1 is still
 // refused for its trial. Asked again, he says they are open already. Another
 // character's trials are its own.
 func TestTheArchivistUnlocksTheStatMasteries(t *testing.T) {
 	f, h, qe := newUnlockRig(t)
-	for id, quest := range map[int]string{ucStr1: "Bulging Muscles: The First Trial", ucInt1: "Superior Intellect: Three Riddles"} {
+	for id, quest := range map[int]string{ucStr1: "Bulging Muscles: The First Trial", ucInt1: "Superior Intellect: Three Riddles", ucDex1: "Unrivaled Grace: The First Step"} {
 		red := f.buyRank(h, id)
 		if len(red) != 1 || !strings.Contains(red[0], "You must finish "+quest) {
 			t.Errorf("mastery %d before asking: %q, want refused for %s", id, red, quest)
@@ -90,15 +93,15 @@ func TestTheArchivistUnlocksTheStatMasteries(t *testing.T) {
 	}
 
 	got := f.pick(f.menu(), archivistUnlock)
-	f.wantMsgs("unlock", got, "box:Spell Archivist: "+fmt.Sprintf(archivistUnlocked, "Bulging Muscles and Superior Intellect"))
+	f.wantMsgs("unlock", got, "box:Spell Archivist: "+fmt.Sprintf(archivistUnlocked, "Bulging Muscles, Superior Intellect and Unrivaled Grace"))
 	done := qe.FinishedBy(f.p.CharServerID)
-	for _, q := range []int{uqStr1, uqStr2, uqInt1} {
+	for _, q := range []int{uqStr1, uqStr2, uqInt1, uqDex1} {
 		if !done[q] {
 			t.Errorf("trial %d not finished after asking", q)
 		}
 	}
-	if done[uqDex1] {
-		t.Errorf("Unrivaled Grace's trial finished: he opens only %v", archivistUnlockLines)
+	if done[uqArc1] {
+		t.Errorf("Arcane Might's trial finished: he opens only %v", archivistUnlockLines)
 	}
 	var owned int
 	if err := f.db.QueryRow(`SELECT count(*) FROM charcms WHERE serverid = ?`, f.p.CharServerID).Scan(&owned); err != nil || owned != 0 {
@@ -114,20 +117,20 @@ func TestTheArchivistUnlocksTheStatMasteries(t *testing.T) {
 	if red := f.buyRank(h, ucStr2); len(red) != 1 || !strings.Contains(red[0], "Bulging Muscles 1 first") {
 		t.Errorf("Bulging Muscles 2 before 1: %q, want refused for the rank before it", red)
 	}
-	for _, id := range []int{ucStr1, ucStr2, ucInt1} {
+	for _, id := range []int{ucStr1, ucStr2, ucInt1, ucDex1} {
 		if red := f.buyRank(h, id); len(red) != 0 {
 			t.Errorf("mastery %d after asking: %q", id, red)
 		}
 	}
-	if red := f.buyRank(h, ucDex1); len(red) != 1 || !strings.Contains(red[0], "You must finish Unrivaled Grace: The First Step") {
-		t.Errorf("Unrivaled Grace 1 after asking: %q, want still refused for its trial", red)
+	if red := f.buyRank(h, ucArc1); len(red) != 1 || !strings.Contains(red[0], "You must finish The Werehunter") {
+		t.Errorf("Arcane Might 1 after asking: %q, want still refused for its trial", red)
 	}
-	if f.p.Mastery.Points != 85 {
-		t.Errorf("after buying three ranks at 5: %d points, want 85", f.p.Mastery.Points)
+	if f.p.Mastery.Points != 80 {
+		t.Errorf("after buying four ranks at 5: %d points, want 80", f.p.Mastery.Points)
 	}
 
 	f.wantMsgs("asked again", f.pick(f.menu(), archivistUnlock),
-		"box:Spell Archivist: "+fmt.Sprintf(archivistUnlockedAll, "Bulging Muscles and Superior Intellect"))
+		"box:Spell Archivist: "+fmt.Sprintf(archivistUnlockedAll, "Bulging Muscles, Superior Intellect and Unrivaled Grace"))
 }
 
 // The line a rank is of, by its name less its number; the data's "Buldging"
@@ -135,9 +138,28 @@ func TestTheArchivistUnlocksTheStatMasteries(t *testing.T) {
 func TestUnlockLine(t *testing.T) {
 	for name, want := range map[string]string{"Bulging Muscles 1": "Bulging Muscles", "bulging muscles 4": "Bulging Muscles",
 		"Intestinal Fortitude 2": "Intestinal Fortitude", "Superior Intellect 3": "Superior Intellect", "Superior Intellect": "Superior Intellect",
-		"Brawn 2": "", "Unrivaled Grace 1": "", "Sages Wit 1": "", "Bulging Muscles Of Doom 1": ""} {
+		"Avoid Danger 2": "Avoid Danger", "Unrivaled Grace 1": "Unrivaled Grace", "Sages Wit 4": "Sages Wit", "Razzle Dazzle 3": "Razzle Dazzle",
+		"Brawn 2": "", "Arcane Might 1": "", "Sage's Wit 1": "", "Bulging Muscles Of Doom 1": ""} {
 		if got := unlockLine(name); got != want {
 			t.Errorf("unlockLine(%q) = %q, want %q", name, got, want)
+		}
+	}
+}
+
+// His words for the lines: named up to three, "all seven stat masteries" for
+// every one (seven names run past a box), "these N" for some (petition 3147).
+func TestUnlockNames(t *testing.T) {
+	for _, c := range []struct {
+		lines []string
+		want  string
+	}{
+		{archivistUnlockLines[:1], "Bulging Muscles"},
+		{archivistUnlockLines[:3], "Bulging Muscles, Intestinal Fortitude and Superior Intellect"},
+		{archivistUnlockLines[:5], "these five stat masteries"},
+		{archivistUnlockLines, "all seven stat masteries"},
+	} {
+		if got := unlockNames(c.lines); got != c.want {
+			t.Errorf("unlockNames(%v) = %q, want %q", c.lines, got, c.want)
 		}
 	}
 }

@@ -1166,6 +1166,9 @@ func (w *World) updateAggro(npc *NPC, attackerID EntityID, damage int) {
 	if npc.Dummy != NotDummy {
 		return // a dummy holds no grudge: it fights its one player (dummy.go)
 	}
+	if damage < 0 && npc.Threats[attackerID] <= 0 {
+		return // a hate taken away from one not on its list: nothing to take, and no fight begun (hatefloor.go)
+	}
 	contactNPCLocked(npc)                        // a lull ends at a hit or a hostile act (workbook.go)
 	w.mercCallLocked(w.Players[attackerID], npc) // a player's hostile act calls his mercs (merccall.go)
 	w.addThreatLocked(npc, attackerID, damage)
@@ -1195,13 +1198,16 @@ func (w *World) addThreatLocked(npc *NPC, attackerID EntityID, damage int) {
 	if w.isFamiliarIDLocked(attackerID) {
 		return // a familiar draws no one's hate (familiar.go)
 	}
+	if damage < 0 && npc.Threats[attackerID] <= 0 {
+		return // nothing on its list to take from (hatefloor.go)
+	}
 	w.wakeNPCLocked(npc)                  // a fight, and its regeneration's count after it (npcsets.go)
 	npc.calmTicks, npc.healing = 0, false // in a fight: no regeneration after it for a while (npcregen.go)
 	w.noteHateLocked(npc, attackerID)     // who held its hate, for a Hardcore character's kill (hcrules.go)
 	if npc.Threats == nil {
 		npc.Threats = make(map[EntityID]int64)
 	}
-	npc.Threats[attackerID] += int64(damage)
+	npc.Threats[attackerID] = addHate(npc.Threats[attackerID], damage) // never below 0 (hatefloor.go)
 	npc.LastCombat = time.Now()
 
 	// its enemy the highest threat, or a preferred foe of its on the list (prefer.go)

@@ -1059,6 +1059,9 @@ func (w *World) mercAttackTurnLocked(ms *mercState, t *NPC, now time.Time) bool 
 		if !ms.mercReady(s, now) || !mercReaches(m, s, t.X, t.Y, t.Z, npcReachExtra(t)) || !w.petUndeadMayLocked(s, t) {
 			return false
 		}
+		if ms.mercArtAwayLocked(s, t) {
+			return false // its melee art from its target's side (mercfight.go)
+		}
 		return best || m.Power-s.PowerCost >= reserve
 	}
 	// its damage over time kept up

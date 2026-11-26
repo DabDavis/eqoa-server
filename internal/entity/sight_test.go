@@ -124,9 +124,9 @@ func TestAHealBehindAWallDrawsNoOne(t *testing.T) {
 func TestAHelperMustSeeTheFight(t *testing.T) {
 	f := newSocialFix(t)
 	victim := f.npc(100, "Guard Alinon", 30, humanBody, 1000, 1000)
-	hidden := f.npc(101, "Guard Brenna", 30, humanBody, 1020, 1000)
-	beside := f.npc(102, "Guard Cadwell", 30, humanBody, 1000, 1020)
-	f.w.SetGround(sightGround{wallAt(1010)})
+	hidden := f.npc(101, "Guard Brenna", 30, humanBody, 1008, 1000)
+	beside := f.npc(102, "Guard Cadwell", 30, humanBody, 1000, 1008)
+	f.w.SetGround(sightGround{wallAt(1004)})
 	f.hit(victim, 10)
 	if f.attacks(hidden) {
 		t.Error("the guard behind the wall came")
@@ -138,9 +138,9 @@ func TestAHelperMustSeeTheFight(t *testing.T) {
 	// the attacker on the helper's side, the one attacked on the other
 	f = newSocialFix(t)
 	victim = f.npc(100, "Guard Alinon", 30, humanBody, 1000, 1000)
-	sees := f.npc(101, "Guard Brenna", 30, humanBody, 1020, 1000)
-	f.p.X = 1025
-	f.w.SetGround(sightGround{wallAt(1010)})
+	sees := f.npc(101, "Guard Brenna", 30, humanBody, 1008, 1000)
+	f.p.X = 1012
+	f.w.SetGround(sightGround{wallAt(1004)})
 	f.hit(victim, 10)
 	if !f.attacks(sees) {
 		t.Error("the guard who saw the attacker stayed")

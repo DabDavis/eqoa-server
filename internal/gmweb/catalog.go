@@ -2037,7 +2037,7 @@ var catalog = map[string]tableNote{
 		Label: "Social NPCs", Group: "World", Title: "npc_name", Sort: "npc_name",
 		Help: "Which NPCs come to the help of their own, by NPC name (entity/socialaggro.go): when a player (or a player's " +
 			"pet) hits an NPC or casts something hostile on it, every NPC of the same faction whose row says social 1 and " +
-			"stands within its radius of it (default 30, a spell's usual range) joins the fight against that player. " +
+			"stands within its radius of it (default 10, the owner's 2026-11-26) joins the fight against that player. " +
 			"faction is the faction (or any group name) it belongs to and helps; an attacked NPC is of its own row's " +
 			"faction and of every faction its kill lowers (Faction hits), so only the NPCs that help need a row. A " +
 			"creature noticing a player on its own calls no one; one already fighting, going home, a pet or with the NPC " +
@@ -2049,7 +2049,7 @@ var catalog = map[string]tableNote{
 			"npc_name": {Label: "NPC name", Help: "as in NPCs, exactly (a trailing space included)"},
 			"social":   {Label: "Helps", Help: "1 comes to the help of its faction, 0 never"},
 			"faction":  {Label: "Faction", Help: "the faction or group it belongs to and helps; empty: the faction its kill lowers most (Faction hits)"},
-			"radius":   {Label: "Radius", Help: "how near the NPC attacked it must stand; 0 the default, 30"},
+			"radius":   {Label: "Radius", Help: "how near the NPC attacked it must stand; 0 the default, 10"},
 			"note":     {Label: "Note"},
 			"source":   {Label: "Source", Help: "gm, or seed for tools/seed_npc_social.py's rows (its --undo deletes those)"},
 		},

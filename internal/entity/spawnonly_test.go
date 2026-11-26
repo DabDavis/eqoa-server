@@ -61,15 +61,15 @@ func TestASpawnOnlyNPCIsInNoViewAndAttacksNoOne(t *testing.T) {
 	// out of the world
 	s := newSocialFix(t)
 	victim := s.npc(100, "Guard Alinon", 30, humanBody, 1000, 1000)
-	hidden := s.npc(101, "Guard Brenna", 30, humanBody, 1020, 1000)
-	near := s.npc(102, "Guard Cadwell", 30, humanBody, 1000, 1020)
+	hidden := s.npc(101, "Guard Brenna", 30, humanBody, 1008, 1000)
+	near := s.npc(102, "Guard Cadwell", 30, humanBody, 1000, 1008)
 	s.w.SetSpawnOnly(map[string]bool{database.NPCClassKey("Guard Brenna"): true})
 	s.hit(victim, 12)
 	if !s.attacks(victim) || !s.attacks(near) {
-		t.Fatalf("the control: the guard hit and the one 20 off fight the player: %d, %d", victim.CurrentEnemy, near.CurrentEnemy)
+		t.Fatalf("the control: the guard hit and the one 8 off fight the player: %d, %d", victim.CurrentEnemy, near.CurrentEnemy)
 	}
 	if hidden.CurrentEnemy != 0 {
-		t.Errorf("a spawn-only guard 20 off came to the help (enemy %d)", hidden.CurrentEnemy)
+		t.Errorf("a spawn-only guard 8 off came to the help (enemy %d)", hidden.CurrentEnemy)
 	}
 }
 

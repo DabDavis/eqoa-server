@@ -68,7 +68,7 @@ func TestACampsSpiritpawHelpsItsOwnCamp(t *testing.T) {
 		t.Run(c.what, func(t *testing.T) {
 			f := newCampFix(t)
 			victim := f.npc(100, c.victim, 20, bearBody, c.x, campZ)
-			helper := f.npc(101, c.helper, 20, bearBody, c.x+15, campZ)
+			helper := f.npc(101, c.helper, 20, bearBody, c.x+8, campZ)
 			f.hit(victim, 5)
 			if got := helper.CurrentEnemy == f.p.ServerID; got != c.helps {
 				t.Errorf("helped %v, want %v (enemy %d)", got, c.helps, helper.CurrentEnemy)
@@ -111,9 +111,9 @@ func TestACampsHelperNeedsItsSight(t *testing.T) {
 		f := newCampFix(t)
 		f.moveTo(campX-5, campZ)
 		victim := f.npc(100, "gnoll strongfang", 20, bearBody, campX, campZ)
-		helper := f.npc(101, "gnoll spiritpaw", 20, bearBody, campX+20, campZ)
+		helper := f.npc(101, "gnoll spiritpaw", 20, bearBody, campX+8, campZ)
 		if walled {
-			f.w.SetGround(sightGround{wallAt(campX + 10)})
+			f.w.SetGround(sightGround{wallAt(campX + 4)})
 		}
 		f.hit(victim, 5)
 		if got := helper.CurrentEnemy == f.p.ServerID; got == walled {

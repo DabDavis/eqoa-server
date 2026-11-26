@@ -103,6 +103,10 @@ func (w *World) dpsPowerLocked(giver, receiver EntityID, gained int) {
 	if gained <= 0 || giver == 0 || giver == receiver {
 		return
 	}
+	if ps := w.petStateOfNPCLocked(w.NPCs[giver]); ps != nil && ps.merc != nil {
+		w.dpsPetAddLocked(ps, dpsPower, gained) // a merc's own pet's: its merc's line (dpsmerc.go)
+		return
+	}
 	if maker, helper := w.dpsMakerLocked(giver); maker != nil {
 		if merc := w.dpsMercOfLocked(maker, giver); merc != 0 {
 			w.dpsAddByLocked(maker, dpsPower, gained, numberByMerc, merc, dpsMeterNow())

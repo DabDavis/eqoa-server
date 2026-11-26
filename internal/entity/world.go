@@ -86,6 +86,10 @@ type World struct {
 	// dpsBy is the merc whose figures are told now, while dpsByLocked runs
 	// them: the damage meter's merc line they count on (dpsmerc.go)
 	dpsBy EntityID
+	// dpsByPet is the merc whose own pet's figures are told now, while
+	// dpsByPetLocked runs them: they count on that merc's line, as its pet's
+	// share (dpsmerc.go)
+	dpsByPet EntityID
 
 	// Buddy and ignore lists (social.go), in memory only
 	social socialLists

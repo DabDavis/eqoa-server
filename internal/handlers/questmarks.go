@@ -429,9 +429,9 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 					addAt(markStep, h.from, wq)
 				}
 			}
-			// a give step's item that creatures drop: their camp too, as a hunt
-			// (questmarksdrops.go; petition 3221)
-			if h := q.dropStep(st); h != nil {
+			// a give step's item that creatures drop, while the player lacks it:
+			// their camp too, as a hunt (questmarksdrops.go; petition 3221)
+			if h := q.dropStep(st); h != nil && q.lackingLocked(p, st) != "" {
 				hq := mq
 				hq.detail = fmt.Sprintf("%s drops it", h.TargetWords())
 				hk, hat := q.stepSpotsLocked(spots, h, c.serverID, world, x, z)

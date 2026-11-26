@@ -22,7 +22,7 @@ func dpsMeterOffers(sess *session.Session) [][]byte {
 	return out
 }
 
-// The first 0x0014 offers the meter, a u8 2 (the newest layout) after the opcode,
+// The first 0x0014 offers the meter, a u8 3 (the newest layout) after the opcode,
 // once; the second 0x0014 offers nothing more.
 func TestDPSMeterOfferedAtWorldEntry(t *testing.T) {
 	h := &CharacterHandler{}
@@ -33,13 +33,13 @@ func TestDPSMeterOfferedAtWorldEntry(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if got, want := dpsMeterOffers(sess), []byte{0x3A, 0x7E, 2}; len(got) != 1 || !bytes.Equal(got[0], want) {
+	if got, want := dpsMeterOffers(sess), []byte{0x3A, 0x7E, 3}; len(got) != 1 || !bytes.Equal(got[0], want) {
 		t.Fatalf("world entry offered %x, want one %x", got, want)
 	}
 }
 
 // The client's answer is its player's: a u8 1 has the meter (layout 1), 2 in
-// layout 2, one past the newest the newest, 0 stops it, a
+// layout 2, 3 in layout 3, one past the newest the newest, 0 stops it, a
 // u32's 1 and 0 the same by their first byte; an empty one, or a session with
 // no player, changes nothing. A reset is taken from a client with a meter, and
 // the registry routes both.
@@ -76,6 +76,10 @@ func TestHandleDPSMeter(t *testing.T) {
 	send(sess, protocol.OpcodeDPSMeterAnswer, []byte{2})
 	if got := w.DPSMeterLayout(sess); got != 2 {
 		t.Fatalf("answered 2: layout %d", got)
+	}
+	send(sess, protocol.OpcodeDPSMeterAnswer, []byte{3})
+	if got := w.DPSMeterLayout(sess); got != 3 {
+		t.Fatalf("answered 3 (mercs' lines apart): layout %d", got)
 	}
 	send(sess, protocol.OpcodeDPSMeterAnswer, []byte{9})
 	if got := w.DPSMeterLayout(sess); got != entity.DPSMeterLayoutNewest {

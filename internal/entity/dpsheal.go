@@ -64,7 +64,7 @@ func (w *World) dpsHealFigureLocked(sess *session.Session, n int, kind numberKin
 		n = min(n, w.dpsWorth)
 		w.dpsWorth -= max(n, 0)
 	}
-	w.dpsAddLocked(p, dpsHeal, n, kind.byHelper(), dpsMeterNow())
+	w.dpsAddByLocked(p, dpsHeal, n, kind.byHelper(), w.dpsFigureMercLocked(p, kind), dpsMeterNow())
 }
 
 // dpsMakerLocked is the player id's figures count for: a player itself; a pet,
@@ -104,7 +104,7 @@ func (w *World) dpsPowerLocked(giver, receiver EntityID, gained int) {
 		return
 	}
 	if maker, helper := w.dpsMakerLocked(giver); maker != nil {
-		w.dpsAddLocked(maker, dpsPower, gained, helper, dpsMeterNow())
+		w.dpsAddByLocked(maker, dpsPower, gained, helper, w.dpsMercOfLocked(maker, giver), dpsMeterNow())
 	}
 }
 

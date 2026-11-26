@@ -1342,6 +1342,7 @@ func (w *World) mercHelpLocked(ms *mercState, s *CastSpell, id EntityID, now tim
 // aggressive merc's group mates and their mercs taking its group buffs as its
 // heals, merccall.go) or not. Must be called with the lock held.
 func (w *World) mercHelpToLocked(ms *mercState, s *CastSpell, id EntityID, group bool, now time.Time) {
+	defer w.dpsBySetLocked(ms.npc.ServerID)() // its figures on its meter line (dpsmerc.go)
 	cs := &castState{spell: *s, caster: ms.npc.ServerID, targets: []EntityID{id}}
 	cs.spell.figures = figuresMerc // a merc's figures to a client that colours them (numbertags.go)
 	// its own pet (mercpetbuff.go)
@@ -1435,6 +1436,14 @@ func (w *World) mercHarmLocked(ms *mercState, s *CastSpell, t *NPC, now time.Tim
 			}
 			if killed {
 				return
+			}
+		case EffectPower:
+			// the necromancer's Power path (Power Gale to Power Vortex): the
+			// foe's power drained to the merc's team, as a player's cast gives
+			// its group (Heirloom petition 3134: none was given; dpsmerc.go)
+			if e.Amount < 0 && e.Drain == DrainGroup {
+				w.mercDrainPowerLocked(ms, s, drainShare(e, -spellAmount(e, b)))
+				angered = true
 			}
 		case EffectHate:
 			// a taunt puts the merc at the top of its target's hate, as a pet's

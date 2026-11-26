@@ -925,16 +925,17 @@ const (
 	// group did how much damage in the fight and how fast (entity/dpsmeter.go,
 	// handlers/dpsmeter.go; the owner, 2026-11-10: "lets add dps meters, will
 	// work solo, group, raid"). Server to client once the player is in the
-	// world: a u8, the newest OpcodeDPSMeterData layout it writes (2 since
-	// 2026-11-25; 1 before: every vanilla reads any). A PS2 ignores it (CLIENT's
+	// world: a u8, the newest OpcodeDPSMeterData layout it writes (3 since
+	// 2026-11-25's petition 3134, 2 before it that day; 1 before: every
+	// vanilla reads any). A PS2 ignores it (CLIENT's
 	// dispatcher has no case above 0x1402 and no default) and never answers.
 	OpcodeDPSMeterOffer GameOpcode = 0x7E3A
 
 	// OpcodeDPSMeterAnswer is a client's answer to OpcodeDPSMeterOffer, client
 	// to server, at once and whenever it changes: a u8, the layout of
-	// OpcodeDPSMeterData to be sent (1 damage alone, 2 healing and power too; one
-	// past the newest is the newest; every vanilla before 2026-11-25 answers 1),
-	// 0 to stop.
+	// OpcodeDPSMeterData to be sent (1 damage alone, 2 healing and power too, 3
+	// mercs' lines apart; one past the newest is the newest; every vanilla
+	// before 2026-11-25 answers 1, the next ones 2 when offered more), 0 to stop.
 	OpcodeDPSMeterAnswer GameOpcode = 0x7E3B
 
 	// OpcodeDPSMeterData is the meter, server to a client that answered 1: at
@@ -965,6 +966,17 @@ const (
 	// any of damage, healing and power (all of them when they fit), in the order
 	// of damage. Healing and power count only in a fight under way, which only
 	// damage starts and lengthens.
+	//
+	// Layout 3 (Heirloom petition 3134: "Mercenary DPS, HPS seem to fall under a
+	// broad 'Pet' category on the DPS meter. Recommend splitting them into the
+	// mercenary names"; entity/dpsmerc.go) is layout 2 with each merc's line
+	// apart: its owner's line without the merc's damage, healing and power (nor
+	// their pet's shares), and a line of the merc's own (its name and class)
+	// flagged 4, and 8 too when it is the receiver's own merc (2 with its
+	// owner's). Each line, after its name, has its owner's name (u8 byte count
+	// and UTF-8: none for a player's line, and none for any line of a message
+	// it would make too long). The wholes are layout 2's; the lines and places
+	// count the mercs' lines as lines.
 	OpcodeDPSMeterData GameOpcode = 0x7E3C
 
 	// OpcodeDPSMeterReset is a client's reset, client to server: a u8, 1. The

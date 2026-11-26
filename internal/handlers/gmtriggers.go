@@ -773,7 +773,7 @@ func (e *TriggerEngine) Tick() {
 				continue
 			}
 			if t := strings.TrimSpace(r.await.Fail); t != "" && !e.awaitMetLocked(r) {
-				e.failLocked(r, t, "its "+r.await.Do+" ran out of time")
+				e.failLocked(r, t, "its "+r.await.Do+" ran out of time", r.await.OnFail)
 				continue
 			}
 			// over, by its death (a talk) or its seconds: its seconds were the
@@ -1095,12 +1095,16 @@ func (e *TriggerEngine) stepLocked(r *triggerRun, s database.TriggerStep) string
 			members = append(members, heldMember{sess: m.sess, p: m.p})
 		}
 		title, quest, from, to := r.trig.Title(), s.Quest, s.From, s.QuestStep
+		lo, hi, what := from, to-1, "set to"
+		if from > to {
+			lo, hi, what = to+1, from, "put back to"
+		}
 		// on its own goroutine, as queststep's: the quest engine's lock comes first
 		go func() {
 			n := qe.SetHeldSteps(members, quest, from, to)
-			log.Printf("Triggers: %s: quest %d set to step %d from %d-%d for %s", title, quest, to, from, to-1, players(n))
+			log.Printf("Triggers: %s: quest %d %s step %d from %d-%d for %s", title, quest, what, to, lo, hi, players(n))
 		}()
-		return fmt.Sprintf("quest %d set to step %d for those of %s on steps %d-%d", quest, to, players(len(members)), from, to-1)
+		return fmt.Sprintf("quest %d %s step %d for those of %s on steps %d-%d", quest, what, to, players(len(members)), lo, hi)
 	case database.TriggerSeason:
 		return e.seasonLocked(r, s)
 	case database.TriggerHide:
@@ -1132,13 +1136,19 @@ func (e *TriggerEngine) protectFailedLocked(r *triggerRun) {
 }
 
 // failLocked is a run failed (a wait's fail): its text in a window for its players,
+// the wait's onfail steps done for them (questsets: a lost race's kills put back),
 // its spawns taken away, its steps left undone. Must be called with e.mu held.
-func (e *TriggerEngine) failLocked(r *triggerRun, text, why string) {
+func (e *TriggerEngine) failLocked(r *triggerRun, text, why string, then []database.TriggerStep) {
 	who := e.audience(r)
 	for _, m := range who {
 		e.popupLocked(m.sess, triggerText(text, m.p.Name), "")
 	}
 	log.Printf("Triggers: %s's run %d failed: %s (%s told)", r.trig.Title(), r.id, why, players(len(who)))
+	for _, s := range then {
+		if line := e.stepLocked(r, s); line != "" {
+			log.Printf("Triggers: %s's run %d failed: %s", r.trig.Title(), r.id, line)
+		}
+	}
 	e.stopLocked(func(o *triggerRun) bool { return o == r })
 }
 

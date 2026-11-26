@@ -42,7 +42,9 @@ const triggerStepsHelp = `the steps in order, each {"do", ...}: broadcast {text}
 	`awaitnear {radius, seconds} for a living player near the place at about its height; start (on an awaittalk or awaitnear, the first step but its ` +
 	`locks, a trigger with a place of its own): the trigger fires itself on that talk or player whenever no run of it lives and its lock is free ` +
 	`(a lock's text is said to a talker while it is busy); fail {text} on an awaitdead, awaitkill or awaitnear with seconds: its time out with what ` +
-	`it waits on undone fails the run (a window, its spawns taken); walk also takes points [[x,y,z],...] a route before x/y/z and pace (under 7 walked); spawn also takes spots [[x,y,z],...] and patrol [[x,y,z],...] (a route its copies walk while they live, a loop, or back and forth with pingpong true; pause seconds at each point, pace its speed) ` +
+	`it waits on undone fails the run (a window, its spawns taken), and onfail [steps] (questsets alone) are done for its players as it fails; ` +
+	`questset {quest, step, from}: every player the scope takes on that quest at from..step-1 set on to step, or with from past step those at ` +
+	`step+1..from put back to it (its count started again); queststep {quest, step} that step done for each on it; walk also takes points [[x,y,z],...] a route before x/y/z and pace (under 7 walked); spawn also takes spots [[x,y,z],...] and patrol [[x,y,z],...] (a route its copies walk while they live, a loop, or back and forth with pingpong true; pause seconds at each point, pace its speed) ` +
 	`(the one nearest the run's place), untouchable (its copies carry the NPC bit: no one hurts them, they attack no one) and noloot (their ` +
 	`corpses are of nothing). weather {weather: rain|snow|sand|whiteout|clear, strength: light|moderate|heavy (heavy), ` +
 	`minutes (2 to 120; 0: 10), where: here|near|world (here), near (1 to 5 zones, for near), text (said to the players in those zones), ` +

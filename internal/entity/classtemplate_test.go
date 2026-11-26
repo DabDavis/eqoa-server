@@ -250,7 +250,7 @@ func TestAClassTemplateChangesStatsAndCastsOnItsCadence(t *testing.T) {
 			}
 		}
 		for _, f := range damageIndications(msgs) {
-			if f[0] == int64(r.objectID(necro.ServerID)) && f[2] == int64(r.objectID(necro.ServerID)) && f[1] == 15 {
+			if f[0] == int64(sess.PlayerObjectID()) && f[2] == int64(r.objectID(necro.ServerID)) && f[1] == 15 { // over the necro (petition 3205)
 				heals++
 			}
 		}

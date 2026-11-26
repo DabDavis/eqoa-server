@@ -28,9 +28,9 @@ import (
 // healer's own most hit points ("about 15% of an @ level mobs health": the
 // healer's, at its level), at most what the one healed lacks; a spell's heal is
 // its figure. The one it heals is told the cast's target in the cast's 0x00B1,
-// and the player fighting the one healed sees the figure (0x00DB from the
-// healer). Anything else of the cast is a heal on itself's (templateCastLocked,
-// templateHealLocked).
+// and the player fighting the one healed sees the figure over it (0x00DB from
+// the player's own id: npcHealFigureLocked, petition 3205). Anything else of
+// the cast is a heal on itself's (templateCastLocked, templateHealLocked).
 //
 // In its own fight it is one of its turns (templateTurnLocked). Out of one (no
 // enemy: the creatures of a camp are not social unless npcsocial says so, and

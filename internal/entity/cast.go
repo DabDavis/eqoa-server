@@ -1266,7 +1266,8 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 	}
 	switch t := ent.(type) {
 	case *Player:
-		if d.Harmful {
+		// a hate-reducer may be aimed at another player, to take his hate off what fights him (hatedrop.go)
+		if d.Harmful && (t == p || !hateDropAtFriend(spell)) {
 			return nil, castFriendly
 		}
 		if t != p && outOfRange(p, t.X, t.Y, t.Z, spell.Range) {
@@ -1545,6 +1546,12 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 	for _, id := range cs.targets {
 		if t := w.Players[id]; t != nil {
 			if w.duelLandLocked(cs, caster, casterSess, t, now) { // harm on a player: a duel's (duelfight.go)
+				continue
+			}
+			if t != caster && d.Harmful && hateDropAtFriend(&cs.spell) {
+				if !t.IsDead() {
+					w.landHateDropLocked(cs, caster, t) // a hate-reducer on a friend (hatedrop.go)
+				}
 				continue
 			}
 			w.rezLandLocked(cs, caster, casterSess, t, now) // resurrect.go: on the dead too

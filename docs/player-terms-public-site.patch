@@ -1,0 +1,90 @@
+--- a/index.html
++++ b/index.html
+@@ -5,5 +5,5 @@
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>EQOA Classic: Return to Norrath</title>
+-  <meta name="description" content="A fan-run EQOA preservation project: free forever, no monetization, and none of the game distributed. Bring your own disc. Two servers: Live, the classic Frontiers experience, and Heirloom, classic and so much more. Play in your browser, on your computer, your phone or your PS2.">
++  <meta name="description" content="A fan-run EQOA preservation project: free to play for as long as the operators run it. Bring your own lawfully obtained Frontiers disc. Two servers: Live, the classic Frontiers experience, and Heirloom, classic and so much more. Play in your browser, on your computer, your phone or your PS2.">
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+@@ -281,5 +281,5 @@
+       <div class="section-head">
+         <h2>Fan-run, for the love of the game</h2>
+-        <p>EQOA was the first 3D MMO on a console, and its servers went dark in 2012. This is a fan-run preservation project: players keeping it playable, open and free, for as long as there are players.</p>
++        <p>EQOA was the first 3D MMO on a console, and its servers went dark in 2012. Two volunteers run and fund this preservation project. EQOA Classic will remain free for as long as we operate it.</p>
+         <div class="rule"></div>
+       </div>
+@@ -287,5 +287,5 @@
+         <div class="pillar">
+           <div class="ic">&#10086;</div>
+-          <h3>Free, forever</h3>
++          <h3>Free to play</h3>
+           <p>No subscriptions, no cash shop, no paid perks, no ads. Nothing here is for sale, and nothing ever will be. Every player gets the same game.</p>
+         </div>
+@@ -293,5 +293,5 @@
+           <div class="ic">&#9737;</div>
+           <h3>Your disc, your game</h3>
+-          <p>We distribute none of the game itself: no disc images and no game files. You bring your own Frontiers disc, and the client reads it on your own machine.</p>
++          <p>Bring your own lawfully obtained Frontiers disc. The client reads your disc image on your own device.</p>
+         </div>
+         <div class="pillar">
+@@ -309,5 +309,5 @@
+       <div class="section-head">
+         <h2>Two servers, one Tunaria</h2>
+-        <p>The same world and the same friends. One keeps it as it was; the other keeps adding to it.</p>
++        <p><b>Vanilla Test - Wipes</b> (Live) characters and their progress will be wiped for testing. <b>Sandbox Test - No Wipes</b> (Heirloom) has no planned character wipes. Bugs or rollbacks can still erase progress on either server.</p>
+         <div class="rule"></div>
+       </div>
+@@ -519,5 +519,5 @@
+   <footer>
+     <div class="wrap">
+-      <p>eqoaclassic.com: a fan-run EQOA preservation project. Free, no monetization, and not affiliated with Daybreak Game Company or Sony. EQOA belongs to its owners; we distribute none of the game.</p>
++      <p>eqoaclassic.com: a fan-run EQOA preservation project. Free, no monetization, and not affiliated with Daybreak Game Company or Sony. EQOA belongs to its owners. Bring your own Frontiers disc. <a href="/terms">Player Terms</a> &middot; <a href="/privacy">Privacy Notice</a>.</p>
+       <p style="margin-top:10px"><a href="/eqoa/play/">Play</a><a href="#realms">Servers</a><a href="/eqoa/guide/">Guide</a><a href="/commands.html">Commands</a><a href="/contributors.html">Thanks</a><a href="/ps2/">PS2</a><a href="https://eqoa.live" target="_blank" rel="noopener">eqoa.live</a></p>
+     </div>
+--- a/ps2/index.html
++++ b/ps2/index.html
+@@ -55,6 +55,6 @@
+         <li><b>System &gt; Change Disc &gt; From File...</b> and choose your EverQuest Online Adventures ISO.</li>
+         <li>The game starts by itself. It checks for updates once, then shows the login screen.</li>
+-        <li>Log in with any user name and password you choose. <b>The first time, your account is made for you</b> (remember the password). The same login works in the PC and browser clients.</li>
+-        <li>Pick a server: <b>Heirloom Test Server</b> (no wipes, ever) or <b>Live Server</b> (no wipes, ever; starts at level 1).</li>
++        <li>On a phone or computer, <a href="/terms?mode=create">create an account</a> or <a href="/terms">accept the current Player Terms for your existing account</a>. Then sign in to the game with that account. <a href="/privacy">Privacy Notice</a>.</li>
++        <li>Choose your server. <b>Vanilla Test - Wipes</b> (Live) characters and their progress will be wiped for testing. <b>Sandbox Test - No Wipes</b> (Heirloom) has no planned character wipes. Bugs or rollbacks can still erase progress on either server. Live characters start at level 1.</li>
+       </ol>
+       <div class="note">One click next time: start PCSX2 as <code>pcsx2-qt -elf "C:\path\to\EQOABOOT.ELF" "C:\path\to\EQOA.iso"</code> (on Windows, add the two paths to the end of a shortcut's Target box).</div>
+--- a/eqoa/guide/index.html
++++ b/eqoa/guide/index.html
+@@ -157,6 +157,6 @@
+   <main class="wrap">
+     <div class="names">
+-      <div class="live"><b>Live</b> is the <a href="/#realms">Live Server</a> on our front page, listed in the game's server select as <b>Vanilla Test - Wipes</b>.</div>
+-      <div class="heir"><b>Sandbox</b> is the <a href="/#realms">Heirloom Server</a> on our front page, listed in the game's server select as <b>Sandbox Test - No Wipes</b>.</div>
++      <div class="live"><b>Live</b> is the <a href="/#realms">Live Server</a> on our front page, listed in the game's server select as <b>Vanilla Test - Wipes</b>. Characters and their progress will be wiped for testing.</div>
++      <div class="heir"><b>Sandbox</b> is the <a href="/#realms">Heirloom Server</a> on our front page, listed in the game's server select as <b>Sandbox Test - No Wipes</b>. Heirloom has no planned character wipes. Bugs or rollbacks can still erase progress on either server.</div>
+     </div>
+
+@@ -225,13 +225,13 @@
+       <article class="guide">
+ <section class="g shard" id="live"><h2>Live</h2>
+-<p>Listed in the server select as <b>Vanilla Test - Wipes</b>.</p>
++<p>Listed in the server select as <b>Vanilla Test - Wipes</b>. Characters and their progress will be wiped for testing.</p>
+ <p>To aid in testing, Live has an optional experience boon in each city, which can also resurrect you (0%: no experience back), and crafting gems for sale on the auction house.</p>
+ </section>
+ <section class="g shard" id="sandbox"><h2>Sandbox</h2>
+-<p>Sandbox is listed in the server select as <b>Sandbox Test - No Wipes</b>. It is our sandbox test server: the original game rebuilt, with a number of extra features turned on so that we can test every aspect of the game. Your characters are kept: Sandbox is never wiped.</p>
++<p>Sandbox is listed in the server select as <b>Sandbox Test - No Wipes</b>. It is our sandbox test server: the original game rebuilt, with a number of extra features turned on so that we can test every aspect of the game. Heirloom has no planned character wipes. Bugs or rollbacks can still erase progress.</p>
+ <p><b>Sandbox offers extra services to help players test every part of the game.</b> Each one is there to gather the data we need, or to get testers to the content that needs checking without a full server's population behind them. The sections below describe Sandbox. Shared client controls and commands are identified where they also work on Live.</p>
+ <p><b>At a glance</b></p>
+ <ul class="feat">
+-<li><span class="txt">Your characters are kept: Sandbox is never wiped.</span></li>
++<li><span class="txt">No planned character wipes on Heirloom.</span></li>
+ <li><span class="txt">The whole original game rebuilt on the server, ready to test: combat, spells, pets, quests, raids, crafting, fishing and travel.</span></li>
+ <li><span class="txt"><b>A PvP flag you can turn on</b>, because we need data to balance PvP. Duels with tunar wagers and the Siege of Zentar's Keep are here too.</span></li>
+@@ -930,5 +930,5 @@
+   <footer>
+     <div class="wrap">
+-      <p>eqoaclassic.com: a fan-run EQOA preservation project. Free, no monetization, and not affiliated with Daybreak Game Company or Sony. EQOA belongs to its owners; we distribute none of the game.</p>
++      <p>eqoaclassic.com: a fan-run EQOA preservation project. Free, no monetization, and not affiliated with Daybreak Game Company or Sony. EQOA belongs to its owners. Bring your own Frontiers disc. <a href="/terms">Player Terms</a> &middot; <a href="/privacy">Privacy Notice</a>.</p>
+       <p style="margin-top:10px"><a href="/eqoa/play/">Play</a><a href="/#realms">Servers</a><a href="/eqoa/guide/">Guide</a><a href="/commands.html">Commands</a><a href="/contributors.html">Thanks</a><a href="/ps2/">PS2</a><a href="https://eqoa.live" target="_blank" rel="noopener">eqoa.live</a></p>
+     </div>

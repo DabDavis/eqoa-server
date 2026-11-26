@@ -672,6 +672,9 @@ auth:
   # the packet, so without it a client can skip the auth server entirely and
   # name any account, which makes the password check pointless.
   require_tcp_login: true
+  # EQOA Classic sets this to true on the account authority and every game shard.
+  # See docs/player-terms-rollout.md before enabling it on a running service.
+  require_player_terms: false
 
   # How long a completed login stays usable for the UDP handshake. It needs to
   # cover a player sitting on the server-select and character-select screens.

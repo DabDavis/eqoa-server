@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html"
 	"io"
@@ -25,6 +26,7 @@ import (
 
 // AccountServer provides HTTP endpoints for account registration and character management.
 type AccountServer struct {
+	playerTerms  *playerTermsPortal
 	db           *database.SQLiteDB
 	accountStore *database.SQLiteAccountStore
 	charStore    *database.SQLiteCharacterStore
@@ -35,7 +37,7 @@ type AccountServer struct {
 
 	// Track IPs that have created accounts
 	createdIPs   map[string]bool
-	createdIPsMu sync.RWMutex
+	createdIPsMu sync.Mutex
 
 	// Session tokens for logged-in users
 	sessions         map[string]*webSession
@@ -303,6 +305,10 @@ func (s *AccountServer) Start() error {
 // Handler is the account server's routes.
 func (s *AccountServer) Handler() http.Handler {
 	mux := http.NewServeMux()
+	if s.playerTerms != nil {
+		mux.HandleFunc("/terms", s.handlePlayerTerms)
+		mux.HandleFunc("/privacy", s.handlePlayerPrivacy)
+	}
 	mux.HandleFunc("/", s.handleIndex)
 	mux.HandleFunc("/register", s.handleRegisterPage)
 	mux.HandleFunc("/login", s.handleLoginPage)
@@ -696,6 +702,7 @@ func (s *AccountServer) handleIndex(w http.ResponseWriter, r *http.Request) {
 <body>
     <h1>EQOA Private Server</h1>
     <div class="nav">
+        ` + s.policyLinks() + `
         <a href="/login">Login</a>
         <a href="/register">Register</a>
     </div>
@@ -715,6 +722,10 @@ func (s *AccountServer) handleIndex(w http.ResponseWriter, r *http.Request) {
 // account from 2026-11-18 to 11-19; [OG] is now a character's, chosen when the
 // character is new: database/ogchar.go.)
 func (s *AccountServer) handleRegisterPage(w http.ResponseWriter, r *http.Request) {
+	if s.playerTerms != nil {
+		http.Redirect(w, r, playerTermsURL+"?mode=create", http.StatusSeeOther)
+		return
+	}
 	html := `<!DOCTYPE html>
 <html>
 <head>
@@ -822,6 +833,7 @@ func (s *AccountServer) handleLoginPage(w http.ResponseWriter, r *http.Request) 
 <body>
     <h1>Login</h1>
     <div class="nav">
+        ` + s.policyLinks() + `
         <a href="/">Home</a>
         <a href="/login">Login</a>
         <a href="/register">Register</a>
@@ -892,6 +904,7 @@ func (s *AccountServer) handleCharactersPage(w http.ResponseWriter, r *http.Requ
 <body>
     <h1>My Characters</h1>
     <div class="nav">
+        ` + s.policyLinks() + `
         <a href="/characters">Characters</a>
         <a href="/logout">Logout</a>
         <span class="user">Logged in as: ` + html.EscapeString(sess.Username) + `</span>
@@ -1162,6 +1175,11 @@ func (s *AccountServer) handleLogout(w http.ResponseWriter, r *http.Request) {
 // handleAPIRegister handles JSON API registration.
 func (s *AccountServer) handleAPIRegister(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	if s.playerTerms != nil {
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(map[string]any{"success": false, "error": playerTermsInstruction, "url": playerTermsURL})
+		return
+	}
 	if r.Method != http.MethodPost {
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Method not allowed"})
 		return
@@ -1177,40 +1195,42 @@ func (s *AccountServer) handleAPIRegister(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// with e-mail on (accountemail.go), an address is asked for and required,
-	// and mailed its link at once
-	if s.Mail != nil {
-		if _, err := mailer.Normalize(req.Email); err != nil {
-			json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": err.Error()})
-			return
-		}
-	}
-	clientIP := s.getClientIP(r)
-	err := s.createAccount(clientIP, req.Username, req.Password)
+	reply, err := s.registerAccount(s.getClientIP(r), req.Username, req.Password, req.Email, "")
 	if err != nil {
-		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": err.Error()})
+		json.NewEncoder(w).Encode(map[string]any{"success": false, "error": err.Error()})
 		return
 	}
-	if s.Mail != nil {
-		acc, err := s.accountStore.GetByUsername(strings.TrimSpace(req.Username))
-		if err != nil {
-			log.Printf("AccountServer: the new account '%s' could not be read back for its e-mail: %v", req.Username, err)
-			json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
-			return
-		}
-		masked, err := s.Mail.SetEmail(acc.ID, req.Email, clientIP)
-		if err != nil {
-			log.Printf("AccountServer: the new account '%s''s e-mail: %v", acc.Username, err)
-			json.NewEncoder(w).Encode(map[string]interface{}{"success": true,
-				"message": "Account created, but its e-mail could not be saved: set it on the account page's E-mail tab."})
-			return
-		}
-		json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "email": masked,
-			"message": "Account created. Check your e-mail: we sent a link to " + masked + " to verify your account (check spam too)."})
-		return
-	}
+	json.NewEncoder(w).Encode(reply)
+}
 
-	json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
+type registrationReply struct {
+	Success bool   `json:"success"`
+	Email   string `json:"email,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
+func (s *AccountServer) registerAccount(clientIP, username, password, email, version string) (registrationReply, error) {
+	if s.Mail != nil {
+		if _, err := mailer.Normalize(email); err != nil {
+			return registrationReply{}, err
+		}
+	}
+	account, err := s.createAccount(clientIP, username, password, version)
+	if err != nil {
+		return registrationReply{}, err
+	}
+	reply := registrationReply{Success: true}
+	if s.Mail != nil {
+		masked, err := s.Mail.SetEmail(account.ID, email, clientIP)
+		if err != nil {
+			log.Printf("AccountServer: the new account '%s''s e-mail: %v", account.Username, err)
+			reply.Message = "Account created. Set your e-mail on the account help page to request a verification link."
+		} else {
+			reply.Email = masked
+			reply.Message = "Account created. Check your e-mail: we sent a link to " + masked + " to verify your account (check spam too)."
+		}
+	}
+	return reply, nil
 }
 
 // handleAPILogin handles JSON API login.
@@ -1541,50 +1561,66 @@ func (s *AccountServer) handleAPIDeleteCharacter(w http.ResponseWriter, r *http.
 }
 
 // createAccount creates a new account with validation.
-func (s *AccountServer) createAccount(clientIP, username, password string) error {
+func (s *AccountServer) createAccount(clientIP, username, password, version string) (*database.AccountRecord, error) {
 	username = strings.TrimSpace(username)
 	if len(username) < 3 || len(username) > 16 {
-		return fmt.Errorf("username must be 3-16 characters")
+		return nil, fmt.Errorf("username must be 3-16 characters")
 	}
 	for _, c := range username {
 		if !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_') {
-			return fmt.Errorf("username can only contain letters, numbers, and underscores")
+			return nil, fmt.Errorf("username can only contain letters, numbers, and underscores")
 		}
 	}
 	if len(password) < 4 {
-		return fmt.Errorf("password must be at least 4 characters")
+		return nil, fmt.Errorf("password must be at least 4 characters")
 	}
 	if len(password) > auth.MaxPasswordLen {
-		return fmt.Errorf("password must be at most %d characters, all the game's login can carry", auth.MaxPasswordLen)
+		return nil, fmt.Errorf("password must be at most %d characters, all the game's login can carry", auth.MaxPasswordLen)
 	}
 
-	s.createdIPsMu.RLock()
-	alreadyCreated := s.createdIPs[clientIP]
-	s.createdIPsMu.RUnlock()
-	if alreadyCreated {
-		return fmt.Errorf("account already created from this IP address")
+	s.createdIPsMu.Lock()
+	if s.createdIPs[clientIP] {
+		s.createdIPsMu.Unlock()
+		return nil, fmt.Errorf("account already created from this IP address")
 	}
+	s.createdIPs[clientIP] = true
+	s.createdIPsMu.Unlock()
+	created := false
+	defer func() {
+		if !created {
+			s.createdIPsMu.Lock()
+			delete(s.createdIPs, clientIP)
+			s.createdIPsMu.Unlock()
+		}
+	}()
 
 	_, err := s.accountStore.GetByUsername(username)
 	if err == nil {
-		return fmt.Errorf("username already taken")
+		return nil, fmt.Errorf("username already taken")
+	}
+	if !errors.Is(err, database.ErrAccountNotFound) {
+		log.Printf("AccountServer: cannot check account availability: %v", err)
+		return nil, fmt.Errorf("could not check account availability")
 	}
 
 	hash, err := auth.HashPassword(password, s.bcryptCost)
 	if err != nil {
 		log.Printf("AccountServer: failed to hash password for '%s': %v", username, err)
-		return fmt.Errorf("failed to create account")
+		return nil, fmt.Errorf("failed to create account")
 	}
 
-	_, err = s.accountStore.Create(username, hash)
+	var account *database.AccountRecord
+	if version == "" {
+		account, err = s.accountStore.Create(username, hash)
+	} else {
+		account, err = s.accountStore.CreateWithPlayerTerms(username, hash, version)
+	}
 	if err != nil {
 		log.Printf("AccountServer: failed to create account '%s': %v", username, err)
-		return fmt.Errorf("failed to create account")
+		return nil, fmt.Errorf("failed to create account")
 	}
-	s.createdIPsMu.Lock()
-	s.createdIPs[clientIP] = true
-	s.createdIPsMu.Unlock()
+	created = true
 
 	log.Printf("AccountServer: account '%s' created from IP %s", username, clientIP)
-	return nil
+	return account, nil
 }

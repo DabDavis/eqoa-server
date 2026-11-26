@@ -80,7 +80,7 @@ func TestStationPakServesLongPasswords(t *testing.T) {
 // one before anything is looked up.
 func TestAccountPageRefusesAPasswordTheLoginCannotCarry(t *testing.T) {
 	s := &AccountServer{}
-	err := s.createAccount("192.0.2.1", "longpass", strings.Repeat("p", auth.MaxPasswordLen+1))
+	_, err := s.createAccount("192.0.2.1", "longpass", strings.Repeat("p", auth.MaxPasswordLen+1), "")
 	if err == nil || !strings.Contains(err.Error(), "at most 31") {
 		t.Fatalf("a 32-character password: %v", err)
 	}

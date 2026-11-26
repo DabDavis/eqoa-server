@@ -42,7 +42,8 @@ type AuthHandler struct {
 	passwords PasswordChecker
 	// emailRefused, when set, refuses an account that may not play for want
 	// of a verified e-mail (SetEmailRefusal).
-	emailRefused func(accountID int) bool
+	emailRefused       func(accountID int) bool
+	playerTermsAllowed func(int) bool
 }
 
 // SetEmailRefusal has the handshake refuse an account f names, by ticket or
@@ -113,6 +114,10 @@ func (h *AuthHandler) resolveAccount(username string, ticketID int) (*database.A
 // client waited on "Connecting..." for good.
 func (h *AuthHandler) authorizeUsername(sess *session.Session, stage, username string, token []byte) (int, bool) {
 	accountID, ok := h.authorizeLogin(sess, stage, username, token)
+	if ok && h.playerTermsAllowed != nil && !h.playerTermsAllowed(accountID) {
+		SendDisconnect(sess, protocol.OpcodeBadLoginPassword)
+		return 0, false
+	}
 	if ok && accountID > 0 && h.emailRefused != nil && h.emailRefused(accountID) {
 		log.Printf("%s: REJECTED username %q (ID %d) -- no verified e-mail; told the client (0x%04X)",
 			stage, username, accountID, uint16(protocol.OpcodeBadLoginPassword))

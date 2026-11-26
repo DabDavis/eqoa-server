@@ -172,6 +172,13 @@ const EmailRefusalPage = "data/ui/EnterKey.xml"
 
 // emailRefusalPage is EmailRefusalPage's page naming the website page.
 func emailRefusalPage(page string) []byte {
+	return stationAccountNotice("Your account needs a verified e-mail. Verify it at", page,
+		"Open the link we e-mailed you. No e-mail from us? On that page, log in, give your address on the "+
+			"E-mail tab and open the link it sends. Then log in here again.", "Verify Your E-mail",
+		"Every account needs a verified e-mail address: with it you can never lose your account, and a forgotten password is reset by e-mail.")
+}
+
+func stationAccountNotice(title, page, detail, helpTitle, helpText string) []byte {
 	text := func(val string, y, height int, r, g, b int) string {
 		size := ""
 		if height > 0 {
@@ -184,10 +191,9 @@ func emailRefusalPage(page string) []byte {
 		stationBackdrop,
 		// the reason in the station's yellow, the page on a line of its own
 		// (a wrapped line breaks only at a space, and the page has none)
-		text("Your account needs a verified e-mail. Verify it at", 118, 64, 255, 226, 97),
+		text(title, 118, 64, 255, 226, 97),
 		text(page+".", 168, 0, 255, 255, 255),
-		text("Open the link we e-mailed you. No e-mail from us? On that page, log in, give your address on the "+
-			"E-mail tab and open the link it sends. Then log in here again.", 220, 130, 220, 220, 220),
+		text(detail, 220, 130, 220, 220, 220),
 		`	<Object>
 		<Position x="237" y="380"/>
 		<Image imageType="StationTri"/>
@@ -197,8 +203,7 @@ func emailRefusalPage(page string) []byte {
 		<TextColor r="255" g="226" b="97"/>
 	</Text>
 `,
-		stationHelp("Verify Your E-mail", "Every account needs a verified e-mail address: with it you can never lose your "+
-			"account, and a forgotten password is reset by e-mail."))
+		stationHelp(helpTitle, helpText))
 }
 
 // stationCreate2 is IDCreat2, the e-mail and Create Account. (From 2026-11-18

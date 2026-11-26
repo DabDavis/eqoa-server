@@ -19,11 +19,15 @@ func TestMainWiresASharedShard(t *testing.T) {
 	}
 	s := string(src)
 	for _, want := range []string{
-		"if cfg.Auth.RequireTCPLogin || sharedAccounts {\n\t\thandlerRegistry.SetLoginTickets(loginTickets)",
-		"if cfg.Auth.RequireTCPLogin || sharedAccounts {\n\t\t// a client back at the server list",
+		"requireGameLogin := cfg.Auth.RequireTCPLogin || sharedAccounts || cfg.Auth.RequirePlayerTerms",
+		"if requireGameLogin {\n\t\thandlerRegistry.SetLoginTickets(loginTickets)",
+		"if requireGameLogin {\n\t\t// a client back at the server list",
 		"if sharedAccounts {\n\t\tauthGrants = nil\n\t}",
 		"tcp.NewAuthServer(cfg, accountStore, authGrants)",
 		"authHandler.SetAccountRefresh(mirror.PullOne)",
+		"readReceipt = mirror.HasPlayerTerms",
+		"handlerRegistry.SetPlayerTermsAllowed(playerTermsAllowed)",
+		"udpListener.PlayerTermsAllowed = playerTermsAllowed",
 	} {
 		if !strings.Contains(s, want) {
 			t.Errorf("main.go does not say %q", want)

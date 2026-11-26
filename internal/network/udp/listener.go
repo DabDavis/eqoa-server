@@ -42,6 +42,9 @@ const (
 
 // Listener handles UDP network communication.
 type Listener struct {
+	// PlayerTermsAllowed also covers sessions carried over by a hot restart.
+	PlayerTermsAllowed func(int) bool
+
 	conn           *net.UDPConn
 	addr           *net.UDPAddr
 	cfg            *config.Config

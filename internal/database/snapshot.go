@@ -81,6 +81,7 @@ type snapshotRule struct {
 // snapshot until it is given a rule. CLAUDE.md's table of what a snapshot
 // leaves out is these rules.
 var snapshotRules = map[string]snapshotRule{
+	"account_terms_acceptances": {clear: true, why: "private agreement receipts tied to individual accounts"},
 	// Credentials and the people behind the accounts.
 	"accountinfo": {
 		keep: []string{"accountid", "username", "acctstatus", "acctlevel", "acctcreation",

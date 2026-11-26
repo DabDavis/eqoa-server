@@ -358,7 +358,14 @@ goes on the work board above; a personal board is for talking about it.
   reward and no word: a homeland's starter quest stands for its city's, so leave these on the homelands'
   quests), `die` (a step's, `npc` or none for the step's target: the nearest of that name within 40 of the
   player dies where it stands, its death played, no loot, experience, faction or kill credit, back on its own
-  respawn: Delwin at the Assassination quests' poisoned chocolates); one popup at a time (the
+  respawn: Delwin at the Assassination quests' poisoned chocolates). A trial's setbacks (Live petition 5663, the
+  Were-Hunter Trials) put the quest back to an earlier step `back`, change `factions` (`Faction Name:-75`) and, with
+  `regain`, keep that step's NPC from doing it again until the standing lost is earned back; the steps passed back over
+  are undone (what their give steps took handed back, what they gave taken back), their spawns gone: `clock` (a
+  step's, on `start` or `done`: `minutes` to reach step `until`, `text` said when the time is up; it runs offline and
+  over a restart), `ward` (a step's, on `start`: a place `world`, `x`, `z`, `radius` the player must not come into),
+  `back` (a give or show step's, on `lacking`: its NPC met without what it needs, its `notyet` said first); a choice's
+  option takes `back`, `factions` and `regain` too (a wrong answer). One popup at a time (the
   client shows one question box at once). The journal holds eight quests. Keep a quest
   a draft (`enabled` 0) until it is right; `quest_try` gives it to your own character in the world to play.
 - **Hundreds of quests** (the city quests imported whole, `tools/import_quests.py`): `quest_list` with `status`

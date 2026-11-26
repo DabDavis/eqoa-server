@@ -153,6 +153,12 @@ NPC's enemy, dummy's player, death, owner or hit points calls `wakeNPCLocked`** 
 that sets a fight or death by hand after the first tick calls `wakeNPCLocked` too (`EQOA_CHECK_NPC_SETS=log` lists
 every such place in one run).
 
+**Tick caches** (2026-11-26): `entityChannelSyncSystem` makes each entity's own part of its channel once a pass and
+lays each viewer's part over it (`entity/chancache.go`: a new viewer-dependent write goes in
+`serializeEntityChannelCached` too, in `serializeEntityDiscIn`'s order); buff lines are read once a text and a
+spell's lines kept while its figures are unchanged (`entity/linecache.go`). Both are held to the old paths
+byte for byte by their tests (`chancache_test.go`, `linecache_test.go`).
+
 **The tick timer** (`entity/ticktime.go`) times each system as a lap: a `Tick:` log line every minute, a turn past
 50 ms its own line, `#ticks` in the game.
 

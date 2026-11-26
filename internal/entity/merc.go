@@ -211,6 +211,9 @@ type MercLook struct {
 // mercState is one merc, kept by its owner's id and its slot.
 type mercState struct {
 	owner *Player
+	// modsMemo is syncMercBody's last sum of its effects (linecache.go's
+	// effectModsMemo)
+	modsMemo effectModsMemo
 	// arenaWait: its owner is in an arena duel and was told it waits
 	// (mercArenaWaitLine)
 	arenaWait bool
@@ -1025,7 +1028,7 @@ func share(v, top int) float64 {
 func syncMercBody(ms *mercState) {
 	n, b := ms.npc, ms.body
 	b.X, b.Y, b.Z, b.Facing, b.World = n.X, n.Y, n.Z, n.Facing, n.World
-	b.Mods = sumEffectMods(n.Effects)
+	b.Mods = ms.modsMemo.sum(n.Effects) // sumEffectMods, again only when an effect changed (linecache.go)
 	n.MaxHP, n.MaxPower = b.MaxHPNow(), b.MaxPowerNow()
 	n.effMaxHP = n.effectsMaxHP()
 	n.HP, n.Power = min(n.HP, n.MaxHP), min(max(n.Power, 0), n.MaxPower)

@@ -311,7 +311,7 @@ func (w *World) mercDamageLocked(ms *mercState, t *NPC, n int, kind numberKind, 
 			return
 		}
 		if tid := w.objectIDForEntityLocked(sess, t.ServerID); tid != 0 {
-			w.sendDamageIndication(sess, sess.PlayerObjectID(), -n, tid, kind.byMerc())
+			w.dpsByLocked(m.ServerID, func() { w.sendDamageIndication(sess, sess.PlayerObjectID(), -n, tid, kind.byMerc()) }) // its meter line (dpsmerc.go)
 		}
 	}
 	m.LastCombatTime = now

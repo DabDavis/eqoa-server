@@ -1834,7 +1834,7 @@ func (w *World) healLocked(caster *Player, casterSess *session.Session, t *Playe
 	if owner, merc := w.dpsMercBodyLocked(caster); merc && kind.tagged() {
 		// a merc's heal: its owner's healing, its merc's share, wherever it
 		// landed (told as the merc's to its owner alone: dpsheal.go)
-		w.dpsAddLocked(owner, dpsHeal, filled, true, dpsMeterNow())
+		w.dpsAddByLocked(owner, dpsHeal, filled, true, w.dpsMercOfLocked(owner, caster.ServerID), dpsMeterNow())
 		filled = 0
 	}
 	w.dpsWorthLocked(filled, func() { w.tellAmountLocked(caster, casterSess, t.ServerID, n, kind) }) // the meter's: what it restored (dpsheal.go)
@@ -1973,7 +1973,7 @@ func (w *World) runTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 				kind = ae.tickKind(true)
 			}
 		}
-		w.healLocked(caster, w.findSessionByEntityIDLocked(caster.ServerID), t, ae.HPTick, kind)
+		w.dpsByLocked(ae.Caster, func() { w.healLocked(caster, w.findSessionByEntityIDLocked(caster.ServerID), t, ae.HPTick, kind) }) // a merc's tick: its meter line (dpsmerc.go)
 	}
 	if ae.PowerTick > 0 && t.Power < t.MaxPowerNow() {
 		was := t.Power

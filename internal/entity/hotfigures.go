@@ -42,6 +42,7 @@ func (w *World) tellNPCHoTLocked(npc *NPC, ae *ActiveEffect, n int) {
 	if n <= 0 || npc.Dead {
 		return
 	}
+	defer w.dpsBySetLocked(ae.Caster)() // a merc's tick: its meter line (dpsmerc.go)
 	caster := w.Players[ae.Caster]
 	if caster != nil {
 		w.tellAmountLocked(caster, w.findSessionByEntityIDLocked(caster.ServerID), npc.ServerID, n, ae.tickKind(true))

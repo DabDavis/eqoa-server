@@ -83,6 +83,9 @@ type World struct {
 	// at most, while dpsWorthOn (dpsheal.go: dpsWorthLocked)
 	dpsWorth   int
 	dpsWorthOn bool
+	// dpsBy is the merc whose figures are told now, while dpsByLocked runs
+	// them: the damage meter's merc line they count on (dpsmerc.go)
+	dpsBy EntityID
 
 	// Buddy and ignore lists (social.go), in memory only
 	social socialLists

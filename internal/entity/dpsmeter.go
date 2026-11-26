@@ -109,12 +109,14 @@ const dpsMeterTicks = 5
 const dpsMeterLayout = 1
 
 // DPSMeterLayoutNewest is the newest layout the server writes, the one its
-// offer names: 2, layout 1 with each line's healing and power given beside its
-// damage (Heirloom petition 3030, the owner's "build both": "DPS meter should
+// offer names: 3, layout 2 with each merc's line apart (dpsmerc.go, Heirloom
+// petition 3134). Layout 2 is layout 1 with each line's healing and power given
+// beside its damage (Heirloom petition 3030, the owner's "build both": "DPS meter should
 // have options to include healing per second, and if possible power provided
 // per second"). A client answers the layout it reads (at most this one; 1
-// from every vanilla before it) and is sent that one.
-const DPSMeterLayoutNewest = 2
+// from every vanilla before layout 2, 2 from those before 3) and is sent that
+// one.
+const DPSMeterLayoutNewest = 3
 
 // dpsNameBytes is the most bytes of a name sent, as a roster's (writeName8).
 const dpsNameBytes = 23
@@ -148,6 +150,9 @@ type dpsFight struct {
 	lines       map[EntityID]*dpsLine
 	group       *Group
 	solo        *Player
+	// mercs is each merc's own line (dpsmerc.go), its counts its owner's
+	// line's too
+	mercs map[EntityID]*dpsMercLine
 }
 
 // dpsMeter is a client's meter: the fight it is shown (view, its player's
@@ -157,7 +162,7 @@ type dpsFight struct {
 // asked).
 type dpsMeter struct {
 	// layout: the data's layout the client answered (1, damage alone; 2,
-	// healing and power too: DPSMeterLayoutNewest)
+	// healing and power too; 3, mercs' lines apart: DPSMeterLayoutNewest)
 	layout  uint8
 	view    *dpsFight
 	shown   uint32
@@ -279,7 +284,7 @@ func (w *World) dpsFigureLocked(sess *session.Session, n int, kind numberKind, t
 	if p == nil || n <= 0 || w.friendlyFigureLocked(sess, p, target) {
 		return
 	}
-	w.dpsCountLocked(p, n, kind.byHelper(), dpsMeterNow())
+	w.dpsAddByLocked(p, dpsDamage, n, kind.byHelper(), w.dpsFigureMercLocked(p, kind), dpsMeterNow())
 }
 
 // friendlyFigureLocked is whether a figure on target (the id sess's client knows
@@ -329,6 +334,14 @@ const (
 // fight, and a fight's length is its damage's. Must be called with the lock
 // held.
 func (w *World) dpsAddLocked(maker *Player, what dpsWhat, n int, byPet bool, now time.Time) {
+	w.dpsAddByLocked(maker, what, n, byPet, 0, now)
+}
+
+// dpsAddByLocked is dpsAddLocked's, merc (0 none) the merc of maker's that
+// made it (byPet then true): counted on maker's line as its helper's share, as
+// ever, and on the merc's own line too (dpsmerc.go). Must be called with the
+// lock held.
+func (w *World) dpsAddByLocked(maker *Player, what dpsWhat, n int, byPet bool, merc EntityID, now time.Time) {
 	if maker == nil || n <= 0 {
 		return
 	}
@@ -362,6 +375,9 @@ func (w *World) dpsAddLocked(maker *Player, what dpsWhat, n int, byPet bool, now
 		l = &dpsLine{name: maker.Name, class: maker.Class}
 		f.lines[maker.ServerID] = l
 	}
+	if merc != 0 && byPet {
+		w.dpsMercLineLocked(f, maker, merc).add(what, n)
+	}
 	switch what {
 	case dpsHeal:
 		l.heal += int64(n)
@@ -387,6 +403,8 @@ type dpsRow struct {
 	id    EntityID
 	line  dpsLine
 	flags byte
+	// owner is a merc's line's owner's name (layout 3, dpsmerc.go)
+	owner string
 }
 
 // dpsRowsLocked is every line of fight f as p's meter is sent it, in the order
@@ -425,16 +443,17 @@ func (w *World) dpsRowsLocked(p *Player, m *dpsFight) []dpsRow {
 			rows[i].flags |= 2
 		}
 	}
-	sort.Slice(rows, func(i, j int) bool {
-		a, b := rows[i], rows[j]
-		if a.line.damage != b.line.damage {
-			return a.line.damage > b.line.damage
-		}
-		if a.line.name != b.line.name {
-			return a.line.name < b.line.name
-		}
-		return a.id < b.id
-	})
+	sortDPSRows(rows)
+	return rows
+}
+
+// dpsRowsForLocked is dpsRowsLocked's in layout: from 3, each merc's line
+// apart (dpsSplitMercs). Must be called with the lock held.
+func (w *World) dpsRowsForLocked(p *Player, f *dpsFight, layout uint8) []dpsRow {
+	rows := w.dpsRowsLocked(p, f)
+	if layout >= 3 {
+		rows = dpsSplitMercs(rows, f, p)
+	}
 	return rows
 }
 
@@ -459,7 +478,7 @@ func encodeDPSMeter(fight uint32, over bool, length time.Duration, rows []dpsRow
 }
 
 // encodeDPSMeterLayout is OpcodeDPSMeterData's body (past its opcode) in layout
-// (1, or 2) for a fight of number fight, over or not, length long, of rows in
+// (1, 2 or 3) for a fight of number fight, over or not, length long, of rows in
 // their order (the most damage first). Layout 1: the first DPSMeterLinesMost,
 // the receiver's own (flag 1) in the last place when it is not among them, its
 // place among all of them said (0 for none). Layout 2: the same header, then the
@@ -468,7 +487,27 @@ func encodeDPSMeter(fight uint32, over bool, length time.Duration, rows []dpsRow
 // top healers and power givers are among them whatever their damage), still in
 // the order of damage, the receiver's own always among them; each line its
 // healing, its pet's share of it and its power after its pet's damage.
+//
+// Layout 3 (Heirloom petition 3134) is layout 2 with each merc's line apart
+// (dpsSplitMercs: flag 4, 8 the receiver's own merc), and each line its owner's
+// name after its own (u8 bytes and UTF-8; none but a merc's line's). The owners'
+// names are left out (each none) of a message they would make longer than
+// dpsMeterBodyMost.
 func encodeDPSMeterLayout(layout uint8, fight uint32, over bool, length time.Duration, rows []dpsRow) []byte {
+	out := encodeDPSMeterBody(layout, fight, over, length, rows, true)
+	if layout >= 3 && len(out) > dpsMeterBodyMost {
+		out = encodeDPSMeterBody(layout, fight, over, length, rows, false)
+	}
+	return out
+}
+
+// dpsMeterBodyMost is the longest OpcodeDPSMeterData body a message carries
+// with room to spare (protocol.DefaultMessageSize, its opcode and more).
+const dpsMeterBodyMost = protocol.DefaultMessageSize - 16
+
+// encodeDPSMeterBody is encodeDPSMeterLayout's, owners false leaving layout 3's
+// owners' names out.
+func encodeDPSMeterBody(layout uint8, fight uint32, over bool, length time.Duration, rows []dpsRow, owners bool) []byte {
 	var total, heal, power int64
 	mine := -1
 	for i, r := range rows {
@@ -525,6 +564,14 @@ func encodeDPSMeterLayout(layout uint8, fight uint32, over bool, length time.Dur
 		}
 		out = append(out, byte(len(name)))
 		out = append(out, name...)
+		if layout >= 3 {
+			owner := ""
+			if owners {
+				owner = dpsName(r.owner)
+			}
+			out = append(out, byte(len(owner)))
+			out = append(out, owner...)
+		}
 	}
 	return out
 }
@@ -628,7 +675,7 @@ func (w *World) dpsMeterSystem(now time.Time) {
 			// another group, or none: the view of the last fight ends, told
 			// once more as it stands, over, when it was being told
 			if old := m.view; old != nil && old.live && m.shown == old.number {
-				send(s, m, encodeDPSMeterLayout(m.layout, old.number, true, old.last.Sub(old.start), w.dpsRowsLocked(p, old)))
+				send(s, m, encodeDPSMeterLayout(m.layout, old.number, true, old.last.Sub(old.start), w.dpsRowsForLocked(p, old, m.layout)))
 			}
 			m.view, m.shown, m.sent, m.due = f, 0, "", true
 		}
@@ -636,7 +683,7 @@ func (w *World) dpsMeterSystem(now time.Time) {
 			return true
 		}
 		over := ending[f]
-		body := encodeDPSMeterLayout(m.layout, f.number, over, f.last.Sub(f.start), w.dpsRowsLocked(p, f))
+		body := encodeDPSMeterLayout(m.layout, f.number, over, f.last.Sub(f.start), w.dpsRowsForLocked(p, f, m.layout))
 		switch {
 		case over:
 			log.Printf("DPSMeter: %s's fight %d over (%d ms)", p.Name, f.number, f.last.Sub(f.start).Milliseconds())

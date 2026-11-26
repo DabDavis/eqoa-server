@@ -484,6 +484,12 @@ type WorldConfig struct {
 	// or false, /pvp says it is not available and nothing else changes.
 	PvP bool `yaml:"pvp"`
 
+	// VampireFemaleBody is the body (a model id, hex "0xD7540FDA" or decimal) a
+	// female vampire wears in Vampire Form (entity/illusion.go). Unset or 0: the
+	// human woman's, 0x0D537335, Vampire Tserrina's look. The male form is
+	// always the fledgling vampire's body. Live sets the Dawn Maiden's, 0xD7540FDA.
+	VampireFemaleBody uint32 `yaml:"vampire_female_body"`
+
 	// Jump lets players jump (entity/jump.go, handlers/jump.go): a client that
 	// can (vanilla) is offered it (protocol.OpcodeJump) and jumps about 0.9 up,
 	// and the movement check takes a jump's arc from it. Unset or false: nothing

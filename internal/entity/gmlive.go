@@ -425,18 +425,17 @@ func (w *World) PlayerByCharacter(serverID uint32) (PlayerState, bool) {
 	return PlayerState{}, false
 }
 
-// SetPlayerLook puts a face and hair on a character in the world where it
-// stands: every client's channel shows them at the next tick. It reports false
-// for a character not in the world.
-func (w *World) SetPlayerLook(serverID uint32, face, hairStyle, hairLength, hairColor int) bool {
+// SetSelectedPlayerLook applies the appearance picked by a returning session
+// to the live player it takes over. A chosen model replaces the base body.
+func (w *World) SetSelectedPlayerLook(record *database.CharacterRecord, model int64) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	p := w.playerByCharacterLocked(serverID)
-	if p == nil {
-		return false
+	if p := w.playerByCharacterLocked(uint32(record.ServerID)); p != nil {
+		p.FaceOption, p.HairStyle, p.HairLength, p.HairColor = record.FaceOption, record.HairStyle, record.HairLength, record.HairColor
+		if model != 0 {
+			p.ModelID = model
+		}
 	}
-	p.FaceOption, p.HairStyle, p.HairLength, p.HairColor = face, hairStyle, hairLength, hairColor
-	return true
 }
 
 // SetPlayerLevel sets an online player's level where the game holds it: its

@@ -114,21 +114,16 @@ func TestASkinShadeIsALook(t *testing.T) {
 	}
 }
 
-// Select's Customize re-chooses a game race's shade: the row replaced, its
-// first step taking it away, every other row kept. Refused: a custom race (its
-// body is chosen at creation), a row the race has not, a step past the row's,
-// a row twice; and on a server without the shades every row (the control).
+// A retail skin shade can be set or reset using the legacy protocol.
 func TestReselectOptions(t *testing.T) {
 	withSkins(t, true)
-	other := database.CharLook{Part: "cape", Kind: 2, Value: 7}
-	have := []database.CharLook{other, {Part: "skin", Kind: 2, Value: skinShades[3].Value}}
-	looks, changed, err := ReselectOptions(8, 0, have, []OptionChoice{{Key: "skin", Step: 9}})
-	if err != nil || len(changed) != 1 || len(looks) != 2 || looks[0] != other || looks[1].Value != skinShades[9].Value {
-		t.Fatalf("Ebony: %+v %v %v", looks, changed, err)
+	body, reset, looks, err := ReselectOptions(8, 0, 2, false, []OptionChoice{{Key: "skin", Step: 9}})
+	if err != nil || body != 0 || len(reset) != 0 || len(looks) != 1 || looks[0].Part != "skin" || looks[0].Value != skinShades[9].Value {
+		t.Fatalf("Ebony: model %x, reset %v, looks %+v, error %v", body, reset, looks, err)
 	}
-	looks, _, err = ReselectOptions(8, 0, have, []OptionChoice{{Key: "skin", Step: 0}})
-	if err != nil || len(looks) != 1 || looks[0] != other {
-		t.Fatalf("Natural again: %+v %v", looks, err)
+	_, reset, looks, err = ReselectOptions(8, 0, 2, false, []OptionChoice{{Key: "skin", Step: 0}})
+	if err != nil || len(reset) != 1 || reset[0] != "skin" || len(looks) != 0 {
+		t.Fatalf("Natural again: %v %+v %v", reset, looks, err)
 	}
 	for name, c := range map[string][]OptionChoice{
 		"no row":   {{Key: "hair", Step: 1}},
@@ -136,15 +131,12 @@ func TestReselectOptions(t *testing.T) {
 		"twice":    {{Key: "skin", Step: 1}, {Key: "skin", Step: 2}},
 		"negative": {{Key: "skin", Step: -1}},
 	} {
-		if _, _, err := ReselectOptions(8, 0, have, c); err == nil {
+		if _, _, _, err := ReselectOptions(8, 0, 2, false, c); err == nil {
 			t.Errorf("%s: kept", name)
 		}
 	}
-	if _, _, err := ReselectOptions(28, 0, nil, []OptionChoice{{Key: "cap", Step: 1}}); err == nil {
-		t.Error("a custom race: kept")
-	}
 	withSkins(t, false)
-	if _, _, err := ReselectOptions(8, 0, have, []OptionChoice{{Key: "skin", Step: 1}}); err == nil {
+	if _, _, _, err := ReselectOptions(8, 0, 2, false, []OptionChoice{{Key: "skin", Step: 1}}); err == nil {
 		t.Error("the control: no shades on the server, yet kept")
 	}
 }

@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/binary"
+	"slices"
 	"testing"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -117,6 +118,91 @@ func TestCreateWithRaceOptions(t *testing.T) {
 	}
 	if d := sentOp(s, protocol.OpcodeCreateCharFailed); d == nil {
 		t.Error("no refusal sent")
+	}
+}
+
+func TestCustomRaceReselectsAppearance(t *testing.T) {
+	r := newCreationRig(t, entity.CreationRules{Races: true, AllClasses: true})
+	fungusRow(t, r)
+	blue, pale := uint32(0x4A4D88FB), uint32(0xE8B0ADC8)
+	char := r.createWith(r.session(), "Sporey", 28, 9, 1, choices(entity.OptionChoice{Key: "bag", Step: 3}))
+	if char == nil || uint32(char.ModelID) != blue {
+		t.Fatalf("created character: %+v", char)
+	}
+	id := uint32(char.ServerID)
+	original, err := r.db.CharLooks(id)
+	if err != nil || len(original) != 1 || original[0].Part != "bag" {
+		t.Fatalf("created appearance: %+v, %v", original, err)
+	}
+
+	lobby := func(version uint32) (*session.Session, selectEntry) {
+		t.Helper()
+		s := r.session()
+		r.h.SendCharacterSelectEQOA(s)
+		s.SetRaceLooksLevel(3)
+		msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeSelectInfo)
+		msg.SetData(u32b(version))
+		if err := NewSelectInfoHandler(r.h).HandleSelectInfo(s, msg); err != nil {
+			t.Fatal(err)
+		}
+		data := sentOp(s, protocol.OpcodeSelectInfoData)
+		if len(data) < 3 || data[2] != byte(version) {
+			t.Fatalf("select info v%d: %x", version, data)
+		}
+		return s, readSelectInfo(t, data[2:])[id]
+	}
+	enter := func(s *session.Session, want uint32, edits ...entity.OptionChoice) *entity.Player {
+		t.Helper()
+		data := append(u32b(id), make([]byte, 16)...)
+		msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeSelectedChar)
+		msg.SetData(append(data, choices(edits...)...))
+		if err := r.h.HandleSelectedChar(s, msg); err != nil {
+			t.Fatal(err)
+		}
+		if err := r.h.HandleCharacterInWorld(s, protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeCharacterInWorld)); err != nil {
+			t.Fatal(err)
+		}
+		stored, err := r.store.GetByServerID(id)
+		if err != nil || uint32(stored.ModelID) != want {
+			t.Fatalf("stored appearance: %+v, %v", stored, err)
+		}
+		p := r.h.gameWorld.SessionPlayer(s)
+		if p == nil || uint32(p.ModelID) != want {
+			t.Fatalf("player did not enter with model %#x", want)
+		}
+		return p
+	}
+
+	s, first := lobby(2)
+	if want := []string{"body", "skin", "cap", "growths", "bag"}; first.sex != 1 || !slices.Equal(first.rows, want) || first.values["bag"] != original[0].Value {
+		t.Fatalf("initial customization: %+v", first)
+	}
+	player := enter(s, pale, entity.OptionChoice{Key: "body", Step: 2}, entity.OptionChoice{Key: "cap", Step: 2})
+	looks, err := r.db.CharLooks(id)
+	if err != nil || len(looks) != 2 || looks[0] != original[0] || looks[1].Part != "cap" {
+		t.Fatalf("saved appearance: %+v, %v", looks, err)
+	}
+
+	legacy, info := lobby(1)
+	if len(info.rows) != 0 {
+		t.Fatalf("legacy rows: %v", info.rows)
+	}
+	enter(legacy, pale, entity.OptionChoice{Key: "body", Step: 0})
+	invalid, _ := lobby(2)
+	enter(invalid, pale, entity.OptionChoice{Key: "cap", Step: 0}, entity.OptionChoice{Key: "body", Step: 99})
+	if got, err := r.db.CharLooks(id); err != nil || !slices.Equal(got, looks) {
+		t.Fatalf("an invalid body partially applied other choices: %+v, %v", got, err)
+	}
+
+	next, second := lobby(2)
+	if second.values["bag"] != original[0].Value || second.values["cap"] != looks[1].Value {
+		t.Fatalf("reopened customization: %+v", second)
+	}
+	if got := enter(next, blue, entity.OptionChoice{Key: "body", Step: 0}, entity.OptionChoice{Key: "cap", Step: 0}); got != player {
+		t.Fatal("appearance change rebuilt the live player")
+	}
+	if got, err := r.db.CharLooks(id); err != nil || !slices.Equal(got, original) {
+		t.Fatalf("reset cap and retained bag: %+v, %v", got, err)
 	}
 }
 

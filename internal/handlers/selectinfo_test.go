@@ -79,11 +79,13 @@ type selectEntry struct {
 	name   string
 	points int
 	rows   []string
+	sex    int
+	values map[string]uint32
 }
 
 func readSelectInfo(t *testing.T, b []byte) map[uint32]selectEntry {
 	t.Helper()
-	if len(b) < 3 || b[0] != selectInfoVersion {
+	if len(b) < 3 || (b[0] != 1 && b[0] != selectInfoAppearanceVersion) {
 		t.Fatalf("select info: % x", b)
 	}
 	n := int(binary.LittleEndian.Uint16(b[1:3]))
@@ -106,6 +108,17 @@ func readSelectInfo(t *testing.T, b []byte) map[uint32]selectEntry {
 		at++
 		for range k {
 			e.rows = append(e.rows, str())
+		}
+		if b[0] == selectInfoAppearanceVersion {
+			e.sex = int(b[at])
+			count := int(b[at+1])
+			at += 2
+			e.values = make(map[string]uint32, count)
+			for range count {
+				key := str()
+				e.values[key] = binary.LittleEndian.Uint32(b[at:])
+				at += 4
+			}
 		}
 		out[id] = e
 	}
@@ -149,7 +162,11 @@ func TestSelectInfoOfferedAndAnswered(t *testing.T) {
 		t.Fatal("the list differs by who reads it")
 	}
 	f.answer(t, van, 1)
-	got := readSelectInfo(t, sentOp(van, protocol.OpcodeSelectInfoData)[2:])
+	legacy := sentOp(van, protocol.OpcodeSelectInfoData)[2:]
+	if legacy[0] != 1 {
+		t.Fatalf("version for legacy client: %d", legacy[0])
+	}
+	got := readSelectInfo(t, legacy)
 	want := map[uint32]selectEntry{
 		f.ids[0]: {race: 0},
 		f.ids[1]: {race: 24, name: "Ratman", points: 900},

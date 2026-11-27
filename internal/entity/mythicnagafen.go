@@ -727,7 +727,7 @@ func (w *World) mythicHurtPlayerLocked(boss *NPC, p *Player, n int, line string,
 // mythicHurtMercLocked takes n off a mercenary, its death at nothing (merc.go sees to it).
 func (w *World) mythicHurtMercLocked(boss *NPC, m *NPC, n int, what string) {
 	n = w.npcTakesLocked(m, n, time.Now())
-	m.HP = max(m.HP-n, 0)
+	m.HP = w.dpsTakeHPLocked(m, n)
 	log.Printf("Mythic: %s on the mercenary %q for %d (HP %d/%d)", what, m.Name, n, m.HP, m.MaxHP)
 	if m.HP == 0 {
 		w.killNPC(m)

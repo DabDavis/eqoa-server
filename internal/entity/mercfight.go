@@ -391,6 +391,13 @@ func (w *World) mercDamageLocked(ms *mercState, t *NPC, n int, kind numberKind, 
 		}
 		if tid := w.objectIDForEntityLocked(sess, t.ServerID); tid != 0 {
 			w.dpsByLocked(m.ServerID, func() { w.sendDamageIndication(sess, sess.PlayerObjectID(), -n, tid, kind.byMerc()) }) // its meter line (dpsmerc.go)
+		} else if n > 0 {
+			// a target its owner's client does not hold (a crowded camp past
+			// its view's slots, or out of its reach): no figure is told, and
+			// its hit counts on the meter all the same, on its own line
+			// (Heirloom petition 3397: a cleric merc nuking all fight with no
+			// line)
+			w.dpsAddByLocked(owner, dpsDamage, n, kind.byMerc(), m.ServerID, dpsMeterNow())
 		}
 	}
 	m.LastCombatTime = now

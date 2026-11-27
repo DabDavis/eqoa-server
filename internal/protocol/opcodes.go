@@ -979,6 +979,17 @@ const (
 	// mercenaries (damage, healing, power). The row's base figures exclude
 	// mercenaries. Flag 4 adds three u32 mercenary shares after the name,
 	// in the same metric order. See entity/dpsmeter.go.
+	//
+	// Layout 5 (Heirloom petition 3136) is layout 4 then each merc's own line
+	// after the rows (entity/dpsmeter.go's encodeDPSMeterLayout).
+	//
+	// Layout 6 (Heirloom petition 3397, entity/dpstaken.go) is layout 5 with
+	// the damage taken: after layout 4's places and before the row count, u32
+	// the damage all lines took and u16 the receiver's own place by its own
+	// taken; each row, last, u32 the damage it took (its mercs' left out) and
+	// u32 its mercs' share; each merc line, last, u32 the damage it took. And
+	// every merc out of a member in the group has a merc line, of nothing too.
+	// Taken counts only in a fight under way, as healing and power do.
 	OpcodeDPSMeterData GameOpcode = 0x7E3C
 
 	// OpcodeDPSMeterReset is a client's reset, client to server: a u8, 1. The

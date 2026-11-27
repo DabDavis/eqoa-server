@@ -1111,7 +1111,7 @@ func (w *World) duelHurtPetLocked(d *Duel, attacker *Player, pet *NPC, n int, no
 		pvpPetStruckLocked(attacker, w.Players[pet.Owner], now) // pvp.go: both flags held from now
 	}
 	if dmg < pet.HP {
-		pet.HP -= dmg
+		pet.HP = w.dpsTakeHPLocked(pet, dmg)
 		if d.pvp {
 			log.Printf("%s: %s hits %s's %q for %d (%d before the share; HP %d/%d)", d.tag(), attacker.Name, w.nameOfLocked(pet.Owner), pet.Name, dmg, n, pet.HP, pet.MaxHP)
 		}

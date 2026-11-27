@@ -1395,6 +1395,9 @@ func (w *World) sendGrantXP(sess *session.Session, level, xpInLevel int) {
 // whoever asked for tags; a heal of a kind (a positive amount) the same, as its
 // healing, at what it restored (dpsheal.go).
 func (w *World) sendDamageIndication(sess *session.Session, sourceObjectID uint32, amount int, targetObjectID uint32, kind numberKind) {
+	if amount < 0 && targetObjectID == sess.PlayerObjectID() {
+		w.dpsTakenFigureLocked(w.sessionPlayerLocked(sess), -amount) // damage taken (dpstaken.go)
+	}
 	if amount < 0 && kind.tagged() {
 		w.dpsFigureLocked(sess, -amount, kind, targetObjectID)
 	} else if amount > 0 && kind.tagged() {

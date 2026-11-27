@@ -120,7 +120,7 @@ func (w *World) wardAnswerLocked(npc *NPC, id EntityID, now time.Time) bool {
 		return false
 	}
 	w.broadcastNPCSwingLocked(npc, o.ServerID, 0, fxShieldHit)
-	o.HP = max(o.HP-n, 0)
+	o.HP = w.dpsTakeHPLocked(o, n)
 	o.LastCombatTime = now
 	log.Printf("Template: %s's %s answers %q for %d (HP %d/%d)", npc.Name, name, o.Name, n, o.HP, o.MaxHP)
 	if o.HP > 0 {

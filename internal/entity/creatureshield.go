@@ -89,7 +89,7 @@ func (w *World) creatureShieldOnPetLocked(ps *petState, npc *NPC, now time.Time)
 		taken, _ = pet.petElementalHit(st, taken, now, 1)
 	}
 	w.broadcastNPCSwingLocked(npc, pet.ServerID, 0, fxShieldHit)
-	pet.HP = max(pet.HP-taken, 0)
+	pet.HP = w.dpsTakeHPLocked(pet, taken)
 	pet.LastCombatTime = now
 	log.Printf("Shield: %s's damage shield hits the pet %q for %d (HP %d/%d)", npc.Name, pet.Name, taken, pet.HP, pet.MaxHP)
 	if pet.HP > 0 {
@@ -187,7 +187,7 @@ func (w *World) creatureProcPetHitLocked(npc, pet *NPC, name string, damage int,
 		taken, _ = pet.petElementalHit(st, taken, now, 1)
 	}
 	w.broadcastNPCSwingLocked(npc, pet.ServerID, 0, templateSpecialFX)
-	pet.HP = max(pet.HP-taken, 0)
+	pet.HP = w.dpsTakeHPLocked(pet, taken)
 	pet.LastCombatTime = now
 	log.Printf("Template: %s's %s hits the pet %q for %d (HP %d/%d)", npc.Name, name, pet.Name, taken, pet.HP, pet.MaxHP)
 	if pet.HP > 0 {

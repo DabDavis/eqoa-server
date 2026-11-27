@@ -1615,7 +1615,7 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 			log.Printf("Template: %s's %q drains the pet %q's power by %d (power %d/%d)", npc.Name, c.spell.Name, pet.Name, lost, pet.Power, pet.MaxPower)
 		}
 		if hit > 0 {
-			pet.HP = max(pet.HP-hit, 0)
+			pet.HP = w.dpsTakeHPLocked(pet, hit)
 			pet.LastCombatTime = now
 			log.Printf("Template: %s's %q hits the pet %q for %d (HP %d/%d)", npc.Name, c.spell.Name, pet.Name, hit, pet.HP, pet.MaxHP)
 			if pet.HP == 0 {
@@ -2013,7 +2013,7 @@ func (w *World) templateStrikeFXLocked(npc *NPC, target EntityID, now time.Time,
 		return
 	}
 	w.broadcastNPCSwingLocked(npc, target, 0, fx)
-	pet.HP = max(pet.HP-damage, 0)
+	pet.HP = w.dpsTakeHPLocked(pet, damage)
 	pet.LastCombatTime = now
 	log.Printf("Template: %s's %s hits the pet %q for %d (HP %d/%d)", npc.Name, name, pet.Name, damage, pet.HP, pet.MaxHP)
 	if pet.HP == 0 {

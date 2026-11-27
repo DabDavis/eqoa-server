@@ -1399,10 +1399,11 @@ func TestATemplatesDebuffCanPoison(t *testing.T) {
 			ticks++
 		}
 	}
-	// a workbook record's first tick lands twice (EffectRules.Twice), then one every 6 s
+	// a damage over time's first tick lands once (the workbook's twice is a HoT's
+	// and a PoT's: Heirloom petition 3353), then one every 6 s
 	melee := (hp0 - p.HP) - 300*ticks
-	if ticks != 6 || melee < 0 || melee > 300 {
-		t.Fatalf("%d ticks of 300 in its 30 s, %d taken: want 6 (its first twice as it lands, then every 6 s): %q", ticks, hp0-p.HP, lines)
+	if ticks != 5 || melee < 0 || melee > 300 {
+		t.Fatalf("%d ticks of 300 in its 30 s, %d taken: want 5 (one as it lands, then every 6 s): %q", ticks, hp0-p.HP, lines)
 	}
 	if p.hasEffect(venom) {
 		t.Error("still on past its 30 s")

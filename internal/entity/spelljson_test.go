@@ -265,7 +265,9 @@ func TestWorkbookStackTypes(t *testing.T) {
 func itoa(n int) string { return strconv.Itoa(n) }
 
 // Ticks: a workbook heal over time ticks twice at its landing, then once a
-// tick; a damage tick on a creature the same; a line's (the control) once.
+// tick; a damage tick on a creature once at its landing as at every tick
+// (Heirloom petition 3353: the workbook's twice is a HoT's and a PoT's); a
+// line's (the control) once.
 func TestWorkbookTicksTwiceAtTheLanding(t *testing.T) {
 	noResist(t)
 	hot := wbSpell(921, 5, 1, "Test Renew", `{"v":1,"scope":"target","target_type":"Friendly","duration_s":24,
@@ -288,8 +290,8 @@ func TestWorkbookTicksTwiceAtTheLanding(t *testing.T) {
 	first := 1000 - c.npc.HP
 	c.tick(land + effectTick)
 	second := 1000 - c.npc.HP - first
-	if first != 2*second || second <= 0 {
-		t.Errorf("the damage ticks: %d at the landing, %d at the next; want twice the next", first, second)
+	if first != second || second <= 0 {
+		t.Errorf("the damage ticks: %d at the landing, %d at the next; want the same", first, second)
 	}
 	c = newCaster(t)
 	c.p.HP = 300

@@ -1964,8 +1964,11 @@ func (w *World) tickEffectLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	}
 	w.advanceTickLocked(ae, now) // hot.go
 	times := 1
-	if ae.Rules.Twice { // the workbook's first tick, twice (workbook.go)
-		ae.Rules.Twice, times = false, 2
+	if ae.Rules.Twice { // the workbook's first tick, twice (workbook.go): a HoT's or PoT's, never a damage tick's
+		ae.Rules.Twice = false
+		if ae.HPTick >= 0 {
+			times = 2
+		}
 	}
 	for ; times > 0 && !t.IsDead(); times-- {
 		w.runTickLocked(t, ae, now)
@@ -2078,6 +2081,7 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 	if ae != nil && w.rootResistLocked(caster, casterSess, npc, ae, now) { // root.go
 		for i, old := range npc.Effects {
 			if old.SpellID == ae.SpellID {
+				refreshNPCDoT(old, ae, now)
 				npc.Effects = append(npc.Effects[:i], npc.Effects[i+1:]...)
 				break
 			}
@@ -2091,6 +2095,19 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 		w.affected[npc.ServerID] = npc
 		w.tickNPCEffectLocked(npc, ae, now)
 	}
+}
+
+// refreshNPCDoT is a recast of a damage over time over the one of the same
+// spell still ticking on the creature (Heirloom petition 3353: Arryl recasts
+// Strangling Hold): the new one replaces it, its time renewed, but its first
+// tick is the old one's next, so a recast lands no tick at once and never
+// ticks faster than every 6 s, however often it is cast.
+func refreshNPCDoT(old, ae *ActiveEffect, now time.Time) {
+	if old.HPTick >= 0 || ae.HPTick >= 0 || old.NextTick.IsZero() || ae.NextTick.IsZero() ||
+		!now.Before(old.Until) || !old.NextTick.After(now) {
+		return
+	}
+	ae.NextTick = old.NextTick
 }
 
 // spellHitLocked is a spell's damage on a creature: the figure to the
@@ -2175,13 +2192,12 @@ func (w *World) tickNPCEffectLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 		return
 	}
 	ae.NextTick = ae.NextTick.Add(effectTick)
-	times := 1
-	if ae.Rules.Twice { // the workbook's first tick, twice (workbook.go)
-		ae.Rules.Twice, times = false, 2
-	}
+	// one hit a tick: the workbook's first tick twice is a HoT's or PoT's, not
+	// a damage over time's (workbook.go; Heirloom petition 3353)
+	ae.Rules.Twice = false
 	ae.ticking = true
 	defer func() { ae.ticking = false }()
-	for ; times > 0; times-- {
+	{
 		if caster := w.Players[ae.Caster]; caster != nil && !npc.Dead {
 			sess := w.findSessionByEntityIDLocked(caster.ServerID)
 			hit := -creatureResists(ae.Rules.Resist, npc, arcaneDebuffed(ae.Rules.Resist, npc, ae.HPTick, now), now)

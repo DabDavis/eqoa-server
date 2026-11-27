@@ -28,10 +28,15 @@ import (
 //     the player's resist of that kind takes its share (resist.go). Ours: the
 //     workbook says only "Can resist up to a cap %".
 //   - Ticks twice at the landing: the workbook's legend, "HoT and PoT tick
-//     twice on first effect and every 6seconds after" (DoT the same); the
-//     server's first tick was once at the landing (hot.go), so a workbook
-//     spell's first tick lands twice, then they go on as the server's do (a
-//     player's heal on the regen tick, a creature's damage every 6 s).
+//     twice on first effect and every 6seconds after"; the server's first
+//     tick was once at the landing (hot.go), so a workbook heal's or power's
+//     first tick lands twice, then they go on as the server's do (a player's
+//     heal on the regen tick). A damage over time is not a HoT or a PoT: its
+//     first tick lands once, then one every 6 s (Heirloom petition 3353,
+//     Arryl, Strangling Hold: "it hits 3 times immediately then ticks a
+//     DoT"; the server's log had two hits in the second of every landing,
+//     because this rule had been read as "DoT the same"). A recast over one
+//     still ticking keeps its next tick (refreshNPCDoT, cast.go).
 //   - Dispel on cast: what lasts ends when its bearer begins a cast. Dispel
 //     on contact: when its bearer is hit in melee or a harmful spell lands on
 //     it (a player by a creature's hit; a creature by any hit or hostile act,
@@ -154,9 +159,21 @@ type EffectRules struct {
 	FactionRace int `json:",omitempty"`
 }
 
+// healsOverTime reports whether the spell gives hit points or power over time
+// (a hp_tick or power_tick above 0): a HoT or a PoT, whose first tick the
+// workbook lands twice (the file's doc), never a damage over time's.
+func (d *SpellDef) healsOverTime() bool {
+	for _, e := range d.Effects {
+		if (e.Kind == EffectHPTick || e.Kind == EffectPowerTick) && e.Amount > 0 {
+			return true
+		}
+	}
+	return false
+}
+
 // rulesOf is a cast's rules for what lasts of it.
 func rulesOf(d *SpellDef) EffectRules {
-	r := EffectRules{DispelOnCast: d.DispelOnCast, DispelOnContact: d.DispelOnContact, Harm: d.Harmful, Twice: d.Workbook, Stance: d.Stance,
+	r := EffectRules{DispelOnCast: d.DispelOnCast, DispelOnContact: d.DispelOnContact, Harm: d.Harmful, Twice: d.Workbook && d.healsOverTime(), Stance: d.Stance,
 		ProcChance: d.ProcChance, ProcRound: d.ProcRound, ProcChanceFrom: d.ProcChanceFrom, ProcChanceMost: d.ProcChanceMost}
 	for _, e := range d.Effects {
 		if e.Resist != StatNone {

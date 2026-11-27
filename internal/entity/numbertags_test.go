@@ -284,14 +284,14 @@ func TestNumberTagsByPath(t *testing.T) {
 			r.npc.Effects = []*ActiveEffect{{SpellID: 9204, Name: "Test Mark", Until: r.later, Rules: EffectRules{MarkHeal: 65}}}
 			r.w.markHealPlayerLocked(r.sess, r.p, r.npc, r.t0)
 		}, []int{6}, nil},
-		{"a spell proc: its heal for its bearer, its hit, its tick (a workbook's first, twice)", func(r *tagRig) {
+		{"a spell proc: its heal for its bearer, its hit, its tick (once: a damage tick's first is not twice, Heirloom petition 3353)", func(r *tagRig) {
 			procIntn = dice(0, 99)
 			own := heal(22)
 			own.Self = true
 			r.p.Effects = []*ActiveEffect{{SpellID: 9205, Name: "Test Fervor", Until: r.later,
 				ProcSpells: []ProcSpell{{Chance: 100, Duration: 12 * time.Second, Effects: []SpellEffect{own, hit(44), tick(-6)}}}}}
 			r.w.procSpellsLocked(r.p, r.sess, r.npc, false, r.t0)
-		}, []int{6, 5, 5, 5}, nil},
+		}, []int{6, 5, 5}, nil},
 		{"a spell proc's heal over time on its bearer (Fervor's at a hit): a heal over time's tick", func(r *tagRig) {
 			procIntn = dice(0, 99)
 			own := tick(9)

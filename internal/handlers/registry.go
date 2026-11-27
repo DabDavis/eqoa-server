@@ -806,6 +806,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		if gameWorld != nil {
 			mercs := NewMercs(gameWorld, charStore.DB(), charHandler.heirlooms)
 			interactHandler.mercs, chatHandler.mercs = mercs, mercs
+			tradeHandler.mercs = mercs // a trade with one's own merc (merctrade.go)
 			mercs.Start()
 			// their names told and Group > Dismiss Mercenary (mercui.go)
 			NewMercUIHandler(gameWorld, mercs).RegisterHandlers(r)

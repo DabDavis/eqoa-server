@@ -78,10 +78,7 @@ func resyncItems(sess *session.Session, who, why string) bool {
 		return false
 	}
 	if h := keepTrades.Load(); h != nil {
-		h.mu.Lock()
-		trading := h.trades[sess] != nil
-		h.mu.Unlock()
-		if trading {
+		if h.trading(sess) { // with a player or its merc (merctrade.go)
 			log.Printf("ItemLists: %s's lists are out of step (%s), not sent again during a trade", who, why)
 			return false
 		}

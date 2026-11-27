@@ -305,6 +305,18 @@ const (
 // needs (its notyet or reminder said first; questtrials.go).
 const EventLacking = "lacking"
 
+// EventNear is a step's time while the player on it stands within a place: the event's own (World, X, Z, Radius),
+// or the step's (World, X, Z, Radius, Height) when its X and Z are 0. The events of one place run together, once
+// each time the player comes in (it steps out and in again for another), and not while a trigger among them is
+// kept from firing by its lock (its Text said, once that coming in; they run the second the lock is free while it
+// stays). Heirloom petition 3332 (Lonewulf, 2026-11-27): "Tallon Zek" (101327) wakes its fortress at step 4's
+// reach, so a player already past step 4 when a run ended could never wake it again; the owner, 2026-11-27: "yes
+// build the fortress restart fix" (handlers/questnear.go).
+const EventNear = "near"
+
+// NearReach is a near event's radius when neither it nor its step names one: a reach step's own.
+const NearReach = 15
+
 // HideReach is how far from the player a hide event finds its NPCs.
 const HideReach = 40
 
@@ -316,7 +328,7 @@ const TeleportMainland = "mainland"
 // a step's; QuestEventActions every action, in the order the panel offers them.
 var (
 	QuestEventWhens   = []string{EventAccept, EventFinish}
-	StepEventWhens    = []string{EventStart, EventDone, EventLacking}
+	StepEventWhens    = []string{EventStart, EventDone, EventLacking, EventNear}
 	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventAttack, EventVisual, EventTeleport, EventVampire, EventTrigger, EventDoStep, EventClassQuest, EventCast, EventHide, EventDie, EventClock, EventWard, EventBack}
 )
 
@@ -333,7 +345,7 @@ func DoesStep(st *QuestStep) bool {
 // QuestEvent is one thing a quest or a step does at one of its times, kept as
 // a JSON array in the events column.
 type QuestEvent struct {
-	On     string `json:"on"`               // when: accept or finish (a quest's), start or done (a step's)
+	On     string `json:"on"`               // when: accept or finish (a quest's), start, done, lacking or near (a step's)
 	Do     string `json:"do"`               // what: popup, say, give, spawn, attack, visual, teleport, vampire
 	Text   string `json:"text,omitempty"`   // popup, say: the words (%p the player's name); trigger: said when its lock is held
 	Answer string `json:"answer,omitempty"` // popup: its one answer ("OK" when none)
@@ -424,7 +436,8 @@ type QuestEvent struct {
 	// Regain (clock, ward, back): the step put back to is not done again until the standing the setback
 	// took is earned back
 	Regain bool `json:"regain,omitempty"`
-	// Radius (ward): how near its place the player may not come
+	// Radius (ward): how near its place the player may not come; (near) how near its place (World, X, Z; or the
+	// step's when X and Z are 0) the player stands for its events to run (EventNear)
 	Radius float32 `json:"radius,omitempty"`
 }
 
@@ -511,6 +524,9 @@ func EventProblems(s string, step bool) []string {
 	for i, e := range evs {
 		if !containsString(whens, e.On) {
 			add(i, "on %q is not one of %s", e.On, strings.Join(whens, ", "))
+		}
+		if e.On == EventNear {
+			nearProblems(e, func(format string, a ...any) { add(i, format, a...) })
 		}
 		switch e.Do {
 		case EventPopup, EventSay:
@@ -627,6 +643,43 @@ func EventProblems(s string, step bool) []string {
 		}
 	}
 	return out
+}
+
+// nearProblems is what is wrong with a near event (EventNear) as such: an action that is not done there, or a
+// place that is no place. Whether a near event with no place of its own has its step's is the step's to say
+// (NearPlace).
+func nearProblems(e QuestEvent, add func(string, ...any)) {
+	switch e.Do {
+	case EventSpawn, EventTeleport:
+		add("a near %s is not done: its place is the near's, so it has none of its own (a start or done event's)", e.Do)
+	case EventGive:
+		if !e.UnlessHeld {
+			add("a near give is unless_held: else stepping out and in again gives it again")
+		}
+	}
+	if e.Radius < 0 || e.World < 0 || e.World > 255 {
+		add("near's world %d is not 0 to 255, or its radius %g is below 0", e.World, e.Radius)
+	}
+}
+
+// NearPlace is where a near event (EventNear) of step st holds: its own place when its X or Z is not 0 (its
+// Radius, NearReach when 0; no height), else the step's (its Radius, NearReach when 0, and its Height). ok is
+// false when neither has one.
+func NearPlace(st *QuestStep, e QuestEvent) (pl QuestPlace, ok bool) {
+	if e.X != 0 || e.Z != 0 {
+		pl = QuestPlace{World: e.World, X: e.X, Y: e.Y, Z: e.Z, Radius: e.Radius}
+	} else if st != nil && (st.X != 0 || st.Z != 0) {
+		pl = QuestPlace{World: st.World, X: st.X, Y: st.Y, Z: st.Z, Radius: st.Radius, Height: st.Height}
+		if e.Radius > 0 {
+			pl.Radius = e.Radius
+		}
+	} else {
+		return QuestPlace{}, false
+	}
+	if pl.Radius <= 0 {
+		pl.Radius = NearReach
+	}
+	return pl, true
 }
 
 // ParseVisualID reads a visual's DictID as handlers.ParseVisual does (0x and

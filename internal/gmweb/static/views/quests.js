@@ -24,7 +24,7 @@ const AT_NPC = new Set(['talk', 'show', 'give']);
 
 // A quest's events and a step's (handlers/questevents.go): when, and what.
 const QUEST_WHENS = { accept: 'When taken', finish: 'When finished' };
-const STEP_WHENS = { start: 'When it starts', done: 'When it is done' };
+const STEP_WHENS = { start: 'When it starts', done: 'When it is done', near: 'While the player on it stands at a place' };
 const DOS = {
   popup: 'A window the player closes',
   say: 'An NPC says',
@@ -34,6 +34,7 @@ const DOS = {
   visual: 'Play a spell visual on the player',
   teleport: 'Teleport the player',
   vampire: 'Make the player a vampire',
+  trigger: 'Fire a GM trigger',
   classquest: "Finish the player's city class quest of a level too",
   die: 'An NPC near the player dies',
 };
@@ -566,7 +567,7 @@ function eventsEditor(obj, key, whens, worlds) {
   };
   const row = (e, i) => {
     const when = h('select', null, ...Object.entries(whens).map(([k, label]) => h('option', { value: k, selected: e.on === k }, label)));
-    when.addEventListener('change', () => { e.on = when.value; });
+    when.addEventListener('change', () => { e.on = when.value; keep(); draw(); });
     const what = h('select', null, ...Object.entries(DOS).map(([k, label]) => h('option', { value: k, selected: e.do === k }, label)));
     what.addEventListener('change', () => { e.do = what.value; keep(); draw(); });
     const fields = [field('When', when), field('What', what)];
@@ -594,9 +595,20 @@ function eventsEditor(obj, key, whens, worlds) {
       fields.push(field('World', w), field('x', num(e, 'x', { step: 'any' })), field('y', num(e, 'y', { step: 'any' })), field('z', num(e, 'z', { step: 'any' })));
     } else if (e.do === 'vampire') {
       fields.push(field('', h('p', { class: 'muted small' }, 'The character becomes a vampire: the sun burns it by day. The Vampires table (or #vampire off) undoes it.')));
+    } else if (e.do === 'trigger') {
+      fields.push(field('Trigger', text(e, 'trigger', { placeholder: "the trigger's name" }), 'a row of the Triggers page, by its name', true),
+        field('While its lock is held', area(e, 'text', 2), 'said instead when a run of its lock is in progress', true));
     } else if (e.do === 'classquest') {
       fields.push(field('Level', num(e, 'level', { min: 1, max: 60, step: 1 }),
         "a quest's, on its finish: every starting city's class quest of this level the character could take (its class, the race it passes as) is finished with it, no reward and no word (a homeland's starter quest stands for its city's)", true));
+    }
+    if (e.on === 'near') {
+      // handlers/questnear.go (petition 3332): once each coming in, not while a trigger among the place's events is held
+      const w = h('select', null, ...(worlds.length ? worlds : [{ value: 0, label: 'World 0' }]).map((x) => h('option', { value: x.value, selected: Number(e.world || 0) === x.value }, x.label)));
+      w.addEventListener('change', () => { e.world = Number(w.value); });
+      fields.push(field('Place: world', w), field('x', num(e, 'x', { step: 'any' })), field('z', num(e, 'z', { step: 'any' })),
+        field('Radius', num(e, 'radius', { min: 0, step: 'any' }), "x and z 0: the step's own place; radius 0: the step's (else 15)"),
+        field('', h('p', { class: 'muted small' }, "Run once each time the player on this step comes within the place (out and in again for another), not while a trigger among them is held by its lock: its text is said, and they run when it is free.")));
     }
     const move = (d) => { const j = i + d; if (j < 0 || j >= list.length) return; [list[i], list[j]] = [list[j], list[i]]; keep(); draw(); };
     return h('div', { class: 'stack' }, h('div', { class: 'fields' }, ...fields),

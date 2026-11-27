@@ -781,6 +781,7 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any, unlocks
 			add("%s is a %s step: its other creatures (%s) count for nothing (a kill or loot step's do)", where, kind, strings.Join(also, ", "))
 		}
 		s.eventProblems(text(st, "events"), true, where+"'s", add)
+		s.nearProblems(st, text(st, "events"), where+"'s", add)
 		if text(st, "journal") == "" {
 			add("%s has no journal line (the quest's name is shown)", where)
 		} else if utf8.RuneCountInString(text(st, "journal")) > 127 {
@@ -959,6 +960,34 @@ func (s *Server) eventProblems(events string, step bool, what string, add func(s
 			}
 		case database.EventGive:
 			s.itemProblems(database.ParseItemCounts(e.Items), where+" gives", add)
+		}
+	}
+}
+
+// nearProblems says what is wrong with a step's near events (database.EventNear, handlers/questnear.go; Heirloom
+// petition 3332) that their form alone does not: one with no place of its own on a step with none (it never
+// runs), and a trigger this server has no row of (gmtriggers' name, any case: it fires nothing).
+func (s *Server) nearProblems(st map[string]any, events, what string, add func(string, ...any)) {
+	evs, err := database.ParseQuestEvents(events)
+	if err != nil {
+		return
+	}
+	x, _ := asFloat(st["x"])
+	z, _ := asFloat(st["z"])
+	for i, e := range evs {
+		if e.On != database.EventNear {
+			continue
+		}
+		where := fmt.Sprintf("%s event %d", what, i+1)
+		if e.X == 0 && e.Z == 0 && x == 0 && z == 0 {
+			add("%s is a near with no place (its world, x, z, radius), on a step with none: it never runs", where)
+		}
+		if e.Do == database.EventTrigger && strings.TrimSpace(e.Trigger) != "" {
+			var n int
+			s.d.DB.QueryRow(`SELECT COUNT(*) FROM gmtriggers WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))`, e.Trigger).Scan(&n)
+			if n == 0 {
+				add("%s fires trigger %q, which this server has no trigger of", where, e.Trigger)
+			}
 		}
 	}
 }

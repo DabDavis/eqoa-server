@@ -287,6 +287,8 @@ type questCatalog struct {
 	// places is the enabled quests offered at a place (database.Quest.OfferAt;
 	// questplaceoffer.go), in id order
 	places []*database.Quest
+	// nears is the quests with a near event on a step, by id (questnear.go)
+	nears map[int]bool
 }
 
 // foldedName is the quest's name folded, as foldName.
@@ -378,6 +380,9 @@ type questChar struct {
 	atPlace    map[int]bool
 	placeBox   uint32
 	placeQuest int
+	// nearAt is the near places of its steps (questnear.go) it stands in
+	// since it came in: told their lock held, or their events run
+	nearAt map[nearKey]int
 }
 
 // say is a text with %p the player's name (left as it is while the name is
@@ -600,6 +605,7 @@ func (q *QuestEngine) run() {
 		case <-tick.C:
 			q.checkReach()
 			q.checkPlaceOffers() // questplaceoffer.go: a quest offered at a place
+			q.checkNear()        // questnear.go: a step's events at a place (petition 3332)
 			q.checkSurvive()     // questsurvive.go: the Trial of Endurance's kind of step
 			q.checkWaiting()     // questroom.go: steps that waited for room
 			q.expireSpawns()
@@ -672,6 +678,7 @@ func (q *QuestEngine) publishLocked() error {
 	cat.homeClassLevels = homeClassLevelsOf(cat.all)
 	cat.encounters = encounterLinks(cat.all)
 	cat.places = placeQuestsOf(cat.all) // questplaceoffer.go
+	cat.nears = nearQuestsOf(cat.all)   // questnear.go
 	texts, names := q.questTexts(cat.all)
 	marked, err := q.store.MarkedQuests()
 	if err != nil {

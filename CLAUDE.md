@@ -288,6 +288,7 @@ Each system's file is its long form; its tests document the edge cases. `world.<
 | Rehabilitators (resets) | `handlers/rehab*.go`, `database/rehab.go` |
 | Quest marks, quest items waiting for room | `handlers/questheadmarks.go`, `handlers/questroom.go`, `quests.markers` |
 | A quest offered at a place, not only by its giver (`quests.offerworld/x/y/z/radius/height`): offered to one who may take it on stepping in, once each coming in, its words a pop-up; its map "!" there (petitions 3322/3325) | `handlers/questplaceoffer.go` |
+| A step's events at a place (`{"on":"near", ...}`, its own place or the step's): run once each coming in by a player on the step, not while a trigger among them is held by its lock (petition 3332, Tallon's fortress woken again) | `handlers/questnear.go` |
 | The live client's feature word, group search, auction stacks | `handlers/livefeatures.go`, `lfg.go`, `auction*.go` |
 | Ascended raid gear | `database/ascended.go`, `entity/ascended.go`, `tools/ascend_boss_loot.py` |
 | Heirloom gear, armour dyers, capes | `handlers/heirloom.go`, `handlers/dyer.go`, `entity/capes.go`, `world.heirlooms`, `world.capes` |

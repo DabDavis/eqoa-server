@@ -368,7 +368,15 @@ goes on the work board above; a personal board is for talking about it.
   step's, on `start` or `done`: `minutes` to reach step `until`, `text` said when the time is up; it runs offline and
   over a restart), `ward` (a step's, on `start`: a place `world`, `x`, `z`, `radius` the player must not come into),
   `back` (a give or show step's, on `lacking`: its NPC met without what it needs, its `notyet` said first); a choice's
-  option takes `back`, `factions` and `regain` too (a wrong answer). One popup at a time (the
+  option takes `back`, `factions` and `regain` too (a wrong answer). A step's events `on` `near` run while the player on that step
+  stands within a place (Heirloom petition 3332: those past Tallon Zek's reach step woke the fortress no more):
+  `{"on":"near","do":"trigger","trigger":"Tallon's Fortress","world":5,"x":4715,"z":7500,"radius":110,"text":"..."}`
+  (`x` and `z` 0: the step's own place, its `radius` and `height`; radius 0: the step's, else 15). The near events
+  of one place run together, in order, once each time the player comes in (out and in again for another; a login
+  is a coming in; the quest moving on to a step of the same place is not); while a trigger among them is held by its
+  lock (a run in progress) none runs, that trigger event's `text` is said once, and they run the second the lock is
+  free if the player is still there. A near `spawn` or `teleport` is refused (their `x`/`z` are the near's place), a
+  near `give` must be `unless_held`, and a trigger name with no row here is a problem. One popup at a time (the
   client shows one question box at once). The journal holds eight quests. Keep a quest
   a draft (`enabled` 0) until it is right; `quest_try` gives it to your own character in the world to play.
 - **Hundreds of quests** (the city quests imported whole, `tools/import_quests.py`): `quest_list` with `status`

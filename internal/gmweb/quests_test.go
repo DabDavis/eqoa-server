@@ -612,3 +612,40 @@ func TestAQuestRequiringAGroupIsReadyOnAnyOfIt(t *testing.T) {
 		t.Errorf("Either put in brought in: %s", got)
 	}
 }
+
+// A step's near events (handlers/questnear.go, Heirloom petition 3332's fortress wake) saved through the panel:
+// one firing a trigger this server has, at its own place, has no problem; one with no place on a step with none,
+// one firing a trigger there is no row of, and a near spawn each have one.
+func TestNearEventsProblems(t *testing.T) {
+	f := newFixture(t)
+	c := f.browser()
+	c.login("gm")
+	f.db.Exec(`INSERT INTO gmtriggers (slot, name, steps) VALUES (130, 'Tallon''s Fortress', '[{"do":"lock","lock":"tallon fortress"}]')`)
+	good := `[{"on":"near","do":"trigger","trigger":"tallon's fortress","world":5,"x":4715,"z":7500,"radius":110,"text":"Awake already."}]`
+	code, out := c.op("quest_save", map[string]any{
+		"quest": map[string]any{"name": "Tallon Zek", "enabled": 1, "giver": "Guard Dahvel"},
+		"steps": []map[string]any{{"kind": "kill", "target": "a decaying skeleton", "journal": "Kill the sentry.", "events": good}},
+	})
+	if code != 200 {
+		t.Fatalf("quest_save: %d %v", code, out)
+	}
+	if ps := problemsOf(out); strings.Contains(ps, "event") {
+		t.Errorf("the control: a right near event has problems:\n%s", ps)
+	}
+	id, _ := asFloat(out["quest"].(map[string]any)["questid"])
+	code, out = c.op("quest_save", map[string]any{
+		"quest": map[string]any{"questid": id, "name": "Tallon Zek"},
+		"steps": []map[string]any{{"kind": "kill", "target": "a decaying skeleton", "journal": "Kill the sentry.",
+			"events": `[{"on":"near","do":"trigger","trigger":"Nowhere Fort"},{"on":"near","do":"spawn","npc":"Guard Dahvel","x":1,"z":1}]`}},
+	})
+	if code != 200 {
+		t.Fatalf("quest_save again: %d %v", code, out)
+	}
+	ps := problemsOf(out)
+	for _, want := range []string{"step 1's event 1 is a near with no place", `fires trigger "Nowhere Fort", which this server has no trigger of`,
+		"a near spawn is not done"} {
+		if !strings.Contains(ps, want) {
+			t.Errorf("problems lack %q:\n%s", want, ps)
+		}
+	}
+}

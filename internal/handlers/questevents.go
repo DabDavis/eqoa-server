@@ -62,6 +62,10 @@ import (
 //     already held is not done, nothing handed in (triggerBusyLocked).
 //   - dostep: the step just started tried at once: a repeatable hand-in at its
 //     giver is done on the answer that takes it, with no second talk.
+//   - near (a time, not an action: {"on":"near", ...}): a step's events run
+//     while the player on it stands within a place, once each coming in, not
+//     while a trigger among them is held by its lock (questnear.go; petition
+//     3332, Tallon's fortress woken again by those past its reach step).
 //   - classquest: the player's own city class quests of the event's level
 //     finished too (classQuestLocked): a homeland's starter quest stands for
 //     its city's, so the guildmaster on the mainland goes on from there.
@@ -1213,6 +1217,7 @@ func (q *QuestEngine) LoggedIn(serverID uint32) {
 	if c := q.chars[serverID]; c != nil {
 		c.windowOffered, c.windowNotYet, c.declined, c.dismissed = nil, nil, nil, nil
 		c.atPlace, c.placeBox, c.placeQuest = nil, 0, 0 // a login at a quest's place is a coming in (questplaceoffer.go)
+		c.nearAt = nil                                  // so is one at a step's near place (questnear.go)
 	} else if q.store != nil {
 		// read at once, so the World learns its walls in its first second
 		// (questwalls.go)

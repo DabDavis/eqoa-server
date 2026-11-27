@@ -326,10 +326,11 @@ func TestAShoutIsRoundItsCaster(t *testing.T) {
 	}
 }
 
-// The cap takes the nearest: of twelve creatures round its target the storm
-// lands on the seven nearest and its target, and the cast's 0x00B1 names those
-// seven, nearest first, in CLIENT's count and ids. With a GM's cap of 20 all
-// twelve are hit, and the 0x00B1 still names seven, all CLIENT holds.
+// No cap but its radius (the owner, 2026-11-27, petition 3398): of twelve
+// creatures round its target the storm lands on all twelve and its target, and
+// the cast's 0x00B1 names the seven nearest, nearest first, in CLIENT's count
+// and ids, all CLIENT holds. A GM's cap of 5 takes its target and the four
+// nearest, and the 0x00B1 names those four.
 func TestTheCapTakesTheNearestAndTheCastNamesThem(t *testing.T) {
 	layout := func() (*areaRig, *NPC, []*NPC) {
 		r := newAreaRig(t)
@@ -346,7 +347,7 @@ func TestTheCapTakesTheNearestAndTheCastNamesThem(t *testing.T) {
 		t.Errorf("the target lost %d", 5000-target.HP)
 	}
 	for k, n := range ring {
-		if want := map[bool]int{true: 36, false: 0}[k < 7]; 5000-n.HP != want {
+		if want := 36; 5000-n.HP != want {
 			t.Errorf("the creature %d off its target lost %d, want %d", k+1, 5000-n.HP, want)
 		}
 	}
@@ -362,15 +363,15 @@ func TestTheCapTakesTheNearestAndTheCastNamesThem(t *testing.T) {
 
 	r, target, ring = layout()
 	wide := fireStorm()
-	wide.Area = wide.Area.With(AreaRule{Max: 20})
+	wide.Area = wide.Area.With(AreaRule{Max: 5})
 	b1 = r.cast(t, wide, target.ServerID)
 	for k, n := range ring {
-		if n.HP != 5000-36 {
-			t.Errorf("with a cap of 20, the creature %d off its target lost %d", k+1, 5000-n.HP)
+		if want := map[bool]int{true: 36, false: 0}[k < 4]; 5000-n.HP != want {
+			t.Errorf("with a cap of 5, the creature %d off its target lost %d, want %d", k+1, 5000-n.HP, want)
 		}
 	}
-	if b1[10] != 7 {
-		t.Errorf("with a cap of 20 the 0x00B1 names %d others, more than CLIENT holds", b1[10])
+	if b1[10] != 4 {
+		t.Errorf("with a cap of 5 the 0x00B1 names %d others, want 4", b1[10])
 	}
 }
 

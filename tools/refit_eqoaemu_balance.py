@@ -72,12 +72,12 @@ import datetime
 import json
 import math
 import os
-import shutil
 import sqlite3
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+from sqlite_backup import backup_database
 import fit_pet_selfbuffs as petself  # noqa: E402  the magician's 34-38 as the pets' fit again left them
 import retune_balance as retune  # noqa: E402  the re-fit of 2026-10-30, and balanceclasslevel's order
 import tune_pets as pets  # noqa: E402  the pet classes' rows over it
@@ -236,8 +236,7 @@ def backup(path):
     while os.path.exists(dst):
         n += 1
         dst = f"{path}.bak-{when}-{n}-pre-eqoaemurefit"
-    shutil.copy2(path, dst)
-    return dst
+    return backup_database(path, dst)
 
 
 def write_row(db, tbl, key, row, insert):

@@ -1,10 +1,8 @@
 // Command disperseplan plans the spread of stacked camps and the wander and
 // patrols of static creatures (the owner, 2026-11-12: "there are many zones
 // with mobs not dispersed or patroling, lets fix that disperse and patrol"),
-// for tools/disperse_patrol_20261112.py to apply. It reads a COPY of the
-// server's database (opening it migrates its schema, as the server does) and
-// the baked ground, and writes the survey and the plan; it never writes the
-// database's rows.
+// for tools/disperse_patrol_20261112.py to apply. It opens the server's database read-only
+// and reads the baked ground to write the survey and plan.
 package main
 
 import (
@@ -17,7 +15,7 @@ import (
 )
 
 func main() {
-	dbPath := flag.String("db", "", "a COPY of the server's database")
+	dbPath := flag.String("db", "", "a current server database (read-only)")
 	groundDir := flag.String("ground", "", "the baked ground (<worlds>/ground)")
 	models := flag.String("models", "", "models.txt (cmd/modelbake), for the bodies' widths")
 	survey := flag.String("survey", "", "write the survey (TSV) here")
@@ -27,26 +25,23 @@ func main() {
 	if *dbPath == "" || *groundDir == "" {
 		log.Fatal("-db and -ground are needed")
 	}
-	w := loadWorld(*dbPath, *groundDir, *models)
+	db, err := database.OpenSQLiteReadOnly(*dbPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	w := loadWorld(db, *groundDir, *models)
 	rows := w.DisperseSurvey()
 	if *survey != "" {
 		writeSurvey(*survey, rows)
 	}
 	if *out != "" {
-		db, err := database.NewSQLite(*dbPath)
-		if err != nil {
-			log.Fatal(err)
-		}
 		p := plan(w, db, rows)
 		writePlan(*out, p)
 	}
 }
 
-func loadWorld(dbPath, groundDir, models string) *entity.World {
-	db, err := database.NewSQLite(dbPath)
-	if err != nil {
-		log.Fatal(err)
-	}
+func loadWorld(db *database.SQLiteDB, groundDir, models string) *entity.World {
 	store := database.NewNPCStore(db)
 	w := entity.NewWorld()
 	if m, err := store.PlayerModels(); err == nil {

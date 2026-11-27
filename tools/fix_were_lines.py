@@ -44,9 +44,13 @@ were added to, deletes them (it rewrites the quest): run this after it.
 
 import argparse
 import json
-import shutil
+import os
 import sqlite3
+import sys
 import time
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from sqlite_backup import backup_database
 
 ALLIGATOR = 1041154017   # a raging alligator's body: the qc seed's gatorweres
 WEREGATOR = 740132644    # the Gatorwere form's and the reference server's gatorweres' body
@@ -246,7 +250,7 @@ def main():
     writing = a.apply or a.undo
     if writing and not a.no_backup:
         dst = f"{a.db}.bak-{time.strftime('%Y%m%d-%H%M%S')}-were-lines"
-        shutil.copy2(a.db, dst)
+        dst = backup_database(a.db, dst)
         print("backup:", dst)
     db = sqlite3.connect(a.db if writing else f"file:{a.db}?mode=ro", isolation_level=None, uri=not writing)
     db.execute("PRAGMA busy_timeout = 10000")

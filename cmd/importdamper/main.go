@@ -28,7 +28,9 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -59,38 +61,64 @@ func main() {
 	if *apply && *undo {
 		log.Fatal("-apply or -undo, not both")
 	}
-	db, err := sql.Open("sqlite", *dbPath+"?"+database.BusyTimeoutDSN)
-	if err != nil {
+	if err := runDamper(*dbPath, *apply, *undo, *skip); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func runDamper(path string, apply, undo bool, skip string) error {
+	if !apply && !undo {
+		// The report rehearses the actual writes. Run them on a private
+		// snapshot so a preview never competes for the source's write lock.
+		dir, err := os.MkdirTemp("", "importdamper")
+		if err != nil {
+			return err
+		}
+		defer os.RemoveAll(dir)
+		copyPath := filepath.Join(dir, "preview.db")
+		if err := database.CopySQLiteFile(path, copyPath); err != nil {
+			return err
+		}
+		path = copyPath
+	}
+	path, err := filepath.Abs(path)
+	if err != nil {
+		return err
+	}
+	u := url.URL{Scheme: "file", Path: filepath.ToSlash(path)}
+	db, err := sql.Open("sqlite", u.String()+"?mode=rw&"+database.BusyTimeoutDSN)
+	if err != nil {
+		return err
 	}
 	defer db.Close()
 	tx, err := db.Begin()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer tx.Rollback()
 	for _, s := range []string{logSchema, database.ImportedSchema} {
 		if _, err := tx.Exec(s); err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 	now := time.Now().UTC()
-	if *undo {
+	if undo {
 		err = undoMoves(tx, now)
 	} else {
-		err = move(tx, skipRuns(*skip), now)
+		err = move(tx, skipRuns(skip), now)
 	}
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	if !*apply && !*undo {
+	if !apply && !undo {
 		fmt.Println("report only: nothing written")
-		return
+		return nil
 	}
 	if err := tx.Commit(); err != nil {
-		log.Fatal(err)
+		return err
 	}
 	fmt.Println("written")
+	return nil
 }
 
 func skipRuns(s string) map[string]bool {

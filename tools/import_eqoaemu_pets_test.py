@@ -176,12 +176,13 @@ class ImportPetsTest(unittest.TestCase):
         rows, pts, _, _ = self.plan()
         self.db.execute(ip.PETSTATS_SCHEMA)
         # a GM's row for Summon Stone's spell is there already: the workbook wins on all
-        self.db.execute("INSERT INTO petstats (spellid, name, hp, source) VALUES (20, 'a GM pet', 77, 'gm')")
+        self.db.execute("INSERT INTO petstats (spellid, name, hp, size, melee_pct, source) "
+                        "VALUES (20, 'a GM pet', 77, 0.5, 200, 'gm')")
         before = (self.table("petstats", "spellid"), self.table("pettemplate", "spell"))
         written, same, replaced = ip.apply(self.db, rows, pts)
         self.assertEqual((written, same, replaced), (5, 0, 1))
-        self.assertEqual(self.db.execute("SELECT name, hp, source FROM petstats WHERE spellid = 20").fetchone(),
-                         ("Summon Stone", 500, "eqoaemu"))
+        self.assertEqual(self.db.execute("SELECT name, hp, size, melee_pct, source FROM petstats WHERE spellid = 20").fetchone(),
+                         ("Summon Stone", 500, 0.5, 200, "eqoaemu"))
         got = self.db.execute("SELECT name, model, wpn1_type, source FROM petstats WHERE spellid = 10").fetchone()
         self.assertEqual(got, ("Fiery Thing", 0x44332211, "slash", "eqoaemu"))
         a = self.db.execute("SELECT username, via, action, tbl, rowkey, before FROM gm_audit WHERE rowkey = '{\"spellid\":10}'").fetchone()
@@ -199,7 +200,7 @@ class ImportPetsTest(unittest.TestCase):
     def test_schema_is_the_servers(self):
         with open(os.path.join(HERE, "..", "internal", "database", "petstats.go"), encoding="utf-8") as f:
             go = f.read()
-        cols = lambda s: re.findall(r"^\s+(\w+)\s+(INTEGER|TEXT)", s, re.M)
+        cols = lambda s: re.findall(r"^\s+(\w+)\s+(INTEGER|REAL|TEXT)", s, re.M)
         self.assertEqual(cols(go.split("petStatsSchema = `")[1].split("`")[0]), cols(ip.PETSTATS_SCHEMA))
 
     def test_rev32(self):

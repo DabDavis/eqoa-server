@@ -98,15 +98,26 @@ func main() {
 	}
 	defer db.Close()
 
-	itemStore := database.NewItemPatternStore(db)
-	spellStore := database.NewSpellPatternStore(db)
+	if err := importJSON(db, *itemsFile, *spellsFile); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func importJSON(db *database.SQLiteDB, itemsFile, spellsFile string) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	var files int
 
 	// Import items
 	itemCount := 0
-	if data, err := os.ReadFile(*itemsFile); err == nil {
+	if data, err := os.ReadFile(itemsFile); err == nil {
+		files++
 		var items []ParsedItem
 		if err := json.Unmarshal(data, &items); err != nil {
-			log.Fatalf("Failed to parse items JSON: %v", err)
+			return fmt.Errorf("read items: %w", err)
 		}
 
 		seen := make(map[int]bool)
@@ -155,8 +166,8 @@ func main() {
 				Intelligence: statInt(item.Stats, "5"),
 				HPMAX:        statInt(item.Stats, "8"),
 				POWMAX:       statInt(item.Stats, "10"),
-				PoT:          statInt(item.Stats, "12"),
-				HoT:          statInt(item.Stats, "13"),
+				HoT:          statInt(item.Stats, "12"),
+				PoT:          statInt(item.Stats, "13"),
 				AC:           statInt(item.Stats, "14"),
 				PR:           statInt(item.Stats, "22"),
 				DR:           statInt(item.Stats, "23"),
@@ -165,23 +176,24 @@ func main() {
 				LR:           statInt(item.Stats, "26"),
 				AR:           statInt(item.Stats, "27"),
 			}
-			if err := itemStore.UpsertItemPattern(rec); err != nil {
-				fmt.Printf("  Item %d (%s) error: %v\n", id, item.Name, err)
-				continue
+			if err := database.UpsertItemPattern(tx, rec); err != nil {
+				return fmt.Errorf("item %d: %w", id, err)
 			}
 			itemCount++
 		}
-		fmt.Printf("Imported %d unique items (from %d total)\n", itemCount, len(items))
+	} else if !os.IsNotExist(err) {
+		return err
 	} else {
-		fmt.Printf("No items file at %s: %v\n", *itemsFile, err)
+		fmt.Printf("No items file at %s: %v\n", itemsFile, err)
 	}
 
 	// Import spells
 	spellCount := 0
-	if data, err := os.ReadFile(*spellsFile); err == nil {
+	if data, err := os.ReadFile(spellsFile); err == nil {
+		files++
 		var spells []ParsedSpell
 		if err := json.Unmarshal(data, &spells); err != nil {
-			log.Fatalf("Failed to parse spells JSON: %v", err)
+			return fmt.Errorf("read spells: %w", err)
 		}
 
 		seen := make(map[int]bool)
@@ -208,16 +220,23 @@ func main() {
 				SpellName:  sp.Name,
 				SpellDesc:  sp.Desc,
 			}
-			if err := spellStore.UpsertSpellPattern(rec); err != nil {
-				fmt.Printf("  Spell %d (%s) error: %v\n", id, sp.Name, err)
-				continue
+			if err := database.UpsertSpellPattern(tx, rec); err != nil {
+				return fmt.Errorf("spell %d: %w", id, err)
 			}
 			spellCount++
 		}
-		fmt.Printf("Imported %d unique spells (from %d total)\n", spellCount, len(spells))
+	} else if !os.IsNotExist(err) {
+		return err
 	} else {
-		fmt.Printf("No spells file at %s: %v\n", *spellsFile, err)
+		fmt.Printf("No spells file at %s: %v\n", spellsFile, err)
 	}
 
-	fmt.Printf("\nTotal: %d items, %d spells inserted into %s\n", itemCount, spellCount, *dbPath)
+	if files == 0 {
+		return fmt.Errorf("no item or spell input found")
+	}
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	fmt.Printf("Imported %d items and %d spells\n", itemCount, spellCount)
+	return nil
 }

@@ -18,10 +18,11 @@ func main() {
 	if len(os.Args) > 1 {
 		path = os.Args[1]
 	}
-	db, err := database.NewSQLite(path)
+	db, err := database.OpenSQLiteReadOnly(path)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
 	recs, err := database.NewNPCStore(db).GetAllNPCs()
 	if err != nil {
 		log.Fatal(err)

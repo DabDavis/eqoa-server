@@ -51,7 +51,12 @@ func (s *SpellPatternStore) GetSpellPattern(spellID int) (*SpellPatternRecord, e
 
 // UpsertSpellPattern inserts or replaces a spell pattern by spellid.
 func (s *SpellPatternStore) UpsertSpellPattern(r *SpellPatternRecord) error {
-	_, err := s.db.Exec(`
+	return UpsertSpellPattern(s.db, r)
+}
+
+// UpsertSpellPattern writes a pattern using the caller's connection or transaction.
+func UpsertSpellPattern(db execer, r *SpellPatternRecord) error {
+	_, err := db.Exec(`
 		INSERT OR REPLACE INTO spellpattern (
 			spellid, abilitylvl, unk2, unk3, range, casttime, power,
 			iconColor, icon, scope, recast, eqprequire, spellname, spelldesc

@@ -48,9 +48,11 @@ import argparse
 import collections
 import datetime
 import os
-import shutil
 import sqlite3
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from sqlite_backup import backup_database
 
 SLOTS = {1: "helm", 2: "robe", 5: "chest", 7: "bracers", 10: "legs", 11: "boots", 19: "gloves", 13: "shield"}
 STATS = ("str", "sta", "agi", "dex", "wis", "intelligence", "cha", "FR", "LR", "CR", "PR", "DR", "AR")
@@ -195,8 +197,7 @@ def undo(db):
 def backup(path):
     when = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     dst = f"{path}.bak-{when}-pre-armorclass"
-    shutil.copy2(path, dst)
-    return dst
+    return backup_database(path, dst)
 
 
 def main():

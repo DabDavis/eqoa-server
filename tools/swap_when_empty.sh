@@ -10,7 +10,7 @@
 # (`sha256sum gameserver | cut -c1-64`; a binary that does not match it is refused). An
 # executable $SWAP/pending/before.sh runs with the server stopped, before the new binary starts (a
 # data step the new binary must find at its start: the balance and the class templates are read
-# then); if it fails, the database goes back to the copy made before the stop and the old binary
+# then); if it fails, the database goes back to the copy made after shutdown and the old binary
 # is started again. An executable $SWAP/pending/after.sh runs once the new server listens (a data
 # step that needs the new code; it makes its own backup). A newer staging replaces an older one.
 #
@@ -28,8 +28,8 @@
 # at most $EQOA_BEFORE_MAX seconds (12; the server waits 20), run with the server held rather than stopped.
 # A staging with a file named `cold` in it (a long data step), or a server that does not answer the signal (a
 # binary from before keeping sessions), swaps the old way:
-# the binary and the database are copied (*.bak-<when>-pre-swap, the last three kept),
-# the service is stopped, before.sh run, the binary moved in, the service started; if it does not
+# the binary is copied, the service stopped, and the database copied (*.bak-<when>-pre-swap, the last three kept).
+# Then before.sh is run, the binary moved in, the service started; if it does not
 # listen within a minute the old binary goes back (and the database, when a before.sh ran) and is
 # started, and the staging is moved to failed-<when>. A cold start sends every creature home whole.
 # A swap done moves the staging to done-<when> (done-keep-<when> through the keep path). Everything is said in
@@ -104,7 +104,7 @@ since=$(cat "$STATE")
 [ $((now - since)) -ge "$QUIET" ] || exit 0
 
 when=$(date -u '+%Y%m%d-%H%M%S')
-got=$(sha256sum "$PENDING/gameserver" | cut -c1-64)
+got=$(sha256sum "$PENDING/gameserver" | cut -c1-64) || exit 1
 want=$(tr -d ' \n' < "$PENDING/sha256" 2>/dev/null)
 if [ "$want" != "$got" ]; then
 	log "the staged binary is $got, its sha256 file says '${want:-nothing}': refused"
@@ -125,15 +125,10 @@ if [ ! -e "$PENDING/cold" ]; then
 	flock -n 9 || exit 0
 	log "the running server does not keep (a binary from before it?): the old way"
 fi
-cp -p "$DIR/gameserver" "$DIR/gameserver.bak-$when-pre-swap"
-if ! sqlite3 "$DIR/eqoa.db" ".backup $DIR/eqoa.db.bak-$when-pre-swap"; then
-	log "the database could not be copied: not swapped"
-	rm -f "$DIR/gameserver.bak-$when-pre-swap" "$STATE"
-	exit 1
-fi
+cp -p "$DIR/gameserver" "$DIR/gameserver.bak-$when-pre-swap" || exit 1
 if why=$(someone); then
 	log "someone came ($why): not swapped"
-	rm -f "$DIR/gameserver.bak-$when-pre-swap" "$DIR/eqoa.db.bak-$when-pre-swap" "$STATE"
+	rm -f "$DIR/gameserver.bak-$when-pre-swap" "$STATE"
 	exit 0
 fi
 log "empty since $(date -u -d "@$since" '+%H:%M:%S'): swapping in ${got:0:16}"
@@ -144,16 +139,26 @@ listening() {
 	done
 	return 1
 }
-# the database as it was before the stop, put back with the server stopped (before.sh's data
+# the database as saved at shutdown, put back with the server stopped (before.sh's data
 # would be the old binary's otherwise)
 db_back() {
-	if cp -p "$DIR/eqoa.db.bak-$when-pre-swap" "$DIR/eqoa.db"; then
-		log "the database is back as it was before the stop"
+	# Restore through SQLite so other connections see a coherent WAL.
+	if (cd "$DIR" && [ -s "eqoa.db.bak-$when-pre-swap" ] &&
+		sqlite3 -bail -cmd ".timeout 5000" eqoa.db ".restore eqoa.db.bak-$when-pre-swap"); then
+		log "the database is back as saved at shutdown"
 	else
 		log "THE DATABASE COULD NOT BE PUT BACK from $DIR/eqoa.db.bak-$when-pre-swap"
+		return 1
 	fi
 }
-sudo -n systemctl stop "$UNIT"
+sudo -n systemctl stop "$UNIT" || { log "could not stop $UNIT"; exit 1; }
+# Include the character saves made during shutdown in the rollback point.
+if ! (umask 077 && cd "$DIR" && sqlite3 -bail -readonly -cmd ".timeout 5000" eqoa.db ".backup eqoa.db.bak-$when-pre-swap"); then
+	log "the database could not be copied: not swapped"
+	sudo -n systemctl start "$UNIT"
+	rm -f "$STATE"
+	exit 1
+fi
 before=no
 if [ -x "$PENDING/before.sh" ]; then
 	if (cd "$PENDING" && ./before.sh); then
@@ -161,7 +166,7 @@ if [ -x "$PENDING/before.sh" ]; then
 		before=yes
 	else
 		log "before.sh FAILED: not swapped, the old binary is started again"
-		db_back
+		db_back || exit 1
 		sudo -n systemctl start "$UNIT"
 		listening && log "the old binary is listening" || log "THE OLD BINARY DOES NOT LISTEN"
 		mv "$PENDING" "$SWAP/failed-$when"
@@ -169,13 +174,12 @@ if [ -x "$PENDING/before.sh" ]; then
 		exit 1
 	fi
 fi
-cp "$PENDING/gameserver" "$DIR/gameserver.swap" && mv "$DIR/gameserver.swap" "$DIR/gameserver"
-sudo -n systemctl start "$UNIT"
-if ! listening; then
+if ! cp "$PENDING/gameserver" "$DIR/gameserver.swap" || ! mv "$DIR/gameserver.swap" "$DIR/gameserver" ||
+	! sudo -n systemctl start "$UNIT" || ! listening; then
 	log "the new binary did not listen on $AUTH_PORT: the old one goes back"
-	sudo -n systemctl stop "$UNIT"
-	cp -p "$DIR/gameserver.bak-$when-pre-swap" "$DIR/gameserver"
-	[ "$before" = yes ] && db_back
+	sudo -n systemctl stop "$UNIT" || { log "could not stop $UNIT"; exit 1; }
+	cp -p "$DIR/gameserver.bak-$when-pre-swap" "$DIR/gameserver" || exit 1
+	if [ "$before" = yes ]; then db_back || exit 1; fi
 	sudo -n systemctl start "$UNIT"
 	listening && log "the old binary is back and listening" || log "THE OLD BINARY DOES NOT LISTEN EITHER"
 	mv "$PENDING" "$SWAP/failed-$when"
@@ -193,6 +197,9 @@ mv "$PENDING" "$SWAP/done-$when"
 rm -f "$STATE"
 # the last three swaps' copies are kept
 for pat in "gameserver.bak-*-pre-swap" "eqoa.db.bak-*-pre-swap"; do
-	ls -1t "$DIR"/$pat 2>/dev/null | tail -n +4 | xargs -r rm -f
+	backups=("$DIR"/$pat)
+	if (( ${#backups[@]} > 3 )); then
+		rm -f -- "${backups[@]:0:${#backups[@]}-3}"
+	fi
 done
 log "swapped: ${got:0:16} is running"

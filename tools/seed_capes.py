@@ -29,8 +29,11 @@ character holds is kept, and said).
 import argparse
 import datetime
 import os
-import shutil
 import sqlite3
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from sqlite_backup import backup_database
 
 LOG = "cape_seed_log"
 FIRST_ID = 717000  # 715000-715042 and 716000-716263 hold the kept items and the plane sets
@@ -215,7 +218,7 @@ def main():
         raise SystemExit(f"no database at {a.db}")
     if (a.apply or a.undo) and not a.no_backup:
         stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        shutil.copy2(a.db, f"{a.db}.bak-{stamp}-pre-capes")
+        backup_database(a.db, f"{a.db}.bak-{stamp}-pre-capes")
     db = sqlite3.connect(a.db, isolation_level=None, timeout=5)
     if a.undo:
         undo(db)

@@ -41,7 +41,9 @@
 --
 -- Re-runnable: the DELETE makes this idempotent.
 
-DELETE FROM npcs WHERE npc_name = 'Harbormaster Deuces';
+-- Run both statements in one transaction and roll back on any SQL error.
+DELETE FROM npcs WHERE npc_name = 'Harbormaster Deuces'
+  AND EXISTS (SELECT 1 FROM npcs WHERE npc_name = 'Harbormaster Thand');
 
 INSERT INTO npcs (
     npc_name, zone, unk_a, unk_b, x_coord, y_coord, z_coord, facing, world,

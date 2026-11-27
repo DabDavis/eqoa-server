@@ -131,7 +131,7 @@ func main() {
 	if *dbPath == "" {
 		return
 	}
-	db, err := database.NewSQLite(*dbPath)
+	db, err := database.OpenSQLiteReadOnly(*dbPath)
 	must(err)
 	defer db.Close()
 	store := database.NewNPCStore(db)

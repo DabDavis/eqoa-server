@@ -74,9 +74,11 @@ import datetime
 import json
 import math
 import os
-import shutil
 import sqlite3
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from sqlite_backup import backup_database
 
 DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqoa.db")
 LOG = "balance_tune_log"
@@ -293,8 +295,7 @@ def backup(path):
     while os.path.exists(dst):  # never over another copy (an --undo the same second as its --apply)
         n += 1
         dst = f"{path}.bak-{when}-{n}-pre-balancetune"
-    shutil.copy2(path, dst)
-    return dst
+    return backup_database(path, dst)
 
 
 def write_row(db, tbl, place, row, insert=False):

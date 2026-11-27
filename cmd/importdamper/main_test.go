@@ -133,3 +133,26 @@ func TestTheDamperMovesATransfersGearAndUndoesIt(t *testing.T) {
 		t.Errorf("after the undo: %d copies listed, the copy's record %d times", copies, records)
 	}
 }
+
+func TestPreviewRunsWithSourceWriteTransactionOpen(t *testing.T) {
+	db := damperDB(t)
+	var path string
+	if err := db.QueryRow("SELECT file FROM pragma_database_list WHERE name = 'main'").Scan(&path); err != nil {
+		t.Fatal(err)
+	}
+	tx, err := db.Begin()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tx.Rollback()
+	if _, err := tx.Exec("UPDATE itempattern SET itemcost = 1 WHERE patternid = 1026"); err != nil {
+		t.Fatal(err)
+	}
+	if err := runDamper(path, false, false, "run-skip"); err != nil {
+		t.Fatal(err)
+	}
+	var pattern int
+	if err := tx.QueryRow("SELECT patternid FROM charinventory WHERE itemid = 1").Scan(&pattern); err != nil || pattern != 1026 {
+		t.Fatalf("source pattern after preview: %d, %v", pattern, err)
+	}
+}

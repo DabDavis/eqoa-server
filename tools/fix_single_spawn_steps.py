@@ -26,11 +26,11 @@ before a (re)start, or save any quest in the panel after.
 import argparse
 import datetime
 import os
-import shutil
 import sqlite3
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from sqlite_backup import backup_database
 import drop_rates  # noqa: E402
 
 LOG_DDL = """CREATE TABLE IF NOT EXISTS single_spawn_step_log (
@@ -124,8 +124,7 @@ def main():
 def backup(path):
     when = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     dst = f"{path}.bak-{when}-pre-singlespawn"
-    shutil.copy2(path, dst)
-    return dst
+    return backup_database(path, dst)
 
 
 if __name__ == "__main__":

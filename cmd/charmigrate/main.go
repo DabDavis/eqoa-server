@@ -25,7 +25,9 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -49,7 +51,11 @@ func main() {
 	flag.Parse()
 	log.SetFlags(log.LstdFlags | log.LUTC)
 
-	db, err := open(*dbPath)
+	openDB := open
+	if *runs || (!*apply && *undo == "") {
+		openDB = database.OpenReadOnly
+	}
+	db, err := openDB(*dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -86,10 +92,7 @@ func main() {
 		}
 	}
 	if *apply && *backup != "" {
-		if _, err := os.Stat(*backup); err == nil {
-			log.Fatalf("%s is there already", *backup)
-		}
-		if _, err := db.Exec(`VACUUM INTO ?`, *backup); err != nil {
+		if err := database.CopySQLiteFile(*dbPath, *backup); err != nil {
 			log.Fatalf("the backup: %v", err)
 		}
 		log.Printf("database copied to %s", *backup)
@@ -101,10 +104,12 @@ func main() {
 }
 
 func open(path string) (*sql.DB, error) {
-	if st, err := os.Stat(path); err != nil || st.IsDir() {
-		return nil, fmt.Errorf("no database at %s", path)
+	path, err := filepath.Abs(path)
+	if err != nil {
+		return nil, err
 	}
-	db, err := sql.Open("sqlite", path+"?"+database.BusyTimeoutDSN)
+	u := url.URL{Scheme: "file", Path: filepath.ToSlash(path)}
+	db, err := sql.Open("sqlite", u.String()+"?mode=rw&"+database.BusyTimeoutDSN)
 	if err != nil {
 		return nil, err
 	}

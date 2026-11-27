@@ -57,12 +57,12 @@ import datetime
 import json
 import os
 import re
-import shutil
 import sqlite3
 import statistics
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from sqlite_backup import backup_database
 import seed_camp_loot as campseed  # noqa: E402
 import seed_loot_categories as cats  # noqa: E402
 
@@ -491,8 +491,7 @@ def report(path, plan, items, pool):
 def backup(path):
     when = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     dst = f"{path}.bak-{when}-pre-trash"
-    shutil.copy2(path, dst)
-    return dst
+    return backup_database(path, dst)
 
 
 def main():

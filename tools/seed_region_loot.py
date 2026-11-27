@@ -66,11 +66,11 @@ import collections
 import datetime
 import json
 import os
-import shutil
 import sqlite3
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from sqlite_backup import backup_database
 import gen_camp_teles as camps  # noqa: E402
 import seed_camp_loot as campseed  # noqa: E402
 from seed_pod import Env  # noqa: E402
@@ -331,8 +331,7 @@ def undo(db):
 def backup(path):
     when = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     dst = f"{path}.bak-{when}-pre-regionloot"
-    shutil.copy2(path, dst)
-    return dst
+    return backup_database(path, dst)
 
 
 def main():

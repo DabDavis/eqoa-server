@@ -32,9 +32,11 @@ import datetime
 import math
 import os
 import re
-import shutil
 import sqlite3
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from sqlite_backup import backup_database
 
 LOG = "heirloom_seed_log"
 FIRST_ID = 714000
@@ -319,7 +321,7 @@ def main():
         raise SystemExit(f"no database at {a.db}")
     if (a.apply or a.undo) and not a.no_backup:
         stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        shutil.copy2(a.db, f"{a.db}.bak-{stamp}-pre-heirlooms")
+        backup_database(a.db, f"{a.db}.bak-{stamp}-pre-heirlooms")
     db = sqlite3.connect(a.db, isolation_level=None, timeout=5)
     if a.undo:
         undo(db)

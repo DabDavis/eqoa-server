@@ -193,9 +193,15 @@ func testerWrites(c *opCtx) error {
 	if err := testerNamesTable(c); err != nil {
 		return err
 	}
-	var req struct{ Values, Changes map[string]any }
+	var req struct {
+		Table                string
+		Key, Values, Changes map[string]any
+	}
 	if err := c.decode(&req); err != nil {
 		return err
+	}
+	if testReturnScrollRow(req.Table, req.Key) || testReturnScrollRow(req.Table, req.Values) || testReturnScrollRow(req.Table, req.Changes) {
+		return forbidden("Only a GM can edit the test Scroll of Returning.")
 	}
 	for _, vals := range []map[string]any{req.Values, req.Changes} {
 		for col, v := range vals {
@@ -212,6 +218,14 @@ func testerWrites(c *opCtx) error {
 		}
 	}
 	return nil
+}
+
+func testReturnScrollRow(table string, row map[string]any) bool {
+	if table != "itempattern" && table != "itemeffect" {
+		return false
+	}
+	id, err := toSQL(&Column{Name: "patternid", Affinity: "INTEGER"}, row["patternid"])
+	return err == nil && id == int64(database.TestReturnScrollID)
 }
 
 func testerDeletes(c *opCtx) error {
@@ -279,13 +293,16 @@ func testerRevert(c *opCtx) error {
 		return notTesters("reverting " + what)
 	}
 	if testerMayNotRevert(c.a, e) {
+		if testReturnScrollRow(e.Table, e.Key) {
+			return forbidden("Only a GM can revert a change to the test Scroll of Returning.")
+		}
 		return forbidden("reverting that deletes a whole %s row a tester did not add: ask a GM", e.Table)
 	}
 	return nil
 }
 
 func testerMayNotRevert(a *actor, e *auditEntry) bool {
-	return e.Action == "insert" && testerRecords[e.Table] && e.AccountID != a.AccountID
+	return testReturnScrollRow(e.Table, e.Key) || e.Action == "insert" && testerRecords[e.Table] && e.AccountID != a.AccountID
 }
 
 // limitedAuditEntry is a log line as someone below a GM reads it (a tester, a

@@ -234,6 +234,15 @@ class ShardSync(unittest.TestCase):
     def find(self, rows, table, word):
         return sorted((r["cat"], r["dir"]) for (t, k), r in rows.items() if t == table and word in k)
 
+    def test_gm_return_scroll_stays_on_heirloom(self):
+        from gm_return_scroll_20261127 import NAME, TEST_ID
+
+        with sqlite3.connect(self.h) as db:
+            db.execute("INSERT INTO itempattern VALUES (?, ?, -1, 1, 0, '')", (TEST_ID, NAME))
+            audit(db, "dab", "insert", "itempattern", {"patternid": TEST_ID}, None, {"itemname": NAME}, "GM test scroll")
+        quiet(ls.make_plan, self.h, self.l, self.plan, self.report)
+        self.assertEqual(self.find(self.rows(), "itempattern", NAME.lower()), [("b", "-")])
+
     def test_groups(self):
         quiet(ls.make_plan, self.h, self.l, self.plan, self.report)
         rows = self.rows()

@@ -641,7 +641,8 @@ class Shards:
             ids("SELECT patternid FROM familiars") | ids("SELECT patternid FROM heroes_stock")
         for pid, name in H.execute("SELECT patternid, itemname FROM itempattern"):
             ln = (name or "").lower()
-            if ln.startswith("heirloom ") or "rock of freeport" in ln or ln.endswith("(imported)"):
+            test_scroll = pid == 716971 and ln == "scroll of returning (test)"
+            if test_scroll or ln.startswith("heirloom ") or "rock of freeport" in ln or ln.endswith("(imported)"):
                 feat.add(pid)
         feat_ik = {self.ITEM["H"][p] for p in feat if p in self.ITEM["H"]}
         asc_only = set()
@@ -754,7 +755,7 @@ class Shards:
                     return "d", "leave", "heirloom-worlds", f"Heirloom's dungeons/siege/homes/mercs ({src.strip()[:40]})"
             item_keys = [x[2:-1] for x in kk if isinstance(x, str) and x.startswith("I<")]
             if cls == "a" and item_keys and all(x in feat_ik for x in item_keys):
-                return "d", "leave", "heirloom-items", "an heirloom/imported/familiar/Testing Heroes/Rock of Freeport item"
+                return "d", "leave", "heirloom-items", "an item reserved for Heirloom"
             if t in ("heirlooms", "itemimported", "familiars", "heroes_stock"):
                 return "d", "leave", "heirloom-items", f"{t}: a Heirloom-only feature"
             if isinstance(k0, str) and (k0.startswith("N<") or t == "npcs") and npc_name(k0).lower() in HEIRLOOM_ONLY_NPCS:

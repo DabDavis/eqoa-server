@@ -347,6 +347,9 @@ func (h *EquipHandler) summonItem(sess *session.Session, charServerID uint32, it
 		log.Printf("Potion: %q summons %q: no item of that name", spell, item)
 		return
 	}
+	if pattern.PatternID == database.TestReturnScrollID {
+		return
+	}
 	if count <= 0 {
 		_, potion := h.potionOf(&pattern)
 		count = summonCount(&pattern, potion)

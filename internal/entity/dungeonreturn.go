@@ -37,6 +37,7 @@ const DungeonReturnWindow = 30 * time.Minute
 type dungeonReturn struct {
 	inst    uint32
 	opened  time.Time
+	world   uint8
 	x, y, z float32
 	facing  float32
 	at      time.Time // the read out
@@ -77,36 +78,51 @@ func (w *World) DungeonReturnRead(sess *session.Session, now time.Time) (Dungeon
 	case !w.dungeons.on:
 		return ReturnRefused, returnLineNone
 	}
+	mark := w.dungeons.returns[p.CharServerID]
+	var res DungeonReturnResult
+	var line string
 	if w.inDungeonsLocked(p) {
-		return w.dungeonReturnOutLocked(sess, p, now)
+		res, line = w.dungeonReturnOutLocked(sess, p, now, &mark, nil)
+	} else {
+		res, line = w.dungeonReturnBackLocked(sess, p, now, &mark, nil)
 	}
-	return w.dungeonReturnBackLocked(sess, p, now)
+	if mark.at.IsZero() {
+		delete(w.dungeons.returns, p.CharServerID)
+	} else {
+		if w.dungeons.returns == nil {
+			w.dungeons.returns = make(map[uint32]dungeonReturn)
+		}
+		w.dungeons.returns[p.CharServerID] = mark
+	}
+	return res, line
 }
 
 // dungeonReturnOutLocked keeps p's place in its instance and sends it home.
-func (w *World) dungeonReturnOutLocked(sess *session.Session, p *Player, now time.Time) (DungeonReturnResult, string) {
+func (w *World) dungeonReturnOutLocked(sess *session.Session, p *Player, now time.Time, mark *dungeonReturn,
+	home *GateSpot) (DungeonReturnResult, string) {
 	in := w.dungeons.insts[p.Instance]
 	if in == nil || !w.dungeonAllowsLocked(in, p) || w.dungeons.defs[in.def].Hidden() {
 		// a hidden dungeon is entered at its own NPC alone (DungeonDef.Via): no way back kept to it
 		return ReturnRefused, returnLineNotHere
 	}
-	if w.dungeons.returns == nil {
-		w.dungeons.returns = map[uint32]dungeonReturn{}
-	}
-	w.dungeons.returns[p.CharServerID] = dungeonReturn{inst: in.id, opened: in.opened, x: p.X, y: p.Y, z: p.Z,
-		facing: p.Facing, at: now}
+	*mark = dungeonReturn{inst: in.id, opened: in.opened, world: p.World, x: p.X, y: p.Y, z: p.Z, facing: p.Facing, at: now}
 	w.dungeons.movedAt[p.ServerID] = now
 	name := w.dungeons.defs[in.def].Name
-	w.gates.due = append(w.gates.due, GateTravel{Sess: sess, P: p, Home: p.ServerID, Spell: "the Scroll of Returning"})
+	travel := GateTravel{Sess: sess, P: p, Home: p.ServerID, Spell: "the Scroll of Returning"}
+	if home != nil {
+		travel.Home, travel.To = 0, *home
+	}
+	w.gates.due = append(w.gates.due, travel)
 	log.Printf("Dungeons: %s reads the Scroll of Returning in %s (instance %d) at (%.1f, %.1f, %.1f): home", p.Name,
 		name, in.id, p.X, p.Y, p.Z)
 	return ReturnOut, fmt.Sprintf(returnLineOut, name, int(DungeonReturnWindow/time.Minute))
 }
 
 // dungeonReturnBackLocked sends p back to its kept place, when its way back holds.
-func (w *World) dungeonReturnBackLocked(sess *session.Session, p *Player, now time.Time) (DungeonReturnResult, string) {
-	r, ok := w.dungeons.returns[p.CharServerID]
-	if !ok {
+func (w *World) dungeonReturnBackLocked(sess *session.Session, p *Player, now time.Time, mark *dungeonReturn,
+	spend func(GateSpot) bool) (DungeonReturnResult, string) {
+	r := *mark
+	if r.at.IsZero() {
 		return ReturnRefused, returnLineNone
 	}
 	in := w.dungeons.insts[r.inst]
@@ -120,15 +136,19 @@ func (w *World) dungeonReturnBackLocked(sess *session.Session, p *Player, now ti
 		faded = fmt.Sprintf("you are no longer of %s's party", in.ownerName)
 	}
 	if faded != "" {
-		delete(w.dungeons.returns, p.CharServerID)
+		*mark = dungeonReturn{}
 		log.Printf("Dungeons: %s's Scroll of Returning finds no way back (%s)", p.Name, faded)
 		return ReturnRefused, fmt.Sprintf(returnLineFaded, faded)
 	}
 	if why, locked := w.dungeonLockedOutLocked(p.CharServerID, in.def, in, now); locked {
 		return ReturnRefused, why
 	}
-	delete(w.dungeons.returns, p.CharServerID)
 	d := &w.dungeons.defs[in.def]
+	to := GateSpot{World: d.World, X: r.x, Y: r.y, Z: r.z, Place: d.Name}
+	if spend != nil && !spend(to) {
+		return ReturnRefused, returnLineNow
+	}
+	*mark = dungeonReturn{}
 	w.dungeons.stays[p.CharServerID] = dungeonStay{From: GateSpot{World: p.World, X: p.X, Y: p.Y, Z: p.Z,
 		Place: "where you were"}, FromFacing: p.Facing}
 	p.Instance = in.id
@@ -136,8 +156,8 @@ func (w *World) dungeonReturnBackLocked(sess *session.Session, p *Player, now ti
 	in.markStood(p.CharServerID)
 	w.dungeons.movedAt[p.ServerID] = now
 	delete(w.dungeons.badAt, p.ServerID)
-	w.gates.due = append(w.gates.due, GateTravel{Sess: sess, P: p, To: GateSpot{World: d.World, X: r.x, Y: r.y,
-		Z: r.z, Place: d.Name}, Spell: "the Scroll of Returning", Facing: r.facing, HasFacing: true})
+	w.gates.due = append(w.gates.due, GateTravel{Sess: sess, P: p, To: to,
+		Spell: "the Scroll of Returning", Facing: r.facing, HasFacing: true})
 	log.Printf("Dungeons: %s reads the Scroll of Returning: back into %s (instance %d, %s's) at (%.1f, %.1f, %.1f)",
 		p.Name, d.Name, in.id, in.ownerName, r.x, r.y, r.z)
 	return ReturnBack, fmt.Sprintf(returnLineBack, d.Name)

@@ -31,11 +31,18 @@ const ScrollOfReturningName = "Scroll of Returning"
 const (
 	returnHardcoreWords = "The Scroll of Returning will not carry a Hardcore adventurer."
 	returnQoLWords      = "The Scroll of Returning has no power on this server."
+	testReturnName      = "Scroll of Returning (Test)"
 )
 
 // IsScrollOfReturning is whether an item record is the scroll: worn nowhere and so named.
 func IsScrollOfReturning(p *database.ItemPatternRecord) bool {
-	return p != nil && p.EquipSlot == -1 && strings.EqualFold(strings.TrimSpace(p.ItemName), ScrollOfReturningName)
+	if p == nil || p.EquipSlot != -1 {
+		return false
+	}
+	if p.PatternID == database.TestReturnScrollID {
+		return p.Trade == 1 && p.ItemName == testReturnName
+	}
+	return strings.EqualFold(strings.TrimSpace(p.ItemName), ScrollOfReturningName)
 }
 
 // useScrollOfReturning is the scroll's Use: the World's read, its line to the player,
@@ -56,6 +63,10 @@ func (h *EquipHandler) useScrollOfReturning(sess *session.Session, player *entit
 	if h.gameWorld.TravelBusy(sess, now) {
 		return
 	}
+	if row.Pattern.PatternID == database.TestReturnScrollID {
+		h.useTestReturnScroll(sess, player, idx, row, now)
+		return
+	}
 	res, line := h.gameWorld.DungeonReturnRead(sess, now)
 	switch res {
 	case entity.ReturnRefused:
@@ -65,6 +76,33 @@ func (h *EquipHandler) useScrollOfReturning(sess *session.Session, player *entit
 		if err := h.takeOne(sess, player, idx, row); err != nil {
 			log.Printf("Scroll of Returning: %s's scroll not taken: %v", player.Name, err)
 		}
+	}
+	SendColoredChat(sess, line, 230, 190, 120)
+}
+
+func (h *EquipHandler) useTestReturnScroll(sess *session.Session, player *entity.Player, idx int,
+	row *database.CharInventoryEntry, now time.Time) {
+	var home *entity.GateSpot
+	x, y, z, world, via, ok := homeOf(h.gameWorld, sess, player.ServerID)
+	if ok && CanLoadWorld(sess, world) && !entity.Instanced(world) {
+		home = &entity.GateSpot{World: world, X: x, Y: y, Z: z, Place: via}
+	}
+	res, line := h.gameWorld.TestReturnRead(sess, now, home, func(to entity.GateSpot) bool {
+		if !CanLoadWorld(sess, to.World) {
+			return false
+		}
+		if _, err := ValidateTeleport(to.X, to.Y, to.Z, to.World); err != nil {
+			return false
+		}
+		if err := h.takeOne(sess, player, idx, row); err != nil {
+			log.Printf("Test Scroll of Returning: %s's scroll not taken: %v", player.Name, err)
+			return false
+		}
+		return true
+	})
+	if res == entity.ReturnRefused {
+		SendErrorMessage(sess, line)
+		return
 	}
 	SendColoredChat(sess, line, 230, 190, 120)
 }

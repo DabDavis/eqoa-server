@@ -90,13 +90,19 @@ type TradeHandler struct {
 	// a loot step counts an item handed over; Live petition 5248)
 	received func(sess *session.Session, p *entity.Player)
 
+	// mercs gives a player's own merc what he trades it (merctrade.go)
+	mercs *Mercs
+
 	mu     sync.Mutex
 	trades map[*session.Session]*trade
+	// mercTrades is each player's trade with his own merc (merctrade.go)
+	mercTrades map[*session.Session]*mercTrade
 }
 
 // NewTradeHandler creates the handler; items moves what is traded.
 func NewTradeHandler(sessionMgr *session.Manager, items *NPCWindowHandler) *TradeHandler {
-	return &TradeHandler{sessionManager: sessionMgr, items: items, trades: map[*session.Session]*trade{}}
+	return &TradeHandler{sessionManager: sessionMgr, items: items, trades: map[*session.Session]*trade{},
+		mercTrades: map[*session.Session]*mercTrade{}}
 }
 
 // SetGameWorld sets the game world reference.
@@ -143,8 +149,19 @@ func (h *TradeHandler) HandleTradeRequest(sess *session.Session, msg *protocol.M
 		return nil
 	}
 	me := h.gameWorld.SessionPlayer(sess)
+	if me == nil {
+		return nil
+	}
 	them := h.gameWorld.PlayerSeenBy(sess, target)
-	if me == nil || them == nil || them == me {
+	if them == nil {
+		// no player: the asker's own merc (vanilla asks it; Heirloom
+		// petition 3306), or refused (merctrade.go)
+		if target != sess.PlayerObjectID() {
+			h.mercTradeRequest(sess, me, target)
+		}
+		return nil
+	}
+	if them == me {
 		return nil
 	}
 	// out of reach: the live game's red line (filmed), and the other player
@@ -163,11 +180,9 @@ func (h *TradeHandler) HandleTradeRequest(sess *session.Session, msg *protocol.M
 	}
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	if old := h.trades[sess]; old != nil {
-		h.endLocked(old)
-	}
+	h.endAllLocked(sess)
 	a := &tradeSide{sess: sess, player: me, asker: true}
-	if busy := h.trades[theirSess]; busy != nil && h.heldLocked(busy) {
+	if busy := h.trades[theirSess]; busy != nil && h.heldLocked(busy) || h.mercTrades[theirSess] != nil {
 		// Trade20: busy
 		h.send(a, 20, h.seen(a, them), nil)
 		return nil
@@ -230,6 +245,10 @@ func (h *TradeHandler) HandleTradeUI(sess *session.Session, msg *protocol.Messag
 	}
 	h.mu.Lock()
 	defer h.mu.Unlock()
+	if mt := h.mercTrades[sess]; mt != nil {
+		h.mercTradeUILocked(mt, sub, r)
+		return nil
+	}
 	t := h.trades[sess]
 	if t == nil || !h.heldLocked(t) {
 		return nil

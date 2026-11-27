@@ -297,35 +297,96 @@ func (m *Mercs) giveItem(sess *session.Session, p *entity.Player, row database.M
 		SendErrorMessage(sess, "That is no longer in your pack.")
 		return false
 	}
-	name := inv.Pattern.ItemName
-	switch {
-	case inv.EquipLoc >= 0:
-		SendErrorMessage(sess, fmt.Sprintf(mercGiveWorn, name))
-		return false
-	case m.vanishes(inv.Pattern.PatternID):
-		SendErrorMessage(sess, fmt.Sprintf(mercGiveVanish, name))
+	n := min(rec.qty, max(inv.StackLeft, 1))
+	if line := m.giveN(sess, p, row, l, idx, inv, n); line != "" {
+		SendErrorMessage(sess, line)
 		return false
 	}
-	n := min(rec.qty, max(inv.StackLeft, 1))
-	_, _, err = m.db.GiveMercItem(p.CharServerID, row.Slot, itemID, n, inv.Pattern.MaxStack)
+	SendClientMessage(sess, fmt.Sprintf(mercGiveLine, inv.Pattern.ItemName, row.Name))
+	m.rekitSlot(p, row.Slot)
+	m.pushWindow(sess, p, row.Slot)
+	return true
+}
+
+// giveRefusal is the line the merc's give refuses the pack's record with,
+// "" when it may go (the file's doc): a worn item (taken off first), a No
+// Rent item that vanishes at logout. A NO TRADE or LORE item may go. The
+// one rule for every way in: /merc give, the Give box, vanilla's window and
+// the trade window (merctrade.go).
+func (m *Mercs) giveRefusal(inv database.CharInventoryEntry) string {
+	switch name := inv.Pattern.ItemName; {
+	case inv.EquipLoc >= 0:
+		return fmt.Sprintf(mercGiveWorn, name)
+	case m.vanishes(inv.Pattern.PatternID):
+		return fmt.Sprintf(mercGiveVanish, name)
+	}
+	return ""
+}
+
+// giveN moves n of the pack's record at index idx of l (inv its row) onto
+// the merc of row's slot, in one transaction (GiveMercItem: onto a stack it
+// carries, else a record of its own while it holds fewer than
+// MercItemsMax), and tells the client it left the pack (0x003C). It returns
+// the line refusing it ("" it went); the caller says what went and makes
+// the kit and the window again.
+func (m *Mercs) giveN(sess *session.Session, p *entity.Player, row database.MercRow, l *invList, idx int, inv database.CharInventoryEntry, n int) string {
+	if line := m.giveRefusal(inv); line != "" {
+		return line
+	}
+	name := inv.Pattern.ItemName
+	_, _, err := m.db.GiveMercItem(p.CharServerID, row.Slot, inv.ItemID, n, inv.Pattern.MaxStack)
 	switch {
 	case errors.Is(err, database.ErrMercFull):
-		SendErrorMessage(sess, fmt.Sprintf(mercGiveFull, row.Name, database.MercItemsMax))
-		return false
+		return fmt.Sprintf(mercGiveFull, row.Name, database.MercItemsMax)
 	case errors.Is(err, database.ErrMercItemWorn):
-		SendErrorMessage(sess, fmt.Sprintf(mercGiveWorn, name))
-		return false
+		return fmt.Sprintf(mercGiveWorn, name)
 	case err != nil:
 		log.Printf("Merc: %s gives %q to %q: %v", p.Name, name, row.Name, err)
-		SendErrorMessage(sess, mercKitFailed)
-		return false
+		return mercKitFailed
 	}
 	l.took(idx, n)
 	queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(idx, 0, n))
-	log.Printf("Merc: %s gives %d %q (item %d) to %q (slot %d)", p.Name, n, name, itemID, row.Name, row.Slot)
-	SendClientMessage(sess, fmt.Sprintf(mercGiveLine, name, row.Name))
-	m.rekitSlot(p, row.Slot)
-	m.pushWindow(sess, p, row.Slot)
+	log.Printf("Merc: %s gives %d %q (item %d) to %q (slot %d)", p.Name, n, name, inv.ItemID, row.Name, row.Slot)
+	return ""
+}
+
+// roomFor reports whether the merc of row's slot can take all the gives
+// together (pattern, count, its stack limit), as GiveMercItem would file
+// them one after another: each onto a stack it carries with room, else a
+// record of its own, MercItemsMax records in all.
+func (m *Mercs) roomFor(p *entity.Player, row database.MercRow, gives []invGive) bool {
+	items, err := m.db.MercItems(p.CharServerID, row.Slot)
+	if err != nil {
+		return false
+	}
+	type held struct{ pattern, stack int }
+	var carried []held
+	for _, it := range items {
+		if it.EquipLoc < 0 {
+			carried = append(carried, held{it.PatternID, max(it.Stack, 1)})
+		}
+	}
+	count := len(items)
+	for _, g := range gives {
+		onto := -1
+		if g.maxStack > 1 {
+			for i, c := range carried {
+				if c.pattern == g.patternID && c.stack+g.n <= g.maxStack {
+					onto = i
+					break
+				}
+			}
+		}
+		if onto >= 0 {
+			carried[onto].stack += g.n
+			continue
+		}
+		if count >= database.MercItemsMax {
+			return false
+		}
+		count++
+		carried = append(carried, held{g.patternID, g.n})
+	}
 	return true
 }
 

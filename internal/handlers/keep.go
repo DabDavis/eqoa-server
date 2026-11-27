@@ -149,9 +149,7 @@ func KeepExtras(sess *session.Session, p *entity.Player) KeptExtras {
 		ls.mu.Unlock()
 	}
 	if h := keepTrades.Load(); h != nil {
-		h.mu.Lock()
-		k.Trading = h.trades[sess] != nil
-		h.mu.Unlock()
+		k.Trading = h.trading(sess) // a player's or a merc's (merctrade.go)
 	}
 	if c := keepChat.Load(); c != nil && p != nil {
 		k.Silenced = c.silencedChar(p.CharServerID) // keepgm.go

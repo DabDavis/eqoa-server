@@ -1741,6 +1741,7 @@ func (w *World) npcMeleeOnPetLocked(npc, pet *NPC, pct int, ramp bool, now time.
 	if w.creatureProcOnPetLocked(npc, pet, now) { // a template's melee proc (creatureshield.go)
 		return true
 	}
+	w.npcDefenseHealsLocked(pet, now)        // its heals set off by a hit (Tribal Ward's: workbookmore.go)
 	return w.petShieldsLocked(pet, npc, now) // its damage shield and defensive procs (dshield.go)
 }
 
@@ -1799,6 +1800,9 @@ func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *sessi
 		}
 	}
 	if ae := lasting(cs, caster, now); ae != nil {
+		if ae.HPTick > 0 {
+			ae.HoTSlot = hotSlot(&cs.spell) // its slot, as on a player (hot.go)
+		}
 		if ae.HPTick > 0 && !w.placePetHoTLocked(pet, ae, now) { // hot.go: a recast takes over the running one's tick
 			log.Printf("Cast: %s's %q does not take on the pet %q: a stronger heal over time ticks", caster.Name, cs.spell.Name, pet.Name)
 		} else if over := putOnPetLocked(pet, &cs.spell, ae); over != nil {
@@ -1904,6 +1908,10 @@ func (w *World) petEffectsLocked(ps *petState, now time.Time) {
 		}
 		left = append(left, ae)
 		if ae.HPTick <= 0 && ae.PowerTick <= 0 || ae.NextTick.IsZero() || now.Before(ae.NextTick) {
+			continue
+		}
+		if npcHoTHeld(pet, ae, now) { // a stronger heal of its slot ticks: this one waits (hot.go)
+			ae.NextTick = w.nextRegularTick(ae.NextTick, now)
 			continue
 		}
 		ae.NextTick = ae.NextTick.Add(effectTick)

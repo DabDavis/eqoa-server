@@ -167,11 +167,12 @@ func (w *World) advanceTickLocked(ae *ActiveEffect, now time.Time) {
 	ae.NextTick = next
 }
 
-// activeNPCHoT is activeHoT for a pet's effects.
-func activeNPCHoT(n *NPC, now time.Time) *ActiveEffect {
+// activeNPCHoT is activeHoT for a pet's (or a merc's) effects: its heal over
+// time of that slot with the most each tick that is still ticking.
+func activeNPCHoT(n *NPC, slot int, now time.Time) *ActiveEffect {
 	var best *ActiveEffect
 	for _, e := range n.Effects {
-		if e.HPTick <= 0 || e.NextTick.IsZero() || !now.Before(e.Until) {
+		if e.HPTick <= 0 || e.NextTick.IsZero() || !now.Before(e.Until) || e.HoTSlot != slot {
 			continue
 		}
 		if best == nil || e.HPTick > best.HPTick {
@@ -181,15 +182,26 @@ func activeNPCHoT(n *NPC, now time.Time) *ActiveEffect {
 	return best
 }
 
+// npcHoTHeld is hotHeldLocked for a pet's or a merc's heal over time: a
+// stronger one of its slot ticks, so this one waits (Heirloom petition 3364).
+func npcHoTHeld(n *NPC, ae *ActiveEffect, now time.Time) bool {
+	if ae.HPTick <= 0 || ae.PowerTick != 0 {
+		return false
+	}
+	best := activeNPCHoT(n, ae.HoTSlot, now)
+	return best != nil && best != ae && best.HPTick > ae.HPTick
+}
+
 // placePetHoTLocked is placeHoTLocked for a pet (Heirloom petitions 2496 and 2499, 2026-11-20: a druid's Celestial
 // Healing on an enchanter's pet showed "the initial tick" and none after, and "every time i get a 1500 stack ... on
 // live if you casted a tick on a player that already has a tick on them it wouldn't start it over"): a pet's heal
 // over time was put on as any effect, its first tick (twice, by the workbook's rule) due at once, so a recast every
 // cast time landed that first tick again and the regular ones never came. Now as on a player: with none ticking the
 // first tick lands at once; a weaker one does nothing; over one ticking, the next tick is the old one's, with all
-// the new one's ticks, the old one taken off. It reports whether the new one goes on.
+// the new one's ticks. Since petition 3364 by slots as a player's (hotSlot): within a slot an equal one is replaced
+// and a weaker one held (npcHoTHeld), and another slot's ticks beside it. It reports whether the new one goes on.
 func (w *World) placePetHoTLocked(pet *NPC, ae *ActiveEffect, now time.Time) bool {
-	old := activeNPCHoT(pet, now)
+	old := activeNPCHoT(pet, ae.HoTSlot, now)
 	if old == nil {
 		ae.NextTick = now
 		return true
@@ -202,9 +214,13 @@ func (w *World) placePetHoTLocked(pet *NPC, ae *ActiveEffect, now time.Time) boo
 	if !next.After(now) {
 		next = w.nextRegularTick(now, now)
 	}
+	// an equal one of its slot is replaced; a weaker one stays on, held while
+	// this one ticks (npcHoTHeld), and a heal of another slot (a group's beside
+	// a single target's) ticks beside it, as on a player (Heirloom petition
+	// 3364: Radiance on a merc took Celestial Healing off it)
 	left := pet.Effects[:0]
 	for _, e := range pet.Effects {
-		if e.HPTick > 0 && !e.NextTick.IsZero() && e.SpellID != ae.SpellID {
+		if e.HPTick > 0 && !e.NextTick.IsZero() && e.SpellID != ae.SpellID && e.HoTSlot == ae.HoTSlot && e.HPTick >= ae.HPTick {
 			continue
 		}
 		left = append(left, e)

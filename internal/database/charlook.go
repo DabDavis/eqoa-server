@@ -66,27 +66,45 @@ func (db *SQLiteDB) SetCharLooks(serverID uint32, looks []CharLook) error {
 	return tx.Commit()
 }
 
-// SetCharLookParts replaces serverID's rows of parts with looks (each of one
-// of them; none: the part's rows go), the others kept, in one transaction,
-// source naming where (character select's Customize: "customize").
-func (db *SQLiteDB) SetCharLookParts(serverID uint32, parts []string, looks []CharLook, source string) error {
+// SetSelectedRaceLook saves the selected body and part changes together. Zero
+// leaves the body as stored. Reset parts return to the body's default look.
+func (db *SQLiteDB) SetSelectedRaceLook(serverID uint32, model int64, reset []string, looks []CharLook) (bool, error) {
 	tx, err := db.Begin()
 	if err != nil {
-		return err
+		return false, err
 	}
 	defer tx.Rollback()
-	for _, p := range parts {
-		if _, err := tx.Exec(`DELETE FROM charlook WHERE serverid = ? AND part = ?`, serverID, p); err != nil {
+	changed := false
+	exec := func(query string, args ...any) error {
+		r, err := tx.Exec(query, args...)
+		if err != nil {
 			return err
+		}
+		n, err := r.RowsAffected()
+		changed = changed || n > 0
+		return err
+	}
+	if model != 0 {
+		if err := exec(`UPDATE characters SET modelid = ? WHERE serverid = ? AND modelid <> ?`, model, serverID, model); err != nil {
+			return false, err
+		}
+	}
+	for _, part := range reset {
+		if err := exec(`DELETE FROM charlook WHERE serverid = ? AND part = ?`, serverID, part); err != nil {
+			return false, err
 		}
 	}
 	for _, l := range looks {
-		if _, err := tx.Exec(`INSERT INTO charlook (serverid, part, kind, value, source) VALUES (?, ?, ?, ?, ?)`,
-			serverID, l.Part, l.Kind, int64(l.Value), source); err != nil {
-			return err
+		if err := exec(`INSERT INTO charlook (serverid, part, kind, value, source) VALUES (?, ?, ?, ?, 'customize')
+			ON CONFLICT (serverid, part) DO UPDATE SET kind = excluded.kind, value = excluded.value, source = excluded.source, note = ''
+			WHERE charlook.kind <> excluded.kind OR charlook.value <> excluded.value`, serverID, l.Part, l.Kind, int64(l.Value)); err != nil {
+			return false, err
 		}
 	}
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return false, err
+	}
+	return changed, nil
 }
 
 // CharLooks is serverID's rows, by part.

@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/binary"
 	"log"
+	"slices"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
@@ -22,11 +23,11 @@ import (
 // takes it answers 1 and is sent, at once and after every list, each listed
 // character's own race (its id and racedefs' name), its mastery points (spent and
 // unspent: what it has earned, charmastery's points + spent) and the race option
-// rows its Customize re-chooses (entity.SelectRows: a game race's skin, the
-// Wisp's colour). A PS2 ignores the offer and is sent none.
+// rows its Customize re-chooses (entity.SelectRows). Version 2 also includes the
+// stored sex and custom appearance values for previewing variants.
+// A PS2 ignores the offer and is sent none.
 
-// selectInfoVersion is OpcodeSelectInfoData's first byte.
-const selectInfoVersion = 1
+const selectInfoAppearanceVersion uint8 = 2
 
 // selectInfo is one character's entry.
 type selectInfo struct {
@@ -35,6 +36,8 @@ type selectInfo struct {
 	name     string // racedefs' name; empty for a game race
 	cms      int
 	rows     []string
+	sex      uint8
+	looks    []database.CharLook
 }
 
 // buildSelectInfoOffer is OpcodeSelectInfo from the server: a u32, 1.
@@ -65,15 +68,26 @@ func selectRaceName(race int) string {
 // selectInfoOf is records' entries: their races, their mastery points
 // (charmastery's, 0 for a character with no row) and the rows select
 // re-chooses.
-func (h *CharacterHandler) selectInfoOf(records []*database.CharacterRecord) []selectInfo {
+func (h *CharacterHandler) selectInfoOf(records []*database.CharacterRecord, extended bool) []selectInfo {
 	out := make([]selectInfo, 0, len(records))
 	for _, c := range records {
-		e := selectInfo{serverID: uint32(c.ServerID), race: int(c.Race), name: selectRaceName(int(c.Race)), rows: entity.SelectRows(int(c.Race))}
+		e := selectInfo{serverID: uint32(c.ServerID), race: c.Race, name: selectRaceName(c.Race),
+			rows: entity.SelectRows(c.Race, c.Sex, extended)}
+		if c.Sex == 1 {
+			e.sex = 1
+		}
 		if h.store != nil {
 			if m, err := h.store.LoadMastery(uint32(c.ServerID)); err == nil {
 				e.cms = m.Points + m.Spent
 			} else {
 				log.Printf("SelectInfo: %s's masteries: %v", c.CharName, err)
+			}
+			if extended && c.Race >= 10 && len(e.rows) > 0 {
+				if looks, err := h.store.DB().CharLooks(e.serverID); err == nil {
+					e.looks = slices.DeleteFunc(looks, func(l database.CharLook) bool { return !slices.Contains(e.rows, l.Part) })
+				} else {
+					log.Printf("SelectInfo: %s's appearance: %v", c.CharName, err)
+				}
 			}
 		}
 		out = append(out, e)
@@ -84,11 +98,11 @@ func (h *CharacterHandler) selectInfoOf(records []*database.CharacterRecord) []s
 // encodeSelectInfo is OpcodeSelectInfoData's body (the opcode's doc): the
 // first 65,535 entries, a name and a key cut at 255 bytes, the points at
 // 65,535, the rows at 255.
-func encodeSelectInfo(list []selectInfo) []byte {
+func encodeSelectInfo(list []selectInfo, version uint8) []byte {
 	if len(list) > 65535 {
 		list = list[:65535]
 	}
-	b := binary.LittleEndian.AppendUint16([]byte{selectInfoVersion}, uint16(len(list)))
+	b := binary.LittleEndian.AppendUint16([]byte{version}, uint16(len(list)))
 	for _, e := range list {
 		b = binary.LittleEndian.AppendUint32(b, e.serverID)
 		b = append(b, byte(max(0, min(255, e.race))))
@@ -102,6 +116,14 @@ func encodeSelectInfo(list []selectInfo) []byte {
 		for _, k := range rows {
 			b = appendStr8(b, k)
 		}
+		if version >= selectInfoAppearanceVersion {
+			looks := e.looks[:min(len(e.looks), 255)]
+			b = append(b, e.sex, byte(len(looks)))
+			for _, l := range looks {
+				b = appendStr8(b, l.Part)
+				b = binary.LittleEndian.AppendUint32(b, l.Value)
+			}
+		}
 	}
 	return b
 }
@@ -109,10 +131,11 @@ func encodeSelectInfo(list []selectInfo) []byte {
 // sendSelectInfo sends a client that took the offer the select info of a
 // list's characters; nothing to any other.
 func (h *CharacterHandler) sendSelectInfo(sess *session.Session, records []*database.CharacterRecord) {
-	if !sess.SelectInfo() {
+	version := sess.SelectInfoVersion()
+	if version == 0 {
 		return
 	}
-	body := encodeSelectInfo(h.selectInfoOf(records))
+	body := encodeSelectInfo(h.selectInfoOf(records, version >= selectInfoAppearanceVersion), version)
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeSelectInfoData)
 	msg.SetData(append(binary.LittleEndian.AppendUint16(make([]byte, 0, 2+len(body)), uint16(protocol.OpcodeSelectInfoData)), body...))
 	sess.Queue().AddWithSequence(msg)
@@ -134,22 +157,20 @@ func (h *SelectInfoHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeSelectInfo, h.HandleSelectInfo)
 }
 
-// HandleSelectInfo takes the client's answer: a u32, nonzero to be sent the
-// info, 0 to stop. A 1 is taken only on a session it was offered on. A client
-// still choosing a character is sent its characters' at once.
+// HandleSelectInfo takes the client's answer: a u32 version, or zero to stop.
 func (h *SelectInfoHandler) HandleSelectInfo(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 4 {
 		log.Printf("SelectInfo: short (%d bytes) from %s", len(data), sess.RemoteAddr())
 		return nil
 	}
-	on := binary.LittleEndian.Uint32(data[:4]) != 0
-	if on && !sess.SelectInfoOffered() {
+	version := uint8(min(binary.LittleEndian.Uint32(data[:4]), uint32(selectInfoAppearanceVersion)))
+	if version != 0 && !sess.SelectInfoOffered() {
 		log.Printf("SelectInfo: %s asked for it, which was not offered", sess.RemoteAddr())
 		return nil
 	}
-	sess.SetSelectInfo(on)
-	if !on || h.chars == nil || h.chars.store == nil || sess.AccountID() <= 0 {
+	sess.SetSelectInfo(version)
+	if version == 0 || h.chars == nil || h.chars.store == nil || sess.AccountID() <= 0 {
 		return nil
 	}
 	if sess.State() != session.StateCharacterSelect || sess.CharacterInWorld() {

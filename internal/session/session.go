@@ -206,10 +206,10 @@ type Session struct {
 	// petDyesLayout is the layout of OpcodePetDyes it answered (1 the mask
 	// alone; 2 a rule byte per pet: entity/petdyes.go), 0 with petDyes off
 	petDyesLayout uint8
-	// selectInfo: the client answered the select info's offer 1
+	// selectInfo: the version of character select info a client asked for
 	// (protocol.OpcodeSelectInfo, handlers/selectinfo.go); selectInfoOffered:
 	// the offer went out, once a session.
-	selectInfo        bool
+	selectInfo        uint8
 	selectInfoOffered bool
 	// hardcoreClient: the client answered the Hardcore offer 1
 	// (protocol.OpcodeHardcore, handlers/hardcore.go); hardcoreOffered: the
@@ -1198,16 +1198,21 @@ func (s *Session) OfferCapesOnce() bool {
 	return first
 }
 
-// SetSelectInfo records the client's answer to the select info's offer.
-func (s *Session) SetSelectInfo(on bool) {
+// SetSelectInfo records the negotiated select info version. Zero turns it off.
+func (s *Session) SetSelectInfo(version uint8) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.selectInfo = on
+	s.selectInfo = version
 }
 
 // SelectInfo is whether the client asked for the select info. A client that
 // never answered (a PS2) did not.
 func (s *Session) SelectInfo() bool {
+	return s.SelectInfoVersion() != 0
+}
+
+// SelectInfoVersion is the version the client asked to receive.
+func (s *Session) SelectInfoVersion() uint8 {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.selectInfo

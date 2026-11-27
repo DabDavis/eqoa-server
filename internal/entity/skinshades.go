@@ -116,69 +116,56 @@ func isGameRace(race int) bool {
 	return ok
 }
 
-// SelectRows is the keys of race's option rows character select's Customize
-// re-chooses: a game race's colour and texture rows (its skin, on a server
-// that offers skin shades), a custom race's marked AtSelect (the Wisp's
-// colour); none for any other. A client told them (OpcodeSelectInfoData)
-// shows them under the four.
-func SelectRows(race int) []string {
+func canReselectRow(r OptionRow, race, sex int, extended bool) bool {
+	return !r.GM && len(r.Steps(sex)) > 1 && (extended || isGameRace(race) || r.AtSelect)
+}
+
+// SelectRows lists the creation appearance rows character select can re-choose.
+// Older clients show only the original races' extra rows and the Wisp's colour.
+func SelectRows(race, sex int, extended bool) []string {
+	if race == raceFroglok && !Creation().Races {
+		return nil
+	}
 	var out []string
 	for _, r := range RaceOptions(race) {
-		if (r.Kind == KindColour || r.Kind == KindTexture) && len(r.Steps(0)) > 1 && (isGameRace(race) || r.AtSelect) {
+		if canReselectRow(r, race, sex, extended) {
 			out = append(out, r.Key)
 		}
 	}
 	return out
 }
 
-// ReselectOptions is the look of a character of game race race and sex whose
-// look is have, after choices re-chosen at character select's Customize (sent
-// after 0x002A's ints by a client that showed the race's rows: vanilla since
-// 2026-11-11): each choice's row replaced, its first step none (the race's
-// own), every other row kept. changed lists the rows chosen, for the caller to
-// replace. An error names a choice no such client could make: a race of
-// another kind (a body is chosen at creation only), a row the race has not or
-// of another kind, a step past its row's, a row twice.
-func ReselectOptions(race, sex int, have []database.CharLook, choices []OptionChoice) (looks []database.CharLook, changed []string, err error) {
-	if !isGameRace(race) && len(SelectRows(race)) == 0 {
-		return nil, nil, fmt.Errorf("race %d: no options re-chosen at select", race)
+// ReselectOptions validates a selection against the race and sex stored on the
+// character. It returns the chosen model (zero if omitted), parts to reset to
+// their defaults, and parts to store. Unmentioned parts keep their saved values.
+func ReselectOptions(race, sex int, level uint32, extended bool, choices []OptionChoice) (model int64, reset []string, looks []database.CharLook, err error) {
+	rows := RaceOptionsFor(race, level)
+	if race == raceFroglok && !Creation().Races {
+		rows = nil
 	}
-	rows := RaceOptions(race)
-	if !isGameRace(race) { // a custom race's own: only its rows re-chosen at select
-		rows = slices.DeleteFunc(slices.Clone(rows), func(r OptionRow) bool { return !r.AtSelect })
-	}
-	chosen := map[string]database.CharLook{}
+	seen := make(map[string]bool, len(choices))
 	for _, c := range choices {
-		var row *OptionRow
-		for i := range rows {
-			if rows[i].Key == c.Key {
-				row = &rows[i]
-			}
+		i := slices.IndexFunc(rows, func(row OptionRow) bool { return row.Key == c.Key })
+		switch {
+		case i < 0 || !canReselectRow(rows[i], race, sex, extended):
+			return 0, nil, nil, fmt.Errorf("no selectable row %q for race %d", c.Key, race)
+		case seen[c.Key]:
+			return 0, nil, nil, fmt.Errorf("row %q twice", c.Key)
+		}
+		seen[c.Key] = true
+		row := rows[i]
+		steps := row.Steps(sex)
+		if c.Step < 0 || c.Step >= len(steps) {
+			return 0, nil, nil, fmt.Errorf("row %q step %d of %d", c.Key, c.Step, len(steps))
 		}
 		switch {
-		case row == nil:
-			return nil, nil, fmt.Errorf("no row %q for race %d", c.Key, race)
-		case row.Kind != KindColour && row.Kind != KindTexture:
-			return nil, nil, fmt.Errorf("row %q is chosen at creation only", c.Key)
-		case slices.Contains(changed, c.Key):
-			return nil, nil, fmt.Errorf("row %q twice", c.Key)
-		case c.Step < 0 || c.Step >= len(row.Steps(sex)):
-			return nil, nil, fmt.Errorf("row %q step %d of %d", c.Key, c.Step, len(row.Steps(sex)))
-		}
-		changed = append(changed, c.Key)
-		if c.Step > 0 || row.Always {
-			chosen[c.Key] = database.CharLook{Part: row.Key, Kind: int(row.Kind), Value: row.Steps(sex)[c.Step].Value}
+		case row.Kind == KindBody:
+			model = int64(int32(steps[c.Step].Value))
+		case c.Step == 0 && !row.Always:
+			reset = append(reset, row.Key)
+		default:
+			looks = append(looks, database.CharLook{Part: row.Key, Kind: int(row.Kind), Value: steps[c.Step].Value})
 		}
 	}
-	for _, l := range have {
-		if !slices.Contains(changed, l.Part) {
-			looks = append(looks, l)
-		}
-	}
-	for _, k := range changed {
-		if l, ok := chosen[k]; ok {
-			looks = append(looks, l)
-		}
-	}
-	return looks, changed, nil
+	return model, reset, looks, nil
 }

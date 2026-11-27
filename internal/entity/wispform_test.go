@@ -335,42 +335,43 @@ func TestTheWispsColour(t *testing.T) {
 			t.Errorf("body %08X: parts %+v", b, row.PartsOf(b))
 		}
 	}
-	if got := SelectRows(31); len(got) != 1 || got[0] != wispColourKey {
+	if got := SelectRows(31, 1, true); len(got) != 1 || got[0] != wispColourKey {
 		t.Errorf("the Wisp's rows at select: %v", got)
 	}
-	if got := SelectRows(30); len(got) != 0 {
+	if got := SelectRows(30, 0, false); len(got) != 0 {
 		t.Errorf("the control, the Jal'Raeth: %v", got)
 	}
-	if got := SelectRows(8); len(got) != 0 {
+	if got := SelectRows(8, 0, false); len(got) != 0 {
 		t.Errorf("the control, an erudite without the shades: %v", got)
 	}
 	withSkins(t, true)
-	if got := SelectRows(8); len(got) != 1 || got[0] != "skin" {
+	if got := SelectRows(8, 0, false); len(got) != 1 || got[0] != "skin" {
 		t.Errorf("an erudite with the shades: %v", got)
 	}
 
 	wisp := database.CharLook{Part: "wisp", Kind: database.LookTexture, Value: bodyWillOWisp}
-	looks, changed, err := ReselectOptions(31, 1, []database.CharLook{wisp}, []OptionChoice{{Key: wispColourKey, Step: 3}})
-	if err != nil || len(changed) != 1 || len(looks) != 2 || looks[0] != wisp || looks[1].Part != wispColourKey || looks[1].Value != wispColours[3].Value {
-		t.Fatalf("Amber: %+v %v %v", looks, changed, err)
+	_, reset, edits, err := ReselectOptions(31, 1, 2, false, []OptionChoice{{Key: wispColourKey, Step: 3}})
+	if err != nil || len(reset) != 0 || len(edits) != 1 || edits[0].Part != wispColourKey || edits[0].Value != wispColours[3].Value {
+		t.Fatalf("Amber: %+v %v %v", edits, reset, err)
 	}
-	if back, _, err := ReselectOptions(31, 1, looks, []OptionChoice{{Key: wispColourKey, Step: 0}}); err != nil || len(back) != 1 || back[0] != wisp {
-		t.Errorf("Natural again: %+v %v", back, err)
+	if _, reset, back, err := ReselectOptions(31, 1, 2, false, []OptionChoice{{Key: wispColourKey, Step: 0}}); err != nil || len(back) != 0 || len(reset) != 1 || reset[0] != wispColourKey {
+		t.Errorf("Natural again: %+v %v %v", back, reset, err)
 	}
 	for name, c := range map[string][]OptionChoice{
 		"the wisp": {{Key: "wisp", Step: 0}},
 		"the body": {{Key: "body", Step: 0}},
 		"too far":  {{Key: wispColourKey, Step: len(wispColours)}},
 	} {
-		if _, _, err := ReselectOptions(31, 0, []database.CharLook{wisp}, c); err == nil {
+		if _, _, _, err := ReselectOptions(31, 0, 3, true, c); err == nil {
 			t.Errorf("%s: kept", name)
 		}
 	}
-	if _, _, err := ReselectOptions(30, 0, nil, []OptionChoice{{Key: "body", Step: 1}}); err == nil {
+	if _, _, _, err := ReselectOptions(30, 0, 3, false, []OptionChoice{{Key: "body", Step: 1}}); err == nil {
 		t.Error("the control: the Jal'Raeth's body re-chosen at select")
 	}
 
 	// the looks: the colour on the wisp's part, left out with the wisp in a mortal form
+	looks := append([]database.CharLook{wisp}, edits...)
 	chars := []database.LookCharacter{{Name: "Glim", Race: 31, Sex: 1, ModelID: signed(bodyHumanFemale), Looks: looks}}
 	k, v, p := lookParts(31, bodyHumanFemale, looks)
 	if len(p) != 2 || k[1] != KindColour || v[1] != wispColours[3].Value || p[1].Entries[0] != 7 || p[0].Entries[0] != 7 {

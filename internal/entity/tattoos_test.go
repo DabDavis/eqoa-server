@@ -144,18 +144,16 @@ func TestATattooIsALook(t *testing.T) {
 	if _, _, p := lookParts(raceBarbarian, 0xC44AD516, []database.CharLook{tat}); len(p) != 1 || !slices.Equal(p[0].Entries, []uint8{6}) {
 		t.Fatalf("on her body: %+v", p)
 	}
-	skin := database.CharLook{Part: "skin", Kind: 2, Value: skinShades[3].Value}
-	have := []database.CharLook{skin, tat}
-	got, changed, err := ReselectOptions(raceBarbarian, 0, have, []OptionChoice{{Key: "tattoo", Step: 1}})
-	if err != nil || !slices.Equal(changed, []string{"tattoo"}) || len(got) != 2 || got[0] != skin || got[1].Value != Tattoo(tattooNone) {
-		t.Fatalf("Off at Customize: %+v %v %v", got, changed, err)
+	_, reset, got, err := ReselectOptions(raceBarbarian, 0, 3, false, []OptionChoice{{Key: "tattoo", Step: 1}})
+	if err != nil || len(reset) != 0 || len(got) != 1 || got[0].Part != "tattoo" || got[0].Value != Tattoo(tattooNone) {
+		t.Fatalf("Off at Customize: %+v %v %v", got, reset, err)
 	}
-	got, _, err = ReselectOptions(raceBarbarian, 0, have, []OptionChoice{{Key: "tattoo", Step: 0}})
-	if err != nil || len(got) != 1 || got[0] != skin {
-		t.Fatalf("the face's own at Customize: %+v %v", got, err)
+	_, reset, got, err = ReselectOptions(raceBarbarian, 0, 3, false, []OptionChoice{{Key: "tattoo", Step: 0}})
+	if err != nil || len(got) != 0 || !slices.Equal(reset, []string{"tattoo"}) {
+		t.Fatalf("the face's own at Customize: %+v %v %v", got, reset, err)
 	}
 	withTattoos(t, true, false)
-	if _, _, err := ReselectOptions(raceBarbarian, 0, have, []OptionChoice{{Key: "tattoo", Step: 1}}); err == nil {
+	if _, _, _, err := ReselectOptions(raceBarbarian, 0, 3, false, []OptionChoice{{Key: "tattoo", Step: 1}}); err == nil {
 		t.Error("the control: no tattoo on the server, yet kept")
 	}
 }

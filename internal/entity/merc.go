@@ -1227,6 +1227,10 @@ func (w *World) mercEffectsLocked(ms *mercState, now time.Time) {
 		if ae.HPTick <= 0 && ae.PowerTick <= 0 || ae.NextTick.IsZero() || now.Before(ae.NextTick) {
 			continue
 		}
+		if npcHoTHeld(n, ae, now) { // a stronger heal of its slot ticks: this one waits (hot.go)
+			ae.NextTick = w.nextRegularTick(ae.NextTick, now)
+			continue
+		}
 		ae.NextTick = ae.NextTick.Add(effectTick)
 		if ae.HPTick > 0 {
 			was := n.HP

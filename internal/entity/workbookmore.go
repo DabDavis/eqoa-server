@@ -621,3 +621,53 @@ func npcMeleeRollFor(npc *NPC, p *Player) meleeRoll {
 func isRakish(name string) bool {
 	return strings.HasPrefix(strings.ToLower(name), "rakish ")
 }
+
+// npcDefenseHealsLocked fires the heals set off by a hit (a defensive proc's
+// heal over time on its bearer: Tribal Ward's "waits to work till target is
+// hit", Fervor's) on a pet or a merc a creature just hit, as
+// procSpellsOnLocked does on a player (Heirloom petition 3364: "Tribal Ward
+// Shaman MC spell doesn't seem to be triggering on mercs"; until then a
+// pet's or a merc's effects' defensive procs answered with damage alone,
+// dshield.go). The chance is the proc's own, else its caster's INT's
+// (procChancePct), the base one with its caster gone; the heal lands as its
+// caster's, under the proc's id, so another hit renews it and never adds a
+// second. Must be called with the lock held.
+func (w *World) npcDefenseHealsLocked(n *NPC, now time.Time) {
+	if n == nil || n.Dead || len(n.Effects) == 0 {
+		return
+	}
+	for _, ae := range append([]*ActiveEffect(nil), n.Effects...) {
+		if !now.Before(ae.Until) || len(ae.ProcSpells) == 0 {
+			continue
+		}
+		caster := w.Players[ae.Caster]
+		if caster == nil {
+			continue // its heal's amounts are its caster's (spellAmount)
+		}
+		for i, ps := range ae.ProcSpells {
+			if !ps.Defense || ps.Undead || n.Dead {
+				continue
+			}
+			var lasts []SpellEffect
+			for _, e := range ps.Effects {
+				if e.Self && (e.Kind == EffectHPTick || e.Kind == EffectPowerTick) {
+					e.Self = false // on its bearer as a spell's own target
+					lasts = append(lasts, e)
+				}
+			}
+			if len(lasts) == 0 {
+				continue
+			}
+			chance := ps.Chance
+			if chance <= 0 {
+				chance = procChancePct(caster.StatNow(StatInt))
+			}
+			if procIntn(100) >= chance {
+				continue
+			}
+			proc := CastSpell{SpellID: procSpellID(ae.SpellID, i), Name: ae.Name, Icon: ae.Icon, Level: caster.Level,
+				Def: SpellDef{Effects: lasts, Duration: ps.Duration, Workbook: true}, figures: figuresProc}
+			w.landOnPetLocked(&castState{spell: proc, caster: caster.ServerID}, caster, w.findSessionByEntityIDLocked(caster.ServerID), n, now)
+		}
+	}
+}

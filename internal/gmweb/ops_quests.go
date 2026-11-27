@@ -21,7 +21,8 @@ import (
 
 // questCols are a quest row's columns the editor sends, in the table's order.
 var questCols = []string{"name", "enabled", "giver", "minlevel", "maxlevel", "classes", "races", "requires",
-	"repeatable", "offer", "accept", "decline", "declined", "started", "source", "notes", "events", "factionreq", "excludes", "asks", "daygroup", "untrusted"}
+	"repeatable", "offer", "accept", "decline", "declined", "started", "source", "notes", "events", "factionreq", "excludes", "asks", "daygroup", "untrusted",
+	"offerworld", "offerx", "offery", "offerz", "offerradius", "offerheight"}
 
 // stepCols are a step row's columns the editor sends.
 var stepCols = []string{"kind", "target", "npcid", "items", "tunar", "count", "world", "x", "y", "z", "radius",
@@ -59,18 +60,25 @@ func (s *Server) registerQuestOps() {
 			`{"answer": the player's line (63 characters), "says": the giver's reply (a box a line, 217 characters a line), ` +
 			`"asks": follow-ups of the same shape, opened once it is asked}; the giver replies, then asks the offer's question ` +
 			`again; nothing is kept. Six answers at most in one box with the accept and decline. Empty: none`),
-		"untrusted":  str("what the giver says, after its line naming the faction, to a player whose standing alone keeps it from the quest (its factionreq): how to earn it; empty: the line alone"),
-		"daygroup":   str("a name the quests of one a day share: one of the group is not offered or taken while another is under way or was finished today (the giver's rotation, fewest finished first, takes turns); empty: none"),
-		"excludes":   str("quest ids whose doing keeps it from a character, comma separated: not offered nor taken by one who finished any of them or has one under way (two tellings of one errand); empty: none"),
-		"repeatable": integer("1: may be taken again once finished"),
-		"offer":      str("the giver's words offering it: a paragraph (lines between blank lines) a question, a line a box, each paragraph's last line the question"),
-		"accept":     str("the player's answers that take it, a line a question (the last one gives the quest); empty: taken as soon as the giver is talked to"),
-		"decline":    str("the player's answer that refuses it: one line, offered with each question; several lines, a line a question as accept's (an empty line: that question has none); empty: none"),
-		"declined":   str("the giver's reply to a refusal, said as written (no name put before it)"),
-		"started":    str("the giver's words once it is taken"),
-		"source":     str("where it came from"),
-		"notes":      str("for GMs"),
-		"events":     str("what happens when it is taken (on accept) and finished (on finish): " + eventsHelp),
+		"untrusted": str("what the giver says, after its line naming the faction, to a player whose standing alone keeps it from the quest (its factionreq): how to earn it; empty: the line alone"),
+		// a quest offered at a place (handlers/questplaceoffer.go; petitions 3322/3325)
+		"offerworld":  integer("offered at a place: its world (with offerradius above 0)"),
+		"offerx":      number("offered at a place: x"),
+		"offery":      number("offered at a place: y (asked only with offerheight)"),
+		"offerz":      number("offered at a place: z"),
+		"offerradius": number("offered at a place: a player who may take it is offered it on stepping within this of x, z (once each time it comes in; its words a pop-up, no name before them), besides its giver's talk; 0 (default): its giver alone offers it"),
+		"offerheight": number("offered at a place: within this of y too (a floor of a tower); 0: any height"),
+		"daygroup":    str("a name the quests of one a day share: one of the group is not offered or taken while another is under way or was finished today (the giver's rotation, fewest finished first, takes turns); empty: none"),
+		"excludes":    str("quest ids whose doing keeps it from a character, comma separated: not offered nor taken by one who finished any of them or has one under way (two tellings of one errand); empty: none"),
+		"repeatable":  integer("1: may be taken again once finished"),
+		"offer":       str("the giver's words offering it: a paragraph (lines between blank lines) a question, a line a box, each paragraph's last line the question"),
+		"accept":      str("the player's answers that take it, a line a question (the last one gives the quest); empty: taken as soon as the giver is talked to"),
+		"decline":     str("the player's answer that refuses it: one line, offered with each question; several lines, a line a question as accept's (an empty line: that question has none); empty: none"),
+		"declined":    str("the giver's reply to a refusal, said as written (no name put before it)"),
+		"started":     str("the giver's words once it is taken"),
+		"source":      str("where it came from"),
+		"notes":       str("for GMs"),
+		"events":      str("what happens when it is taken (on accept) and finished (on finish): " + eventsHelp),
 		"factionreq": str("the standings it asks for: Faction Name:min or Faction Name:min..max, comma separated (as the " +
 			"factions table spells them; -2000 to 2000): offered, marked and its steps at its giver done only while each is met; empty: none"),
 	})
@@ -652,10 +660,27 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any, unlocks
 	if text(q, "name") == "" {
 		add("it has no name")
 	}
+	atPlace := num(q, "offerradius") > 0
 	if g := text(q, "giver"); g == "" {
-		add("it has no giver: no one offers it (a GM can still give it)")
+		if !atPlace {
+			add("it has no giver: no one offers it (a GM can still give it)")
+		}
 	} else {
 		s.npcProblems(g, "the giver", add)
+	}
+	// offered at a place (handlers/questplaceoffer.go)
+	if r := num(q, "offerradius"); r < 0 {
+		add("its place's radius %v is below 0: no place offers it", r)
+	} else if atPlace {
+		if num(q, "offerx") == 0 && num(q, "offerz") == 0 {
+			add("its place is 0, 0")
+		}
+		if w := num(q, "offerworld"); w < 0 || w > 255 {
+			add("its place's world %v is not a world", w)
+		}
+		if num(q, "offerheight") < 0 {
+			add("its place's height %v is below 0 (0: any height)", num(q, "offerheight"))
+		}
 	}
 	if lo, hi := num(q, "minlevel"), num(q, "maxlevel"); hi > 0 && lo > hi {
 		add("its levels run backwards: %v to %v", lo, hi)

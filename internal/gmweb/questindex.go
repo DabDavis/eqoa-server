@@ -258,6 +258,15 @@ func (s *Server) loadQuestIndex() (*questIndex, error) {
 	if err != nil {
 		return nil, err
 	}
+	// the quests offered at a place (handlers/questplaceoffer.go; a table without the column has none)
+	atPlace := map[int64]bool{}
+	if rows, err := s.everyRow(`SELECT questid FROM quests WHERE offerradius > 0`); err == nil {
+		for _, r := range rows {
+			if v, ok := asFloat(r["questid"]); ok {
+				atPlace[int64(v)] = true
+			}
+		}
+	}
 	// the trips quests unlock (a database without the table has none)
 	trips, _ := s.everyRow(`SELECT questid, npc, dest FROM questunlocks ORDER BY questid, npc, dest`)
 	steps, err := s.everyRow(`SELECT * FROM queststeps ORDER BY questid, step`)
@@ -319,8 +328,10 @@ func (s *Server) loadQuestIndex() (*questIndex, error) {
 	}
 	// the names each quest uses
 	for _, r := range idx.rows {
-		if r.Giver == "" {
+		if r.Giver == "" && !atPlace[r.ID] {
 			r.why("it has no giver: no one offers it")
+		} else if r.Giver == "" {
+			// offered at its place alone
 		} else if _, ok := names.npcs[strings.ToLower(r.Giver)]; !ok {
 			r.lack("NPC", r.Giver, "no NPC %q (its giver)", r.Giver)
 		}

@@ -759,12 +759,39 @@ async function wordsEditor(box, id) {
         writable(qMeta).includes('notes') ? card('Notes', h('div', { class: 'fields' }, word(qMeta, q, 'notes', ''))) : null)));
 }
 
+// offerPlace is a quest's place offer (handlers/questplaceoffer.go; petitions 3322/3325): its world, x, y, z,
+// radius (0: none) and height (0: any), and the GM's own spot to fill them.
+function offerPlace(q, worlds) {
+  const box = h('div', { class: 'row wrap' });
+  const draw = () => {
+    const w = h('select', null, ...(worlds.length ? worlds : [{ value: 0, label: 'World 0' }]).map((x) => h('option', { value: x.value, selected: Number(q.offerworld) === x.value }, x.label)));
+    w.addEventListener('change', () => { q.offerworld = Number(w.value); });
+    const here = button('Where my character stands', { onclick: async () => {
+      try {
+        const out = await op('online_players', {});
+        const me = out.players.find((p) => p.accountid === state.session?.user?.accountid);
+        if (!me) { toast('You have no character in the world', 'error'); return; }
+        Object.assign(q, { offerworld: me.world, offerx: me.x, offery: me.y, offerz: me.z });
+        if (!(Number(q.offerradius) > 0)) q.offerradius = 6;
+        draw();
+        toast(`${me.name} stands at ${me.x}, ${me.z} in ${me.worldName}`, 'ok');
+      } catch (e) { toast(e.message, 'error'); }
+    } });
+    mount(box, field('World', w), field('x', num(q, 'offerx', { step: 'any' })), field('y', num(q, 'offery', { step: 'any' })),
+      field('z', num(q, 'offerz', { step: 'any' })), field('Within', num(q, 'offerradius', { min: 0, step: 'any' }), '0: no place'),
+      field('Height', num(q, 'offerheight', { min: 0, step: 'any' }), '0: any'), field('', here));
+  };
+  draw();
+  return box;
+}
+
 // ---- the editor
 
 async function editor(box, id) {
   let data = {
     quest: { name: '', enabled: 0, giver: '', minlevel: 1, maxlevel: 60, classes: '', races: '', requires: '', repeatable: 0,
-      offer: '', accept: '', decline: '', declined: '', started: '', source: 'gm', notes: '', events: '', factionreq: '', asks: '', daygroup: '' },
+      offer: '', accept: '', decline: '', declined: '', started: '', source: 'gm', notes: '', events: '', factionreq: '', asks: '', daygroup: '',
+      offerworld: 0, offerx: 0, offery: 0, offerz: 0, offerradius: 0, offerheight: 0 },
     steps: [], unlocks: [], routes: [], problems: [], characters: [],
   };
   if (id) {
@@ -937,6 +964,7 @@ async function editor(box, id) {
           field('Quests finished first', text(q, 'requires', { placeholder: 'quest ids, comma separated; 11|12 for either', class: 'mono' }), null, true),
           field('Standings asked', factionReqs(q, 'factionreq'), 'offered, marked and done at its giver only while each is met (-2000 to 2000)', true),
           field('Day group', text(q, 'daygroup', { placeholder: 'a name, e.g. christmas-gifts' }), 'quests of one name are one a day: none while another is under way or was finished today', true),
+          field('Offered at a place', offerPlace(q, worlds), 'within above 0: a player who may take it is offered it on stepping there, once each time it comes in, its words a pop-up (no name before them); its giver still offers it when talked to. 0: its giver alone', true),
           data.marks ? field('Heirloom Marks', h('div', { class: 'muted' },
             `pays ${data.marks.pays} (computed ${data.marks.computed} from ${Math.round(data.marks.minutes * 10) / 10} minutes${data.marks.key ? ', key ' + data.marks.key : ''}; ` +
             (data.marks.set === null || data.marks.set === undefined ? 'marks column empty: computed' : `marks column ${data.marks.set}`) + ')'),

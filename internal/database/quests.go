@@ -149,6 +149,10 @@ func (db *SQLiteDB) initQuests() error {
 		{"quests", "excludes", `TEXT NOT NULL DEFAULT ''`},
 		{"quests", "asks", `TEXT NOT NULL DEFAULT ''`}, {"quests", "daygroup", `TEXT NOT NULL DEFAULT ''`},
 		{"quests", "untrusted", `TEXT NOT NULL DEFAULT ''`},
+		// a quest offered at a place (Quest.OfferAt; handlers/questplaceoffer.go)
+		{"quests", "offerworld", `INTEGER NOT NULL DEFAULT 0`}, {"quests", "offerx", `REAL NOT NULL DEFAULT 0`},
+		{"quests", "offery", `REAL NOT NULL DEFAULT 0`}, {"quests", "offerz", `REAL NOT NULL DEFAULT 0`},
+		{"quests", "offerradius", `REAL NOT NULL DEFAULT 0`}, {"quests", "offerheight", `REAL NOT NULL DEFAULT 0`},
 		{"queststeps", "anyorder", `INTEGER NOT NULL DEFAULT 0`},
 		{"queststeps", "exactbase", `INTEGER NOT NULL DEFAULT 0`},
 	} {
@@ -762,6 +766,39 @@ type Quest struct {
 	// Marks is the Heirloom Marks its first finish pays (the marks column, work 1927;
 	// marks.go): nil computes them from its steps and kind (QuestMarksFor)
 	Marks *int
+	// OfferAt is the place it is offered at besides its giver (the offerworld,
+	// offerx, offery, offerz, offerradius and offerheight columns; nil: its
+	// giver alone offers it): a player who may take it is offered it on
+	// stepping within the radius, once each time it comes in
+	// (handlers/questplaceoffer.go). Heirloom petitions 3322/3325
+	// (Underwater, 2026-11-27): the altars of Envaric Ascension are no
+	// creatures in the original game; standing on the altar gives the
+	// pop-up. The owner, 2026-11-27: "yes build the place-based quest offer".
+	OfferAt *QuestPlace
+}
+
+// QuestPlace is a spot a quest is offered at: within Radius of X, Z in World,
+// and within Height of Y when Height is above 0 (a reach step's floor).
+type QuestPlace struct {
+	World          int
+	X, Y, Z        float32
+	Radius, Height float32
+}
+
+// Within is whether a player at x, y, z in world stands at the place.
+func (pl *QuestPlace) Within(world int, x, y, z float32) bool {
+	if pl == nil || world != pl.World {
+		return false
+	}
+	if dx, dz := x-pl.X, z-pl.Z; dx*dx+dz*dz > pl.Radius*pl.Radius {
+		return false
+	}
+	if pl.Height > 0 {
+		if d := y - pl.Y; d > pl.Height || -d > pl.Height {
+			return false
+		}
+	}
+	return true
 }
 
 // EventsOn is the events of one time, in order.
@@ -1436,6 +1473,21 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 			}
 		}
 		mrs.Close()
+	}
+	// the places quests are offered at (a table without the columns has none:
+	// a database initQuests has not seen)
+	if prs, err := s.db.Query(`SELECT questid, offerworld, offerx, offery, offerz, offerradius, offerheight FROM quests
+		WHERE offerradius > 0`); err == nil {
+		for prs.Next() {
+			var id int
+			var pl QuestPlace
+			if prs.Scan(&id, &pl.World, &pl.X, &pl.Y, &pl.Z, &pl.Radius, &pl.Height) == nil {
+				if i, ok := byID[id]; ok {
+					out[i].OfferAt = &pl
+				}
+			}
+		}
+		prs.Close()
 	}
 	srs, err := s.db.Query(`SELECT questid, step, kind, target, npcid, items, tunar, count, world, x, y, z, radius,
 		journal, answer, says, waiting, notyet, reminder, xp, rewardtunar, rewarditems, factions, spells, chance, events, byclass,

@@ -325,15 +325,37 @@ func (w *World) AggroSummary() string {
 // npcfaction faction, when factions count, it has no NPC bit and no GM's
 // npcaggro row names it; false: the rules of no faction. Must be called with
 // the lock held.
+//
+// A GM's aggressive row for the name (no item held: questwalls.go) does not take a creature out of the faction a
+// place row (a radius) gives it where it spawned: Live petitions 5678/5679 (2026-11-27), a GM's name-wide
+// "decaying zombie" row, meant for the undead of the wilds, set Neriak's guild zombies (npcfaction 482, Citizens of
+// Neriak within 14.6) on every dark elf newbie at 151. The place row is the narrower word: such a creature attacks
+// for its faction (a KOS player alone), as it did before the row. A peaceful row still wins (it can only spare a
+// player), as does a name-wide npcfaction row (world or anywhere), which the GM's row overrides as before.
 func (w *World) factionAggroLocked(npc *NPC) (string, bool) {
 	if w.aggro.factionOff || npc.NPCType&0x80 != 0 {
 		return "", false
 	}
-	if _, ok := w.aggroRuleLocked(npc); ok {
-		return "", false
+	if r, ok := w.aggroRuleLocked(npc); ok {
+		if !r.Aggressive || r.Holding > 0 {
+			return "", false
+		}
+		f := w.placeFactionLocked(npc)
+		return f, f != ""
 	}
 	f := w.npcFactionLocked(npc)
 	return f, f != ""
+}
+
+// placeFactionLocked is the faction of the place row (npcfaction with a radius) that holds npc where it spawned, ""
+// none (a place row of no faction, or none holds it). Must be called with the lock held.
+func (w *World) placeFactionLocked(npc *NPC) string {
+	for _, r := range w.factions.npcRows(npc.Name) {
+		if r.r > 0 && r.faction != "" && r.holds(npc) {
+			return r.faction
+		}
+	}
+	return ""
 }
 
 // SetFactionAggro lets factions count in aggro and the target face, or leaves

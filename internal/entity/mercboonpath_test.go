@@ -30,8 +30,8 @@ func TestMercReadsTheBoonPath(t *testing.T) {
 	}
 	selfGain := wbSpell(9702, 30, 0, "Test Self Power", `{"v":1,"scope":"self","target_type":"Self","harmful":false,"stack":0,"level":30,
 		"min_level":1,"req_equipment":"Any","sheet_type":"Statistic Change","effects":[{"type":"Statistic Change","kind":"power","amount":500}]}`)
-	if u := mercUseOf(&selfGain); u != useNone {
-		t.Errorf("a self power gain reads as use %v, want none", u)
+	if u := mercUseOf(&selfGain); u != useSelfPower { // petition 3431: its own power, under mercSelfPowerBelowPct
+		t.Errorf("a self power gain reads as use %v, want its own power", u)
 	}
 	mind := wbSpell(9703, 30, 0, "Test Expansive Mind", `{"v":1,"scope":"self","target_type":"Self","harmful":false,"duration_s":1200,"stack":2,"level":30,
 		"min_level":1,"req_equipment":"Any","sheet_type":"Statistic Change","effects":[{"type":"Statistic Change","kind":"stat","stat":"maxpower","amount":260}]}`)

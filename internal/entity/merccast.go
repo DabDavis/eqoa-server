@@ -138,6 +138,7 @@ const (
 	useGroupHeal         // a heal of the group, now or over time
 	useBuff              // what lasts on a friend: itself, one or the group
 	usePower             // power now for one of its team, or its group
+	useSelfPower         // power now for itself alone (a wizard's Harvest): mercSelfPowerTurnLocked
 )
 
 // MercUseName is what a merc casts a spell for, in words ("" for a spell it
@@ -149,7 +150,8 @@ func MercUseName(s *CastSpell) string {
 // name is the use in words, "" for useNone.
 func (u mercUse) name() string {
 	return [...]string{useNone: "", useNuke: "hit", useDoT: "damage over time", useTaunt: "taunt", useHeal: "heal",
-		useHoT: "heal over time", useGroupHeal: "group heal", useBuff: "buff", usePower: "give power"}[u]
+		useHoT: "heal over time", useGroupHeal: "group heal", useBuff: "buff", usePower: "give power",
+		useSelfPower: "own power"}[u]
 }
 
 // MercBuffsKept is the buffs a merc of the kit keeps up, as its book holds
@@ -197,8 +199,15 @@ func mercUseOf(s *CastSpell) mercUse {
 		return useNone
 	}
 	d := &s.Def
-	var hate, hit, tick, heal, hot, lasting, gift bool
+	var hate, hit, tick, heal, hot, lasting, gift, selfGift bool
 	for _, e := range d.Effects {
+		// power now for the caster alone, as its own line gives it (a self
+		// spell's, or one marked to Self): the wizard's Harvest and Bountiful
+		// Harvest (Heirloom petition 3431: "WIZ mercenaries are missing the
+		// self power replenish lines")
+		if e.Kind == EffectPower && e.Amount > 0 && e.Drain == DrainNone && !e.Set && (e.Self || s.Scope == 0) {
+			selfGift = true
+		}
 		if e.Self {
 			continue
 		}
@@ -240,6 +249,9 @@ func mercUseOf(s *CastSpell) mercUse {
 			return useDoT
 		}
 		return useNone
+	}
+	if selfGift && s.Scope == 0 && !heal && !hot && !lasting && !hit && !hate {
+		return useSelfPower
 	}
 	switch {
 	case hot && !heal && lasting && d.lasts() && (s.Scope == 1 || s.Scope == 2):
@@ -509,7 +521,7 @@ func mercReaches(m *NPC, s *CastSpell, x, y, z, extra float32) bool {
 // buff, else a tank's taunt, else an attack. It reports a cast begun. Must
 // be called with the lock held.
 func (w *World) mercCastTurnLocked(ms *mercState, t *NPC, now time.Time) bool {
-	if w.mercHealTurnLocked(ms, now) || w.mercPowerTurnLocked(ms, now) {
+	if w.mercHealTurnLocked(ms, now) || w.mercPowerTurnLocked(ms, now) || w.mercSelfPowerTurnLocked(ms, now) {
 		return true
 	}
 	// an alchemist's draught for its power, its Master Class's buff and heal
@@ -810,6 +822,30 @@ func (w *World) mercPowerTurnLocked(ms *mercState, now time.Time) bool {
 			w.mercCastLocked(ms, sp.s, lo.mm.id(), false, now)
 			return true
 		}
+	}
+	return false
+}
+
+// mercSelfPowerBelowPct is the share of its power under which a merc casts
+// its own power spell (useSelfPower), in a fight or out of one.
+const mercSelfPowerBelowPct = 40
+
+// mercSelfPowerTurnLocked is the merc's own power spell (a wizard's Harvest:
+// Heirloom petition 3431) cast at itself now, if any: under
+// mercSelfPowerBelowPct of its power, its best of them (mercBook's order)
+// that is ready. After its team's heals and power gifts, before its attacks.
+// It reports a cast begun. Must be called with the lock held.
+func (w *World) mercSelfPowerTurnLocked(ms *mercState, now time.Time) bool {
+	m := ms.npc
+	if m.MaxPower <= 0 || m.Power*100 >= m.MaxPower*mercSelfPowerBelowPct {
+		return false
+	}
+	for _, sp := range ms.mercBook() {
+		if sp.use != useSelfPower || !ms.mercReady(sp.s, now) {
+			continue
+		}
+		w.mercCastLocked(ms, sp.s, m.ServerID, false, now)
+		return true
 	}
 	return false
 }

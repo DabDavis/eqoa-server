@@ -59,7 +59,15 @@ func (tw *talkWorld) at(slot int, id entity.EntityID) uint32 {
 	return tw.add(slot, n)
 }
 
-const homesMenuGerntar = "Gerntar Mines (the Homelands)"
+// The homes' stables as named: every one a copy of a zone of the disc's or
+// the map's under that zone's name, so named with its world's too (Heirloom
+// petition 3357; Gerntar Mines a coach town of the game besides).
+const (
+	homesMenuAviak   = "Aviak Village (Homelands)"
+	homesMenuWest    = "West Plateau (Homelands)"
+	homesMenuGerntar = "Gerntar Mines (Homelands)"
+	homesMenuEyrie   = "Goldfeather Eyrie (Homelands)"
+)
 
 // A home's coachman is a stable as any: the talk signs his home's ledger, said
 // once; with no ledger of a town his coach runs to he says so, the homes
@@ -72,7 +80,7 @@ func TestAHomesCoachRunsToFreeportAndTheOtherHomes(t *testing.T) {
 	tw, _, book := homesCoachWorld(t)
 	harrek := tw.at(2, 9001)
 	tw.talk(harrek)
-	if !book[44]["Aviak Village"] || len(book[44]) != 1 {
+	if !book[44][homesMenuAviak] || len(book[44]) != 1 {
 		t.Fatalf("after the talk the book holds %v, want Aviak Village", book[44])
 	}
 	if got := said(tw); !slices.Contains(got, "Coachman Harrek: "+ledgerSigned) {
@@ -88,9 +96,9 @@ func TestAHomesCoachRunsToFreeportAndTheOtherHomes(t *testing.T) {
 	}
 	tw.s.Queue().GetPending()
 
-	book[44]["Freeport"], book[44]["West Plateau"], book[44]["Highpass Hold"] = true, true, true
+	book[44]["Freeport"], book[44][homesMenuWest], book[44]["Highpass Hold"] = true, true, true
 	tw.talk(harrek)
-	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Freeport", "West Plateau"}) {
+	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Freeport", homesMenuWest}) {
 		t.Fatalf("Harrek offered %q, want Freeport and West Plateau (Highpass Hold is signed, and no coach of a home's "+
 			"runs there; Gerntar Mines' ledger is not signed)", got)
 	}
@@ -117,10 +125,10 @@ func TestAHomesCoachRunsToFreeportAndTheOtherHomes(t *testing.T) {
 // home: Highpass Hold's offers Freeport alone.
 func TestFreeportsCoachRunsToTheHomesAClientHolds(t *testing.T) {
 	tw, ronks, book := homesCoachWorld(t)
-	book[44] = map[string]bool{"Freeport": true, "Highpass Hold": true, "Aviak Village": true, "West Plateau": true,
+	book[44] = map[string]bool{"Freeport": true, "Highpass Hold": true, homesMenuAviak: true, homesMenuWest: true,
 		homesMenuGerntar: true, "Gerntar Mines": true}
 	tw.talk(ronks)
-	want := []string{"Aviak Village", homesMenuGerntar, "Highpass Hold", "West Plateau"}
+	want := []string{homesMenuAviak, homesMenuGerntar, "Highpass Hold", homesMenuWest}
 	if got := offered(tw.p); !slices.Equal(got, want) {
 		t.Fatalf("Ronks offered %q, want %q (Tunaria's Gerntar Mines is no neighbour of Freeport's)", got, want)
 	}
@@ -165,7 +173,7 @@ func TestFreeportsCoachRunsToTheHomesAClientHolds(t *testing.T) {
 	tw.h.isGM = func(*session.Session) bool { return true }
 	tw.talk(ronks)
 	got := offered(tw.p)
-	for _, home := range []string{"Aviak Village", homesMenuGerntar, "West Plateau"} {
+	for _, home := range []string{homesMenuAviak, homesMenuGerntar, homesMenuWest} {
 		if !slices.Contains(got, home) {
 			t.Errorf("the GM was offered %q, without %s", got, home)
 		}
@@ -196,7 +204,7 @@ func TestEveryLedgerTakesTheHomesIn(t *testing.T) {
 	tw.pick(ronks, 0)
 	id := boxID(questMsgs(tw.s))
 	tw.pick(id, 0)
-	for _, town := range []string{"Aviak Village", "West Plateau", homesMenuGerntar, "Gerntar Mines", "Halas"} {
+	for _, town := range []string{homesMenuAviak, homesMenuWest, homesMenuGerntar, "Gerntar Mines", "Halas"} {
 		if !book[44][town] {
 			t.Errorf("every ledger signed, and %s's is not: %v", town, len(book[44]))
 		}
@@ -204,7 +212,7 @@ func TestEveryLedgerTakesTheHomesIn(t *testing.T) {
 	if len(book[44]) != len(entity.CoachTownNames()) {
 		t.Errorf("%d ledgers signed of %d coach towns", len(book[44]), len(entity.CoachTownNames()))
 	}
-	if got := offered(tw.p); !slices.Contains(got, "Aviak Village") || !slices.Contains(got, "West Plateau") {
+	if got := offered(tw.p); !slices.Contains(got, homesMenuAviak) || !slices.Contains(got, homesMenuWest) {
 		t.Errorf("his menu again offers %q, want the homes among them", got)
 	}
 	if offersEvery(tw.p) {
@@ -228,7 +236,7 @@ func TestTheHomesAreTheServersWorldsZones(t *testing.T) {
 	SetServerWorlds([]worlds.Built{homesBuilt(), {Recipe: worlds.Recipe{World: 11, Name: "the Canyon of Banners",
 		Zones: []worlds.RecipeZone{{Name: "Box Canyons"}}}}})
 	t.Cleanup(func() { SetServerWorlds(nil) })
-	want := []string{"Aviak Village", homesMenuGerntar, "West Plateau"}
+	want := []string{homesMenuAviak, homesMenuGerntar, homesMenuWest}
 	if got := entity.CoachHomeNames(); !slices.Equal(got, want) {
 		t.Errorf("the homes' stables %q, want %q", got, want)
 	}
@@ -245,15 +253,84 @@ func TestTheHomesAreTheServersWorldsZones(t *testing.T) {
 // control: the zone that is no one's and not marked has none.
 func TestTheHomesSharedGroundHasAStable(t *testing.T) {
 	b := homesBuilt()
-	b.Zones = append(b.Zones, worlds.RecipeZone{Name: "Goldfeather Eyrie", Stable: true})
+	b.Zones = append(b.Zones, worlds.RecipeZone{Name: homesMenuEyrie, Stable: true})
 	b.Parts = append(b.Parts, worlds.BuiltZone{Box: [6]float32{14000, 0, 6000, 16000, 300, 8000}})
 	SetServerWorlds([]worlds.Built{b})
 	t.Cleanup(func() { SetServerWorlds(nil) })
-	want := []string{"Aviak Village", homesMenuGerntar, "Goldfeather Eyrie", "West Plateau"}
+	want := []string{homesMenuAviak, homesMenuGerntar, homesMenuEyrie, homesMenuWest}
 	if got := entity.CoachHomeNames(); !slices.Equal(got, want) {
 		t.Errorf("the homes' stables %q, want %q (the shared ground's among them, No One's Vale not)", got, want)
 	}
-	if !entity.IsCoachHome("Goldfeather Eyrie") || entity.IsCoachHome("No One's Vale") {
+	if !entity.IsCoachHome(homesMenuEyrie) || entity.IsCoachHome("No One's Vale") {
 		t.Error("the shared ground is a stable of the homes' network, the unmarked zone is not")
 	}
+}
+
+// A home's stable is named with its world's where its name is a place's of
+// another world (Heirloom petition 3357: Freeport's coach to "East Toxxulia"
+// set a player down in the Homelands' copy, not on Odus by his quest's
+// sirens): a zone copied from a disc world under its name, or a zone of the
+// map's camps elsewhere. The control: a zone of a name no other world has,
+// from no disc file, keeps its name; and a name is a place elsewhere only of
+// another world, never of the home's own.
+func TestAHomeNamedAsAPlaceElsewhereIsNamedWithItsWorld(t *testing.T) {
+	box := worlds.BuiltZone{Box: [6]float32{0, 0, 0, 2000, 300, 2000}}
+	b := worlds.Built{Recipe: worlds.Recipe{World: 10, Name: "the Homelands", Zones: []worlds.RecipeZone{
+		{Name: "East Toxxulia", From: "ODUS.ESF", Zone: 14, Race: 25},       // a disc copy, and the map's (Odus)
+		{Name: "Envar", From: "RATHE.ESF", Zone: 15, Race: 30},              // a disc copy alone
+		{Name: "Kerra Isle", Race: 12},                                      // the map's camps' alone (Odus)
+		{Name: "Quiet Hollow of Nowhere", Race: 13},                         // the control: nobody's elsewhere
+		{Name: "Quiet Hollow of Nowhere II", From: "WORLD10.ESF", Race: 14}, // no disc world's file
+	}}}
+	for range b.Zones {
+		b.Parts = append(b.Parts, box)
+	}
+	got := map[string]bool{}
+	for _, h := range coachHomesOf([]worlds.Built{b}) {
+		got[h.Zone] = h.Elsewhere
+	}
+	for zone, want := range map[string]bool{"East Toxxulia": true, "Envar": true, "Kerra Isle": true,
+		"Quiet Hollow of Nowhere": false, "Quiet Hollow of Nowhere II": false} {
+		if got[zone] != want {
+			t.Errorf("%s: elsewhere %v, want %v", zone, got[zone], want)
+		}
+	}
+	// only another world's place counts: Odus's camps' zones are no place elsewhere for world 2
+	places := placeWorlds(nil)
+	if !placeElsewhere(places, "east toxxulia", 10) || placeElsewhere(places, "East Toxxulia", 2) {
+		t.Error("East Toxxulia is a place of world 2's, elsewhere for world 10 alone")
+	}
+}
+
+// The Homelands' recipe as the server builds it (tools/worlds/homelands.json):
+// every home a copy of a disc zone under its name is named with its world's,
+// East Toxxulia and Kerra Isle (petition 3357) and Cazic-Thule (the owner,
+// 2026-11-15) among them, and no stable keeps a zone's bare name.
+func TestTheHomelandsHomesAreNamedApart(t *testing.T) {
+	r, err := worlds.ReadRecipe("../../tools/worlds/homelands.json")
+	if err != nil {
+		t.Skip("no recipe:", err)
+	}
+	b := worlds.Built{Recipe: r}
+	for i := range r.Zones {
+		x := float32(i * 2000)
+		b.Parts = append(b.Parts, worlds.BuiltZone{Box: [6]float32{x, 0, 0, x + 2000, 300, 2000}})
+	}
+	SetServerWorlds([]worlds.Built{b})
+	t.Cleanup(func() { SetServerWorlds(nil) })
+	names := entity.CoachHomeNames()
+	if len(names) < 20 {
+		t.Fatalf("%d homes' stables: %q", len(names), names)
+	}
+	for _, want := range []string{"East Toxxulia (Homelands)", "Kerra Isle (Homelands)", "Cazic-Thule (Homelands)", homesMenuGerntar} {
+		if !slices.Contains(names, want) {
+			t.Errorf("no stable %q among %q", want, names)
+		}
+	}
+	for _, z := range r.Zones {
+		if entity.IsCoachHome(z.Name) {
+			t.Errorf("a stable keeps the zone's bare name %q", z.Name)
+		}
+	}
+	t.Logf("the Homelands' stables: %q", names)
 }

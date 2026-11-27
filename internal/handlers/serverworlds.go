@@ -81,8 +81,10 @@ func SetServerWorlds(built []worlds.Built) {
 // coachHomesOf is the races' homes of the server's own worlds, for their
 // stables (entity/coachhomes.go): each zone a recipe gives a race, and each it
 // gives a stable of its own (the homes' shared ground), by its name and its
-// ground as built.
+// ground as built, and whether that name is a place's of another world
+// (placeElsewhere: Heirloom petition 3357).
 func coachHomesOf(built []worlds.Built) []entity.CoachHome {
+	places := placeWorlds(built)
 	var out []entity.CoachHome
 	for _, b := range built {
 		for i, z := range b.Zones {
@@ -91,10 +93,70 @@ func coachHomesOf(built []worlds.Built) []entity.CoachHome {
 			}
 			box := b.Parts[i].Box
 			out = append(out, entity.CoachHome{World: uint8(b.World), WorldName: b.Name, Zone: z.Name,
-				MinX: box[0], MinZ: box[2], MaxX: box[3], MaxZ: box[5]})
+				MinX: box[0], MinZ: box[2], MaxX: box[3], MaxZ: box[5],
+				Elsewhere: placeElsewhere(places, z.Name, uint8(b.World))})
 		}
 	}
 	return out
+}
+
+// discWorldFiles are the disc's worlds' files, by world index (CLIENT's
+// gWorldInfo), for the world a server world's zone was copied from.
+var discWorldFiles = []string{"TUNARIA.ESF", "RATHE.ESF", "ODUS.ESF", "LAVASTM.ESF", "PLANESKY.ESF", "SECRETS.ESF"}
+
+// placeWorlds is the worlds each place name the server knows is in, by its
+// folded name: every zone of the server's worlds in its own world and, by the
+// name its recipe gives it, in the disc's world it was copied from (a copy is
+// named as the zone it copies: the Homelands' East Toxxulia is Odus's); the
+// map's camps' zones and towns (mapcamps.go, camps.go); the Teleporter's
+// places. The coach towns are entity's own (SetCoachHomes).
+func placeWorlds(built []worlds.Built) map[string]map[uint8]bool {
+	places := map[string]map[uint8]bool{}
+	add := func(name string, world uint8) {
+		k := strings.ToLower(strings.TrimSpace(name))
+		if k == "" {
+			return
+		}
+		if places[k] == nil {
+			places[k] = map[uint8]bool{}
+		}
+		places[k][world] = true
+	}
+	for _, b := range built {
+		for _, z := range b.Zones {
+			add(z.Name, uint8(b.World))
+			for w, f := range discWorldFiles {
+				if strings.EqualFold(z.From, f) {
+					add(z.Name, uint8(w))
+				}
+			}
+		}
+	}
+	for _, c := range mapCamps {
+		add(c.Zone, c.World)
+	}
+	for _, t := range mapTowns {
+		add(t.Name, t.World)
+	}
+	for _, p := range telePlaces {
+		add(p.label, p.at.World)
+	}
+	for _, a := range teleAreas {
+		if len(a.stops) > 0 {
+			add(a.label, a.stops[0].at.World)
+		}
+	}
+	return places
+}
+
+// placeElsewhere is whether name is a place's of a world other than world.
+func placeElsewhere(places map[string]map[uint8]bool, name string, world uint8) bool {
+	for w := range places[strings.ToLower(strings.TrimSpace(name))] {
+		if w != world {
+			return true
+		}
+	}
+	return false
 }
 
 // ServerWorld is the server's own world in slot world, when it has one.

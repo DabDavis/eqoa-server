@@ -59,7 +59,7 @@ func TestAHomeNamedAsBlackveinDeepIsToldApart(t *testing.T) {
 	SetComposedWorld(10, true)
 	SetCoachHomes([]CoachHome{{World: 10, WorldName: "the Homelands", Zone: "Blackvein Deep", MinX: 0, MinZ: 0, MaxX: 2000, MaxZ: 2000}})
 	t.Cleanup(func() { SetCoachHomes(nil); SetComposedWorld(10, false) })
-	if got := CoachHomeNames(); !slices.Equal(got, []string{"Blackvein Deep (the Homelands)"}) {
+	if got := CoachHomeNames(); !slices.Equal(got, []string{"Blackvein Deep (Homelands)"}) {
 		t.Errorf("the home's stable %q", got)
 	}
 }

@@ -34,7 +34,7 @@ func TestTheHomesStablesAreANetworkOfTheirOwn(t *testing.T) {
 	}
 	before := CoachTownNames()
 	withHomes(t)
-	want := []string{"Aviak Village", "Gerntar Mines (the Homelands)", "West Plateau"}
+	want := []string{"Aviak Village", "Gerntar Mines (Homelands)", "West Plateau"}
 	if got := CoachHomeNames(); !slices.Equal(got, want) {
 		t.Fatalf("the homes' stables %q, want %q", got, want)
 	}
@@ -92,7 +92,7 @@ func TestACoachmanOfAHomeIsItsStable(t *testing.T) {
 	}{
 		{NPC{Name: "Coachman Harrek", World: 10, SpawnX: 9211.7, SpawnZ: 21547.1}, "Aviak Village", true},
 		{NPC{Name: "Coachman Ronks", World: 10, SpawnX: 6947, SpawnZ: 3300}, "West Plateau", true},
-		{NPC{Name: "Coachman Brakk", World: 10, SpawnX: 13000, SpawnZ: 27000}, "Gerntar Mines (the Homelands)", true},
+		{NPC{Name: "Coachman Brakk", World: 10, SpawnX: 13000, SpawnZ: 27000}, "Gerntar Mines (Homelands)", true},
 		{NPC{Name: "Coachman Nowhere", World: 10, SpawnX: 100, SpawnZ: 100}, "Coachman Nowhere", false},
 		{NPC{Name: "Coachman Ronks", World: 0, SpawnX: 25273.7, SpawnZ: 15719.1}, "Freeport", true},
 		{NPC{Name: "Coachman Ungar", World: 0, SpawnX: 13038, SpawnZ: 27506}, "Gerntar Mines", true},
@@ -114,25 +114,40 @@ func TestHomesOfOneNameAreToldApartOrLeftOut(t *testing.T) {
 		{World: 12, WorldName: "the Far Homes", Zone: "", MinX: 4000, MinZ: 0, MaxX: 6000, MaxZ: 2000},
 	})
 	t.Cleanup(func() { SetCoachHomes(nil) })
-	if got, want := CoachHomeNames(), []string{"The Glade", "The Glade (the Far Homes)"}; !slices.Equal(got, want) {
+	if got, want := CoachHomeNames(), []string{"The Glade", "The Glade (Far Homes)"}; !slices.Equal(got, want) {
 		t.Errorf("the stables %q, want %q", got, want)
 	}
 }
 
-// The owner's names for a home's stable stand in for its zone's
-// (homeStableNames): Cazic-Thule's home is "Cazic-Thule (Homelands)".
-func TestAHomesStableTakesTheOwnersName(t *testing.T) {
-	SetCoachHomes([]CoachHome{
-		{World: 10, WorldName: "the Homelands", Zone: "Cazic-Thule", MinX: 0, MinZ: 0, MaxX: 2000, MaxZ: 2000},
-	})
+// A home whose name is a place's of another world (Elsewhere) is named with
+// its world's, "the" left off, as the owner named Cazic-Thule's (2026-11-15:
+// "rename it to Cazic-Thule (Homelands)") and Heirloom petition 3357's East
+// Toxxulia: its old name is no stable. The control: the same homes not
+// Elsewhere keep their zones' names.
+func TestAHomeNamedAsAPlaceElsewhereTakesItsWorldsName(t *testing.T) {
+	homes := func(elsewhere bool) []CoachHome {
+		return []CoachHome{
+			{World: 10, WorldName: "the Homelands", Zone: "Cazic-Thule", Elsewhere: elsewhere, MinX: 0, MinZ: 0, MaxX: 2000, MaxZ: 2000},
+			{World: 10, WorldName: "the Homelands", Zone: "East Toxxulia", Elsewhere: elsewhere, MinX: 2000, MinZ: 0, MaxX: 4000, MaxZ: 2000},
+			{World: 12, WorldName: "Far Homes", Zone: "Kerra Isle", Elsewhere: elsewhere, MinX: 0, MinZ: 0, MaxX: 2000, MaxZ: 2000},
+		}
+	}
 	t.Cleanup(func() { SetCoachHomes(nil) })
-	if got, want := CoachHomeNames(), []string{"Cazic-Thule (Homelands)"}; !slices.Equal(got, want) {
+	SetCoachHomes(homes(false))
+	if got, want := CoachHomeNames(), []string{"Cazic-Thule", "East Toxxulia", "Kerra Isle"}; !slices.Equal(got, want) {
+		t.Fatalf("the control: the stables %q, want %q", got, want)
+	}
+	SetCoachHomes(homes(true))
+	want := []string{"Cazic-Thule (Homelands)", "East Toxxulia (Homelands)", "Kerra Isle (Far Homes)"}
+	if got := CoachHomeNames(); !slices.Equal(got, want) {
 		t.Errorf("the stables %q, want %q", got, want)
 	}
-	if town, ok := coachHomeAt(10, 100, 100); !ok || town != "Cazic-Thule (Homelands)" {
-		t.Errorf("the home's town %q (%v), want %q", town, ok, "Cazic-Thule (Homelands)")
+	if town, ok := coachHomeAt(10, 3000, 100); !ok || town != "East Toxxulia (Homelands)" {
+		t.Errorf("the home's town %q (%v), want %q", town, ok, "East Toxxulia (Homelands)")
 	}
-	if IsCoachHome("Cazic-Thule") {
-		t.Error("the old name is still a stable")
+	for _, old := range []string{"Cazic-Thule", "East Toxxulia", "Kerra Isle"} {
+		if IsCoachHome(old) {
+			t.Errorf("the old name %q is still a stable", old)
+		}
 	}
 }

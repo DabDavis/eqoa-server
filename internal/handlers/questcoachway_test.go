@@ -81,17 +81,17 @@ func TestQuestWayIsTheCoach(t *testing.T) {
 	if m := wayMark(t, f); m != nil {
 		t.Fatalf("no ledger signed: a way mark %+v", m)
 	}
-	f.sign("Aviak Village")
+	f.sign(homesMenuAviak)
 	m := wayMark(t, f)
 	if m == nil || m.npc != "Coachman Ronks" || m.world != 0 || len(m.quests) != 1 ||
-		m.quests[0].detail != "Ride Coachman Ronks's coach to Aviak Village" || m.quests[0].line != "Kill three snow badgers in Aviak Village." {
+		m.quests[0].detail != "Ride Coachman Ronks's coach to "+homesMenuAviak || m.quests[0].line != "Kill three snow badgers in Aviak Village." {
 		t.Fatalf("in Freeport the way mark %+v, want Ronks's ride to Aviak Village", m)
 	}
 
 	// in West Plateau, a home of the same world
 	f.tw.p.World, f.tw.p.X, f.tw.p.Z = 10, 6950, 3310
 	m = wayMark(t, f)
-	if m == nil || m.npc != "Coachman Grumm" || m.world != 10 || m.quests[0].detail != "Ride Coachman Grumm's coach to Aviak Village" {
+	if m == nil || m.npc != "Coachman Grumm" || m.world != 10 || m.quests[0].detail != "Ride Coachman Grumm's coach to "+homesMenuAviak {
 		t.Fatalf("in West Plateau the way mark %+v, want Grumm's ride", m)
 	}
 	// in Aviak Village itself: the badgers alone
@@ -118,10 +118,10 @@ func TestCoachMenuMarksTheQuestsStop(t *testing.T) {
 	was := questEngine.Load()
 	questEngine.Store(f.qe)
 	t.Cleanup(func() { questEngine.Store(was) })
-	book := ledgerBook{f.tw.p.CharServerID: {"Freeport": true, "Aviak Village": true, "West Plateau": true}}
+	book := ledgerBook{f.tw.p.CharServerID: {"Freeport": true, homesMenuAviak: true, homesMenuWest: true}}
 	f.tw.h.ledger = book
 	f.tw.h.isGM = func(*session.Session) bool { return false }
-	for _, town := range []string{"Freeport", "Aviak Village", "West Plateau"} {
+	for _, town := range []string{"Freeport", homesMenuAviak, homesMenuWest} {
 		f.sign(town)
 	}
 	ronks := f.tw.at(1, 416)
@@ -129,23 +129,23 @@ func TestCoachMenuMarksTheQuestsStop(t *testing.T) {
 	f.tw.talk(ronks)
 	got := optionBox(t, f.tw.s)
 	words := coachWordsByName["Coachman Ronks"]
-	want := []string{words.labelTagged(entity.CoachDest{Name: "Aviak Village"}, questStopTag), words.label(entity.CoachDest{Name: "West Plateau"})}
+	want := []string{words.labelTagged(entity.CoachDest{Name: homesMenuAviak}, questStopTag), words.label(entity.CoachDest{Name: homesMenuWest})}
 	if !slices.Equal(got, want) {
 		t.Fatalf("Ronks's menu %q, want %q", got, want)
 	}
-	if got[0] != "Get me a horse to Aviak Village. ?" {
+	if got[0] != "Get me a horse to Aviak Village (Homelands). ?" {
 		t.Errorf("the tag at the line's end, after the period: %q", got[0])
 	}
 
 	// the stop the way goes on by: Grumm's coach runs to the homes and Freeport
 	q := f.qe
 	grumm := f.tw.w.NPCs[9002]
-	dests := []entity.CoachDest{{Name: "Freeport", World: 0, X: 25273.7, Z: 15724}, {Name: "Gerntar Mines (the Homelands)", World: 10, X: 13000, Z: 27000}}
+	dests := []entity.CoachDest{{Name: "Freeport", World: 0, X: 25273.7, Z: 15724}, {Name: homesMenuGerntar, World: 10, X: 13000, Z: 27000}}
 	q.CoachStops(f.tw.p, grumm, dests)
 	if dests[0].QuestStop || dests[1].QuestStop {
 		t.Errorf("neither stop is fewer trips from the badgers than Grumm's own home: %+v", dests)
 	}
-	dests = []entity.CoachDest{{Name: "Aviak Village", World: 10, X: 9211.7, Z: 21552}, {Name: "Freeport", World: 0, X: 25273.7, Z: 15724}}
+	dests = []entity.CoachDest{{Name: homesMenuAviak, World: 10, X: 9211.7, Z: 21552}, {Name: "Freeport", World: 0, X: 25273.7, Z: 15724}}
 	q.CoachStops(f.tw.p, grumm, dests)
 	if !dests[0].QuestStop || dests[1].QuestStop {
 		t.Errorf("Grumm's stops %+v, want Aviak Village alone marked", dests)
@@ -155,7 +155,7 @@ func TestCoachMenuMarksTheQuestsStop(t *testing.T) {
 	if _, err := f.qe.SetCharacterQuest(f.sid, 20061, QuestComplete, 0); err != nil {
 		t.Fatal(err)
 	}
-	dests = []entity.CoachDest{{Name: "Aviak Village", World: 10, X: 9211.7, Z: 21552}}
+	dests = []entity.CoachDest{{Name: homesMenuAviak, World: 10, X: 9211.7, Z: 21552}}
 	q.CoachStops(f.tw.p, grumm, dests)
 	if dests[0].QuestStop {
 		t.Errorf("the quest done, still %+v", dests)
@@ -194,7 +194,7 @@ func TestQuestStopTagEndsTheLine(t *testing.T) {
 // controls: at -349 both are back.
 func TestQuestWayAvoidsCoachmenWhoRefuse(t *testing.T) {
 	f := coachQuestFixture(t)
-	f.sign("Aviak Village")
+	f.sign(homesMenuAviak)
 	f.tw.w.SetNPCFactions([]database.NPCFactionRow{
 		{Name: "coachman ronks", World: -1, Faction: "Citizens of Freeport"},
 		{Name: "coachman harrek", World: -1, Faction: "Citizens of Bastable"},
@@ -215,7 +215,7 @@ func TestQuestWayAvoidsCoachmenWhoRefuse(t *testing.T) {
 
 	// the menu: Grumm's stop at Aviak Village, Harrek's, unmarked while he refuses
 	grumm := f.tw.w.NPCs[9002]
-	dests := []entity.CoachDest{{Name: "Aviak Village", World: 10, X: 9211.7, Z: 21552, Coachman: 9001}}
+	dests := []entity.CoachDest{{Name: homesMenuAviak, World: 10, X: 9211.7, Z: 21552, Coachman: 9001}}
 	f.qe.CoachStops(f.tw.p, grumm, dests)
 	if dests[0].QuestStop {
 		t.Errorf("a refusing coachman's stop marked: %+v", dests)

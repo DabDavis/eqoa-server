@@ -3,6 +3,7 @@ package entity
 import (
 	"log"
 	"sort"
+	"strings"
 	"sync/atomic"
 )
 
@@ -18,11 +19,16 @@ import (
 //
 //   - his town is his home: the zone he stands in, by the name its recipe
 //     gives it ("Aviak Village"), read from the built recipe the server
-//     loaded (SetCoachHomes), never from a table here. Where a coach town of
-//     the game bears the name already (the minotaurs' Gerntar Mines is a
-//     zone of Tunaria with a stable of its own), the world's name is added
-//     ("Gerntar Mines (the Homelands)"): a ledger and a menu line name one
-//     stable;
+//     loaded (SetCoachHomes), never from a table here. Where that name is a
+//     place's of another world (CoachHome.Elsewhere: a home is a copy of a
+//     disc zone under its name, as the minotaurs' Gerntar Mines is a coach
+//     town of Tunaria, and East Toxxulia a zone of Odus), or a coach town's
+//     of the game, the world's name is added ("East Toxxulia (Homelands)"):
+//     a ledger and a menu line name one stable, and a rider never takes the
+//     copy for the place its quest names (the owner, 2026-11-15, on
+//     Cazic-Thule: "rename it to Cazic-Thule (Homelands)"; Heirloom petition
+//     3357: Freeport's coach to "East Toxxulia" set a player down in the
+//     Homelands', not by his quest's sirens on Odus);
 //   - a home's coach runs to Freeport (CoachHomeHub) and to every other
 //     home, and Freeport's runs to every home besides the towns it ran to. No
 //     other town gains a route;
@@ -46,6 +52,10 @@ type CoachHome struct {
 	World     uint8
 	WorldName string // the world's name, as its recipe has it ("the Homelands")
 	Zone      string // the zone's name, as its recipe has it
+	// Elsewhere: the zone's name is a place's of another world (a disc
+	// zone's it copies, a zone or a town of the map's: handlers'
+	// coachHomesOf), so its stable is named with its world's
+	Elsewhere bool
 	// the zone's ground, x and z
 	MinX, MinZ, MaxX, MaxZ float32
 }
@@ -65,9 +75,10 @@ var coachHomes atomic.Pointer[coachHomeSet]
 
 // SetCoachHomes makes homes the races' homes that have a stable (the server's
 // own worlds' zones that are a race's home: handlers.SetServerWorlds); none
-// takes them all away. A home whose name a coach town of the game or an
-// earlier home bears is named with its world's too; one still not its own is
-// left out, and said.
+// takes them all away. A home whose name is a place's of another world
+// (Elsewhere), or a coach town's of the game or an earlier home's, is named
+// with its world's too (homeWorldLabel); one still not its own is left out,
+// and said.
 func SetCoachHomes(homes []CoachHome) {
 	set := &coachHomeSet{byTown: map[string]*coachHome{}}
 	game := map[string]bool{}
@@ -83,11 +94,8 @@ func SetCoachHomes(homes []CoachHome) {
 			continue
 		}
 		town := h.Zone
-		if n, ok := homeStableNames[town]; ok {
-			town = n
-		}
-		if game[town] || taken[town] {
-			town = h.Zone + " (" + h.WorldName + ")"
+		if h.Elsewhere || game[town] || taken[town] {
+			town = h.Zone + " (" + homeWorldLabel(h.WorldName) + ")"
 		}
 		if game[town] || taken[town] || h.WorldName == "" && town != h.Zone {
 			log.Printf("Coach: the home %q of world %d has no name of its own among the stables: no coach runs to it", h.Zone, h.World)
@@ -102,14 +110,13 @@ func SetCoachHomes(homes []CoachHome) {
 	coachHomes.Store(set)
 }
 
-// homeStableNames are homes whose stable the owner named apart from the
-// zone: a home that bears the name of a place players look for in another
-// world (the owner, 2026-11-15: the Freeport coach's "Cazic-Thule" ran to
-// the Homelands' copy, where Norach does not stand; "rename it to
-// Cazic-Thule (Homelands)"). The ledgers signed under the old name were
-// moved to the new one (charcoaches) when this went in.
-var homeStableNames = map[string]string{
-	"Cazic-Thule": "Cazic-Thule (Homelands)",
+// homeWorldLabel is a world's name as a stable's name carries it: its "the"
+// left off, as the owner wrote it (2026-11-15: "Cazic-Thule (Homelands)").
+func homeWorldLabel(world string) string {
+	if len(world) > 4 && strings.EqualFold(world[:4], "the ") {
+		return world[4:]
+	}
+	return world
 }
 
 func loadCoachHomes() *coachHomeSet {

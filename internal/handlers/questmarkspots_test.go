@@ -195,3 +195,26 @@ func TestHuntMarkAtTheStepsPlace(t *testing.T) {
 		t.Errorf("no place: the camp of six: %v", at)
 	}
 }
+
+// A step's marks go by world, never by a zone's name (Heirloom petition 3357:
+// "it glitches my quests on the map", from the Homelands' East Toxxulia): a
+// player in world 10, standing where Odus's (world 2) sirens camp, has the
+// mark in world 2 at their camp, never a world 10 spot at those coordinates;
+// the control: the same player in world 2 has it there too, and the nearest
+// of two camps.
+func TestStepMarksGoByWorldNotPlace(t *testing.T) {
+	q := &QuestEngine{}
+	spots := map[string][]entity.NPCSpot{"enchanting siren": {
+		spotAt(1, "enchanting siren", 2, 6000, 4400), spotAt(2, "enchanting siren", 2, 6050, 4420), spotAt(3, "enchanting siren", 2, 6010, 4460),
+		spotAt(4, "enchanting siren", 2, 9000, 4400), spotAt(5, "enchanting siren", 2, 9050, 4420), spotAt(6, "enchanting siren", 2, 9010, 4460),
+	}}
+	st := &database.QuestStep{Kind: database.StepLoot, Target: "enchanting siren"}
+	_, at := q.stepSpotsLocked(spots, st, 0, 10, 6075, 4440)
+	if len(at) != 1 || at[0].World != 2 {
+		t.Fatalf("from world 10's East Toxxulia: %v, want one mark at a camp of world 2", at)
+	}
+	_, here := q.stepSpotsLocked(spots, st, 0, 2, 9000, 4400)
+	if len(here) != 2 || here[0].World != 2 || here[0].X < 8000 {
+		t.Errorf("the control, in world 2 by the eastern camp: %v, want both camps, the eastern first", here)
+	}
+}

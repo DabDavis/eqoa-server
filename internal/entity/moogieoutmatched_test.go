@@ -10,7 +10,7 @@ import (
 // A swing at Mr. Moogie is refused with CLIENT's own 0x077A ("You are outmatched", word 1196, which
 // also stops its auto-attack), a harmful spell at him with the same words, and nothing of a player's
 // reaches him, nor a player's pet (the owner, 2026-11-19: "if players accidently attack mr. moogie lets
-// use it"); a creature's hate still does (the GM triggers' raids on him). The control: his Metal
+// use it"), until she attacks again (moogieconsent_test.go, petition 3331); a creature's hate still does (the GM triggers' raids on him). The control: his Metal
 // Moogie, challenged, is still fought.
 func TestMrMoogieCannotBeFought(t *testing.T) {
 	r := newMetalRig(t)
@@ -39,8 +39,8 @@ func TestMrMoogieCannotBeFought(t *testing.T) {
 
 	nuke := CastSpell{SpellID: 9301, Name: "Test Bolt", Scope: 1, Range: 100, Def: ParseSpellText("Target, Decrease Hitpoints by 300")}
 	r.w.mu.Lock()
-	if ids, why := r.w.castTargetsLocked(sa, a, &nuke, om); len(ids) != 0 || why != MoogieOutmatched {
-		t.Errorf("Anna's nuke at Mr. Moogie: %v %q", ids, why)
+	if _, why, _ := r.w.castRefusalLocked(sa, a, &nuke, om, r.at(2*time.Second), true); why != MoogieOutmatched {
+		t.Errorf("Anna's nuke at Mr. Moogie: %q", why)
 	}
 	hp := r.moogie.HP
 	r.w.landOnNPCLocked(&castState{spell: nuke, caster: a.ServerID, targets: []EntityID{r.moogie.ServerID}}, a, sa, r.moogie, r.at(2*time.Second))

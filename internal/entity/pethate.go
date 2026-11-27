@@ -1,6 +1,9 @@
 package entity
 
-import "log"
+import (
+	"log"
+	"time"
+)
 
 // pethate.go — a pet's hate falls to its master (petition 1656, a magician 60 who multiboxes
 // petters: "the hate doesn't transfer from the pet when it dies to the caster. my other boxes don't cast
@@ -68,7 +71,7 @@ func (w *World) petHateToMasterLocked(id EntityID) {
 		if !ok || npc == pet || npc.ServerID == master || npc.Dead || npc.Dummy != NotDummy {
 			continue
 		}
-		if npc.World != world || distXZ(npc.X, npc.Z, mx, mz) > npcGiveUp || challengeBars(npc, master) || isMoogie(npc) {
+		if npc.World != world || distXZ(npc.X, npc.Z, mx, mz) > npcGiveUp || challengeBars(npc, master) || w.moogieSparesLocked(npc, master, time.Now()) {
 			continue
 		}
 		w.noteHateLocked(npc, master) // hcrules.go

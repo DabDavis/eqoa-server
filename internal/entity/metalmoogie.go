@@ -393,9 +393,6 @@ func (n *NPC) duelHeld() bool { return n != nil && n.challenge != nil && n.chall
 // challengeRefusal is the line for one barred from a Metal Moogie (challengeBars), "" for none: the
 // challenger during the countdown is told to wait.
 func challengeRefusal(npc *NPC, id EntityID) string {
-	if isMoogie(npc) {
-		return MoogieOutmatched // CLIENT's word 1196, as a harmful spell's refusal (moogie.go)
-	}
 	if line := siegeRefusal(npc, id); line != "" {
 		return line // a siege's King or gate (siege.go)
 	}

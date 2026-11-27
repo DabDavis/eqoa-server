@@ -867,6 +867,13 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 		return false
 	}
 	targets, refusal, fizzle := w.castRefusalLocked(sess, p, &spell, targetObjectID, now, true)
+	if refusal == MoogieOutmatched {
+		// a harmful spell at Mr. Moogie: the first warned, one within MoogieAgainWindow after it
+		// begins (petition 3331; moogie.go)
+		if m := w.moogieSparedAmongLocked(p.ServerID, targets, now); m != nil && w.moogieAttackLocked(p, m, now) {
+			targets, refusal, fizzle = w.castRefusalLocked(sess, p, &spell, targetObjectID, now, true)
+		}
+	}
 	if refusal != "" {
 		log.Printf("Cast: %s casts %q on %#x: %s", p.Name, spell.Name, targetObjectID, refusal)
 		if fizzle {
@@ -1015,6 +1022,9 @@ func (w *World) castRefusalLocked(sess *session.Session, p *Player, spell *CastS
 	refusal = w.charmPetRefusalLocked(p, spell)
 	if refusal == "" {
 		targets, refusal = w.castTargetsLocked(sess, p, spell, targetObjectID)
+	}
+	if refusal == "" && spell.Def.Harmful && w.moogieSparedAmongLocked(p.ServerID, targets, now) != nil {
+		refusal = MoogieOutmatched // Mr. Moogie, not yet consented to: StartCast's first warns (moogie.go)
 	}
 	if refusal == "" && spell.Def.Harmful {
 		refusal = w.waterRefusalLocked(p, targets) // water.go
@@ -2005,8 +2015,8 @@ func (w *World) runTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 // what lasts (a damage tick; a hold, a slow or a stat change is kept, though
 // no creature moves or uses its stats yet).
 func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *session.Session, npc *NPC, now time.Time) {
-	if challengeBars(npc, caster.ServerID) || isMoogie(npc) {
-		return // another's duel: nothing of the spell lands (metalmoogie.go); Mr. Moogie, no player's (moogie.go)
+	if challengeBars(npc, caster.ServerID) || moogieSpares(npc, caster.ServerID, now) {
+		return // another's duel: nothing of the spell lands (metalmoogie.go); Mr. Moogie, but a consented player's (moogie.go)
 	}
 	caster.LastCombatTime = now
 	// a taunt (taunt.go), as its record is, before a resist takes a part; a proc's hate (an offensive

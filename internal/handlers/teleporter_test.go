@@ -128,7 +128,7 @@ func TestTeleporterBoxes(t *testing.T) {
 		}
 		return l
 	}
-	if got := strings.Join(labels(root), "|"); got != "Raids|Isle of Dread|Plane of Sky|Lavastorm|Camps, levels 1-28|Camps, levels 31-61" {
+	if got := strings.Join(labels(root), "|"); got != "Raids|Isle of Dread|Plane of Sky|Lavastorm|Camps, levels 1-28|Camps, levels 33-61" {
 		t.Errorf("the first box: %q", got)
 	}
 	if got := strings.Join(labels(root.kids[0]), "|"); got != strings.Join(teleRaidGroups, "|") {
@@ -262,7 +262,7 @@ func TestTeleporterTrips(t *testing.T) {
 	}
 
 	back()
-	got = pickPath(t, r, tp, "Camps, levels 1-28", "Levels 1-9", "Hatebone orcs, Halas (1-5)")
+	got = pickPath(t, r, tp, "Camps, levels 1-28", "Levels 1-9", "Hatebone orcs, Halas (1-6)")
 	d := campDests["hatebone"]
 	if !hasMsg(got, "teleport") || r.pa.World != 0 || r.pa.X != d.X || r.pa.Z != d.Z {
 		t.Errorf("the hatebone camp: %q, world %d (%.1f, %.1f)", got, r.pa.World, r.pa.X, r.pa.Z)

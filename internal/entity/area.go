@@ -112,8 +112,14 @@ const (
 	// shout's hate starts a fight with all it reaches).
 	ShoutRadius float32 = 10
 	// AreaMaxTargets is the most an area spell lands on, its own target among
-	// them: the target and the seven others a 0x00B1 can name.
-	AreaMaxTargets = 8
+	// them, where no GM's row caps it. It was the target and the seven others
+	// a 0x00B1 can name (8); the owner, 2026-11-27 (Heirloom petition 3398,
+	// "aes arent hitting every mob during ae xping"): "make it no limit if
+	// within range". Every creature in its radius is hit; the ones past the
+	// seven a 0x00B1 names take the spell unnamed (areaShown): each hit's own
+	// 0x00DB shows its figure, the visual plays on the target and the seven.
+	// A GM's row's cap (spellarea.maxtargets: a cleave's cone of 3) still holds.
+	AreaMaxTargets = math.MaxInt32
 	// areaShown is the most others a 0x00B1 names: CLIENT's CastingCombat
 	// copies them into int actors[8] and ends the list with -1, so an eighth
 	// would write past it.

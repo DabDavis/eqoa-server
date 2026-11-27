@@ -585,6 +585,9 @@ world:
   # none brewed). merc_draught_hp_floor_pct is the share of its health it
   # keeps when it drinks for power (unset: 50).
   # mercs: true
+  # Percent to remove from melee and caster mercenaries' outgoing damage,
+  # including their pets (0-100, default 0). Set to 25 for 75% damage.
+  # merc_dps_reduction_pct: 0
   # merc_brew_seconds: 5
   # merc_brew_batch: 20
   # merc_brew_settle_seconds: 3

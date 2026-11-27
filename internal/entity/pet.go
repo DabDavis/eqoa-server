@@ -1453,6 +1453,7 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 	}
 	// the operator's formula for the hit's kind (dmgformula.go: pet_melee, pet_spell, ...)
 	n = w.formulaDamage(n, dmgIn{src: srcPet, kind: dmgKindOf(kind), an: pet, dn: t, owner: owner, raw: raw})
+	n = w.mercRoleDamage(ps.merc, n)
 	if t.Dummy != NotDummy {
 		// told, taken off nothing; the dummy's hate is the pet's (dummy.go)
 		tell()

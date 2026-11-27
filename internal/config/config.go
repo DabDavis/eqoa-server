@@ -713,6 +713,10 @@ type WorldConfig struct {
 	// Heirloom Test Server sets it.
 	Mercs bool `yaml:"mercs"`
 
+	// MercDPSReductionPct reduces outgoing damage from melee and caster
+	// mercenaries and their pets on this shard. Zero keeps full damage.
+	MercDPSReductionPct int `yaml:"merc_dps_reduction_pct"`
+
 	// MercBrewSeconds is how often an alchemist merc at ease (it and its owner
 	// standing, out of a fight) brews a batch of potions into its owner's
 	// stock (entity/mercbrew.go); unset or 0, 5. MercBrewBatch is a batch's

@@ -230,6 +230,8 @@ type World struct {
 	// mercSupply is the alchemists' potion stocks by owner, the rates they
 	// brew at and the floor a draught keeps (mercbrew.go)
 	mercSupply mercSupply
+	// Percentage removed from melee and caster mercenary damage after the combat formula.
+	mercDPSReductionPct int
 	// mercBench is each owner's mercs on standby (mercbench.go), mercBenchSeq
 	// the order they stepped out in
 	mercBench    map[EntityID][]*mercBenched

@@ -341,7 +341,7 @@ func (w *World) bossDoTOnCreatureStartLocked(npc *NPC, m *database.TemplateAbili
 // pet's), its death at nothing. Must be called with the lock held.
 func (w *World) bossDoTOnCreatureLocked(src, t *NPC, n int, name string) {
 	n = w.npcTakesLocked(t, n, time.Now()) // nothing while held at 1 (deathhold.go)
-	t.HP = max(t.HP-n, 0)
+	t.HP = w.dpsTakeHPLocked(t, n)
 	log.Printf("Template: %s's %q ticks on %s for %d (HP %d/%d)", src.Name, name, t.Name, n, t.HP, t.MaxHP)
 	if t.HP > 0 {
 		return

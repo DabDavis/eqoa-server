@@ -57,6 +57,8 @@ func (l *dpsLine) add(what dpsWhat, n int) {
 		l.heal += int64(n)
 	case dpsPower:
 		l.power += int64(n)
+	case dpsTaken:
+		l.taken += int64(n)
 	default:
 		l.damage += int64(n)
 	}

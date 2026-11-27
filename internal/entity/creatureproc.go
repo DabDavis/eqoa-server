@@ -261,7 +261,7 @@ func (w *World) abilityProcsOnPetLocked(npc, pet *NPC, now time.Time) bool {
 			continue
 		}
 		w.veilLookLocked(npc, pet.ServerID, v)
-		pet.HP = max(pet.HP-taken, 0)
+		pet.HP = w.dpsTakeHPLocked(pet, taken)
 		pet.LastCombatTime = now
 		w.veilHealLocked(npc, v, taken, nil)
 		log.Printf("Template: %s's %s takes %d from the pet %q (HP %d/%d)", npc.Name, v.name, taken, pet.Name, pet.HP, pet.MaxHP)
@@ -372,7 +372,7 @@ func (w *World) creatureProcPetHitStatLocked(npc, pet *NPC, name string, damage 
 		taken, _ = pet.petElementalHit(resist, taken, now, 1)
 	}
 	w.broadcastNPCSwingLocked(npc, pet.ServerID, 0, fx)
-	pet.HP = max(pet.HP-taken, 0)
+	pet.HP = w.dpsTakeHPLocked(pet, taken)
 	pet.LastCombatTime = now
 	log.Printf("Template: %s's %s hits the pet %q for %d (HP %d/%d)", npc.Name, name, pet.Name, taken, pet.HP, pet.MaxHP)
 	if pet.HP > 0 {

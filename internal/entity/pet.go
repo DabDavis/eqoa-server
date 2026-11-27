@@ -1725,7 +1725,7 @@ func (w *World) npcMeleeOnPetLocked(npc, pet *NPC, pct int, ramp bool, now time.
 		n = fixed // its template's fixed melee (melee_fixed), through any armour
 	}
 	n = rampagePct(n, pct) // an area rampage's share (arearampage.go)
-	pet.HP = max(pet.HP-n, 0)
+	pet.HP = w.dpsTakeHPLocked(pet, n)
 	pet.LastCombatTime = now
 	log.Printf("Pet: %s hit the pet %q for %d (HP %d/%d)", npc.Name, pet.Name, n, pet.HP, pet.MaxHP)
 	npc.meleeLanded(n, now) // unreached.go

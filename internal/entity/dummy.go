@@ -217,7 +217,7 @@ func (w *World) dummyHitPetLocked(npc, pet *NPC, now time.Time) bool {
 		log.Printf("Sparring: %s stopped short of killing the pet %q", npc.Name, pet.Name)
 		return true
 	}
-	pet.HP = max(pet.HP-n, 0)
+	pet.HP = w.dpsTakeHPLocked(pet, n)
 	log.Printf("Dummy: %s hit the pet %q for %d (HP %d/%d)", npc.Name, pet.Name, n, pet.HP, pet.MaxHP)
 	if pet.HP == 0 {
 		delete(npc.dummyHate, pet.ServerID)

@@ -37,9 +37,10 @@ import (
 //     target takes it too: the workbook's legend, "AoE hits target and also
 //     the radius from the target, including target a second time"), else a
 //     second hit on the target;
-//   - hp_tick and power_tick tick twice at the landing (the legend: "HoT and
-//     PoT tick twice on first effect and every 6seconds after"), then as the
-//     server's ticks do;
+//   - hp_tick and power_tick that give tick twice at the landing (the
+//     legend: "HoT and PoT tick twice on first effect and every 6seconds
+//     after"), then as the server's ticks do; a damage over time once
+//     (Heirloom petition 3353, workbook.go);
 //   - hate_pct (ours, not the workbook's): the share of a hit's damage that
 //     is its hate on the creature, all of it when absent (petition 1372:
 //     a player's Merciless Blizzard and Inferno, "little to no aggro

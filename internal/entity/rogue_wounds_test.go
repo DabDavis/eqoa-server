@@ -18,8 +18,8 @@ func TestRogueWoundsStrongerAndSnare(t *testing.T) {
 	}{
 		{"Minor Wound (before)", minorWoundOldJSON, 330 + 90, 30, 0, 18},
 		{"Minor Wound", minorWoundJSON, 578 + 90, 30, 0, 18},
-		{"Mortal Wound (before)", mortalWoundOldJSON, 1400 + 90 + 2*25, 30, 25, 24},
-		{"Mortal Wound", mortalWoundJSON, 2450 + 90 + 2*44, 40, 44, 24},
+		{"Mortal Wound (before)", mortalWoundOldJSON, 1400 + 90 + 25, 30, 25, 24},
+		{"Mortal Wound", mortalWoundJSON, 2450 + 90 + 44, 40, 44, 24},
 		{"Ascended Sothimus Critical Wounding", ascSothimusJSON, 3080 + 99, 40, 0, 18},
 	} {
 		t.Run(c.name, func(t *testing.T) {
@@ -37,7 +37,7 @@ func TestRogueWoundsStrongerAndSnare(t *testing.T) {
 			r.w.landOnNPCLocked(&castState{spell: s, caster: r.p.ServerID, targets: []EntityID{crab.ServerID}}, r.p, r.sess, crab, r.at(time.Second))
 			r.w.mu.Unlock()
 			if got := 5000000 - crab.HP; got != c.hit {
-				t.Errorf("its landing took %d, want %d (the base, 30%% of STR 300 and a DoT's first tic twice)", got, c.hit)
+				t.Errorf("its landing took %d, want %d (the base, 30%% of STR 300 and a DoT's first tic, once: Heirloom petition 3353)", got, c.hit)
 			}
 			want := float32(100-c.slow) / 100
 			end := time.Duration(c.seconds) * time.Second

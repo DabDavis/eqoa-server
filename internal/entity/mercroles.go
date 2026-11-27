@@ -46,6 +46,25 @@ func MercBaseStats(class, race, level int) [7]int {
 // knight).
 func MercIsTank(class int) bool { return mercRoleOf(class) == roleTank }
 
+// SetMercDPSReductionPct configures this world's melee and caster mercenaries.
+func (w *World) SetMercDPSReductionPct(reduction int) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.mercDPSReductionPct = min(max(reduction, 0), 100)
+}
+
+// mercRoleDamage scales a resolved hit by the mercenary or its pet. A nil
+// mercenary means the pet belongs directly to a player.
+func (w *World) mercRoleDamage(ms *mercState, damage int) int {
+	if w.mercDPSReductionPct == 0 || ms == nil || (ms.role != roleMelee && ms.role != roleCaster) {
+		return damage
+	}
+	if w.mercDPSReductionPct == 100 {
+		return 0
+	}
+	return pct(damage, float64(100-w.mercDPSReductionPct))
+}
+
 // MercTankResists puts a tank's resists at the cap (the file's doc): each of
 // the six raised to ResistCap by its gear's share, what its WIS adds counted.
 func MercTankResists(g *Gear, wis int) {

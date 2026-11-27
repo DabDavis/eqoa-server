@@ -358,6 +358,7 @@ func main() {
 				map[bool]string{true: " (empty: no automatic weather, GM weather only)", false: ""}[pr == 0 && zn == 0])
 		}
 	}
+	gameWorld.SetMercDPSReductionPct(cfg.World.MercDPSReductionPct)
 	{ // an alchemist merc's stock and draughts (entity/mercbrew.go)
 		every, most, floor := time.Duration(0), -1, -1
 		if v := cfg.World.MercBrewSeconds; v != nil && *v > 0 {

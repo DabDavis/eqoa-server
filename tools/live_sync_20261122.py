@@ -146,7 +146,7 @@ EXTRA = {
     "npctours": dict(key=["name"]),
     "npcwalkon": dict(key=["name"]),
     "npccoins": dict(key=["npc_name"]),
-    "npctalk": dict(key=["npc", "node"]),
+    "npctalk": dict(key=["npc", "node"], trans={"choices": "jtext"}),
     "npctime": dict(key=["name"]),
     "npcrarecycle": dict(key=["npc_row"], trans={"npc_row": "npc"}, lid="npc_row"),
     "questdoors": dict(key=["npcid"], trans={"npcid": "npc", "questid": "quest", "item": "item"}, lid="npcid"),
@@ -887,7 +887,12 @@ def make_plan(hpath, lpath, plan_path, report_path):
             v = sh.QUEST[dst].get(q)
             if v is not None:
                 sig.add(f"quest:Q<{v}>")
-        plan[dst] = {"ops": ap.cap, "sigchange": sorted(sig)}
+        # the references this half translated (dst id -> the src row: the applier checks the dst row is that one) and
+        # the rows it could not write for a reference with no row on dst (2026-11-27: named, and --apply refuses while
+        # any is left unless told to leave them)
+        unres = [dict(s, to=ss.NAMES[dst]) for s in ap.skipped
+                 if s["why"].startswith("unresolved reference") and "constraint failed" not in s["why"]]
+        plan[dst] = {"ops": ap.cap, "sigchange": sorted(sig), "refs": w.refs, "unresolved": unres}
         print(f"to {ss.NAMES[dst]}: {len(ap.cap)} row changes; Tsali: {tsali[dst]}", flush=True)
     for t, rows in sh.out.items():
         for r in rows:

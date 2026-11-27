@@ -62,6 +62,9 @@ import sqlite3
 from pathlib import Path
 import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parent)) if str(Path(__file__).resolve().parent) not in sys.path else None
+import shard_refs as refs  # noqa: E402  the reference registry (2026-11-27)
+
 TOOL = "tools/shard_sync_20261115.py"
 LOG = "shard_sync_1115_log"
 WHO, VIA = "dab", "tool"
@@ -100,7 +103,9 @@ NPC_EXTRAS = (("npcrespawn", "npc_row"), ("npcwander", "npcid"), ("npcpaths", "n
               ("npcitem", "npcid"), ("questwalls", "npcid"))
 
 # ---- the content tables: natural key, translations, columns not compared, the row's own id ---------------------
-# trans: item | spell | quest | npc (an id column) ; itext | stext | qtext (ids inside text/JSON)
+# trans: item | spell | quest | npc (an id column) ; itext | stext | qtext (ids inside text) ; jtext (a JSON column read
+# by key, shard_refs.py: "#<npcs id>" strings, quest/spell/item/slot keys, items/spells id lists; 2026-11-27: with itext
+# the "#<id>" spawns of gmtriggers.steps and queststeps.events were copied verbatim, so they named the other shard's rows)
 SPECS = {
     "itempattern": dict(key=["patternid"], trans={"patternid": "item"}, lid="patternid"),
     "itemeffect": dict(key=["patternid"], trans={"patternid": "item"}, lid="patternid"),
@@ -157,17 +162,17 @@ SPECS = {
     "lootrate": dict(key=["preset", "profile", "category"]),
     "lootpreset": dict(key=["name"]),
     "npcitem": dict(key=["npcid", "patternid", "listnumber"], trans={"npcid": "npc", "patternid": "item"}, ignore=["itemid"], lid="itemid"),
-    "quests": dict(key=["questid"], trans={"questid": "quest", "events": "itext", "requires": "qtext"}, lid="questid"),
+    "quests": dict(key=["questid"], trans={"questid": "quest", "events": "jtext", "requires": "qtext"}, lid="questid"),
     "queststeps": dict(key=["questid", "step"], trans={"questid": "quest", "spells": "stext", "items": "itext",
-                                                       "rewarditems": "itext", "choices": "itext", "byclass": "itext",
-                                                       "events": "itext", "npcid": "npc"}),
+                                                       "rewarditems": "itext", "choices": "jtext", "byclass": "jtext",
+                                                       "events": "jtext", "npcid": "npc"}),
     "queststeptargets": dict(key=["questid", "step", "target"], trans={"questid": "quest"}),
     "questunlocks": dict(key=["questid", "npc", "dest"], trans={"questid": "quest"}),
     "questwalls": dict(key=["npcid"], trans={"npcid": "npc", "item": "item", "questid": "quest"}, lid="npcid"),
     "questmarks": dict(key=["questid"], trans={"questid": "quest"}),
     "questnotyet": dict(key=["city", "line"], ignore=["id"], lid="id"),
     "npcdialog": dict(key=["town", "role", "name", "mood", "race", "sex", "speaker_race", "away", "line"], ignore=["id"], lid="id"),
-    "gmtriggers": dict(key=["name"], ignore=["slot"], trans={"steps": "itext"}, lid="slot"),
+    "gmtriggers": dict(key=["name"], ignore=["slot"], trans={"steps": "jtext"}, lid="slot"),
     "hazards": dict(key=["name", "world"], ignore=["id"]),
     "orbs": dict(key=["name", "world"], ignore=["id"]),
     "noroam": dict(key=["name", "world"], ignore=["id"]),
@@ -266,6 +271,7 @@ class Shards:
     # ---- id -> natural key ---------------------------------------------------------------------------------------
     def _maps(self):
         self.ITEM, self.ITEMNAME, self.SPELL, self.NPCROW, self.QUEST = {}, {}, {}, {}, {}
+        self.TRIG, self.NPCMODEL = {}, {}
         for s, db in self.db.items():
             self.ITEM[s] = {r[0]: (f"#{r[0]}" if r[0] < SHARED_ITEM_IDS else f"n:{(r[1] or '').lower()}|{r[2]}|{r[3]}")
                             for r in db.execute("SELECT patternid, itemname, equipslot, levelreq FROM itempattern")}
@@ -276,6 +282,9 @@ class Shards:
                               db.execute("SELECT id, npc_name, world, x_coord, z_coord FROM npcs")}
             self.QUEST[s] = {r[0]: (f"#{r[0]}" if r[0] < SHARED_QUEST_IDS else f"s:{r[1]}|{r[2]}|{r[3]}")
                              for r in db.execute("SELECT questid, source, name, giver FROM quests")}
+            self.TRIG[s] = ({r[0]: (r[1] or "").strip().lower() for r in db.execute("SELECT slot, name FROM gmtriggers")}
+                            if has(db, "gmtriggers") else {})
+            self.NPCMODEL[s] = {r[0]: r[1] for r in db.execute("SELECT id, modelid FROM npcs")}
         # spells: an id both shards have is the same spell (renames kept it: 900429 Dead Hills Port, 700020 Mortal
         # Mask's level); one shard's own id (each minted the Ascended epic spells apart) by lower(name)|level
         both = set(self.SPELL["H"]) & set(self.SPELL["L"])
@@ -510,6 +519,8 @@ class Shards:
             return v if v in (None, 0) else "Q<" + self.QUEST[side].get(v, f"?missing {v}") + ">"
         if kind == "npc":
             return v if v in (None, 0) else "N<" + self.NPC[side].get(v, f"?missing {v}") + ">"
+        if kind == "slot":
+            return v if v in (None, 0) else "T<" + self.TRIG[side].get(v, f"?missing {v}") + ">"
         M, tag = {"itext": (self.ITEM, "I"), "stext": (self.SPELL, "S"), "qtext": (self.QUEST, "Q")}[kind]
         if v is None or v == "":
             return v
@@ -518,6 +529,14 @@ class Shards:
         if isinstance(v, int):
             return tr(v)
         return NUM.sub(lambda m: tr(int(m.group(1))), str(v))
+
+    def jtv(self, side, t, c, v):
+        """a JSON column's value with its references by what they point at (shard_refs.normalize)"""
+        if v is None or v == "":
+            return v
+        if refs.SITE.get((t, c)) != "json":
+            raise AssertionError(f"{t}.{c} is jtext but not a JSON site of shard_refs.py")
+        return refs.normalize(t, c, v, lambda k, i: self.tv(side, k, i))
 
     def norm(self, side, v):
         if isinstance(v, float):
@@ -533,6 +552,8 @@ class Shards:
         trans = spec.get("trans", {})
         def val(c):
             kind = trans.get(c)
+            if kind == "jtext":
+                return self.jtv(side, t, c, r[c])
             return self.tv(side, kind, r[c]) if kind else self.norm(side, r[c])
         allc = [c for c in r.keys() if c != "__rowid"]
         ign = set(spec.get("ignore", []))
@@ -931,8 +952,11 @@ class Writer:
         self.sh, self.src, self.dst = sh, src, OTHER[src]
         self.acts = DIRECTION_ACTIONS[src + self.dst]
         self.sdb, self.ddb = sh.db[src], sh.db[self.dst]
-        self.new_ids = {"item": {}, "spell": {}, "quest": {}, "npc": {}}
+        self.new_ids = {"item": {}, "spell": {}, "quest": {}, "npc": {}, "slot": {}}
         self.unresolved = []
+        # every reference translated: {kind: {dst id: what the src row it came from is}}, for the applier to check that
+        # the dst row is the same one (shard_refs / apply_sync, 2026-11-27)
+        self.refs = {"npc": {}, "slot": {}}
 
     def ops(self):
         out = []
@@ -985,10 +1009,32 @@ class Writer:
         self.next_slot = nxt("gmtriggers", "slot") if has(d, "gmtriggers") else 1
 
     def to_dst(self, kind, v):
-        """a src id -> the dst id of the same thing"""
+        """a src id -> the dst id of the same thing (Unresolved when there is none: the row is left, listed)"""
+        out = self._to_dst(kind, v)
+        if v not in (None, 0) and kind in self.refs:
+            sh, s = self.sh, self.src
+            if kind == "npc":
+                n, w, x, z = sh.NPCROW[s][v]
+                ident = {"src": v, "name": n, "world": w, "x": x, "z": z, "modelid": sh.NPCMODEL[s].get(v)}
+            else:
+                ident = {"src": v, "name": sh.TRIG[s][v]}
+            self.refs[kind][str(out)] = ident
+        return out
+
+    def _to_dst(self, kind, v):
         if v in (None, 0):
             return v
         sh, s, d = self.sh, self.src, self.dst
+        if kind == "slot":
+            name = sh.TRIG[s].get(v)
+            if name is None:
+                raise Unresolved(f"trigger slot {v} (not on {NAMES[s]})")
+            if v in self.new_ids["slot"]:
+                return self.new_ids["slot"][v]
+            cand = [x for x, n in sh.TRIG[d].items() if n == name]
+            if len(cand) == 1:
+                return cand[0]
+            raise Unresolved(f"trigger slot {v} ({name!r}) is {'several triggers' if cand else 'not'} on {NAMES[d]}")
         if kind == "npc":
             if v in sh.PAIR[s]:
                 return sh.PAIR[s][v]
@@ -1032,9 +1078,18 @@ class Writer:
             kind = trans.get(c)
             if kind in ("item", "spell", "quest", "npc"):
                 out[c] = self.to_dst(kind, v)
+            elif kind == "jtext":
+                if refs.SITE.get((t, c)) != "json":
+                    raise AssertionError(f"{t}.{c} is jtext but not a JSON site of shard_refs.py")
+                try:
+                    out[c] = refs.rewrite(t, c, v, self.to_dst)
+                except refs.Untranslatable as e:
+                    raise Unresolved(str(e))
             elif kind:
                 out[c] = self.text_to_dst(kind, v)
-            elif isinstance(v, str) and ROWREF.match(v) and int(v[1:]) in self.sh.NPCROW[self.src]:
+            elif isinstance(v, str) and ROWREF.match(v):
+                # a "#<npcs id>" name: the dst row of the same NPC; one the src shard no longer has is unresolved (it
+                # was copied verbatim before 2026-11-27, naming whatever row holds that id on dst)
                 out[c] = "#" + str(self.to_dst("npc", int(v[1:])))
             else:
                 out[c] = v
@@ -1165,6 +1220,7 @@ class Applier:
                     vals.pop(c)
             if t == "gmtriggers":
                 vals["slot"] = self.w.next_slot; self.w.next_slot += 1
+                self.w.new_ids["slot"][raw["slot"]] = vals["slot"]
             if t == "itempattern":
                 vals["patternid"] = self.w.new_ids["item"][raw["patternid"]]
             if t == "spellpattern":
@@ -1198,6 +1254,7 @@ class Applier:
                 v = {c: x for c, x in vals[i].items() if not (c in ign and c in ("id", "itemid", "defaultCharacterID", "def_spell_id", "slot"))}
                 if t == "gmtriggers":
                     v["slot"] = self.w.next_slot; self.w.next_slot += 1
+                    self.w.new_ids["slot"][sr[i]["slot"]] = v["slot"]
                 if t in ("npcs", "itempattern", "spellpattern", "quests"):
                     continue  # a record of its own: never made or dropped from an update (same-named duplicates)
                 self.insert(t, v, det)

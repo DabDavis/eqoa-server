@@ -497,7 +497,8 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 		d := float32(-1)
 		for _, qu := range giverQuests(g) {
 			k := q.cat.foldedName(qu)
-			if taken[k] || !markLevelNear(p.Level, qu.MinLevel) {
+			// a quest offered at a place is marked there (questplaceoffer.go)
+			if qu.OfferAt != nil || taken[k] || !markLevelNear(p.Level, qu.MinLevel) {
 				continue
 			}
 			if d < 0 {
@@ -530,6 +531,8 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 			addGiver(qu.Giver, markQuest{name: qu.Name, min: qu.MinLevel, max: qu.MaxLevel, line: t.offer, detail: t.rewardsFor(p.Class), ability: t.abilityFor(p.Class)})
 		}
 	}
+	// the quests offered at a place, at their places (questplaceoffer.go)
+	q.placeMarksLocked(look, p, c, taken, func(k string) bool { _, ok := byName[k]; return ok }, addAt)
 	sort.SliceStable(marks, func(i, j int) bool {
 		a, b := marks[i], marks[j]
 		if (a.kind == markTake) != (b.kind == markTake) {

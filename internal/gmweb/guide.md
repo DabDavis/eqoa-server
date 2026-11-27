@@ -333,7 +333,10 @@ goes on the work board above; a personal board is for talking about it.
   question the player answers with that line of `accept` (no `accept`: the quest is given at once). Taken, the
   journal gets the first step's `journal` line, then "You received a quest!", then `started`; a refusal
   (`decline`) gets `declined`, as written. An NPC's lines are shown with its name before them, as the live game's
-  are; a question is not; `%p` is the player's name. Steps: `talk` (talk to `target`; with an `answer`, the
+  are; a question is not; `%p` is the player's name. A quest may also be offered at a place (`offerworld`,
+  `offerx`, `offery`, `offerz`, `offerradius` above 0, `offerheight` 0 any height): a player who may take it is
+  offered it on stepping within the radius, once each time it comes in, its words a pop-up with no name before
+  them (an altar that is a place, not a creature: petitions 3322/3325); its giver, if any, still offers it. Steps: `talk` (talk to `target`; with an `answer`, the
   player picks its first line first, any further lines being answers that change nothing, "Farewell"), `show`
   (talk to it holding `items`, which are kept: the live game's "pick up the bracers from the merchant and come
   back"), `give` (hand it `items` and `tunar`, which are taken; for both, while the items lack the NPC's

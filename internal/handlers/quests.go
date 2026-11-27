@@ -284,6 +284,9 @@ type questCatalog struct {
 	// player each second (questmarks.go), made once
 	folded     map[int]string
 	giverOrder []string
+	// places is the enabled quests offered at a place (database.Quest.OfferAt;
+	// questplaceoffer.go), in id order
+	places []*database.Quest
 }
 
 // foldedName is the quest's name folded, as foldName.
@@ -369,6 +372,12 @@ type questChar struct {
 	// clock, a standing owed); clockTold the minutes left a clock last said
 	trials    map[int]*database.QuestTrial
 	clockTold map[int]int
+	// atPlace is the quests whose place (questplaceoffer.go) it stands at and
+	// was offered at since it came in; placeBox the box of its last such
+	// offer, placeQuest that offer's quest
+	atPlace    map[int]bool
+	placeBox   uint32
+	placeQuest int
 }
 
 // say is a text with %p the player's name (left as it is while the name is
@@ -590,8 +599,9 @@ func (q *QuestEngine) run() {
 			q.syncHeadMarks(time.Now()) // questheadmarks.go
 		case <-tick.C:
 			q.checkReach()
-			q.checkSurvive() // questsurvive.go: the Trial of Endurance's kind of step
-			q.checkWaiting() // questroom.go: steps that waited for room
+			q.checkPlaceOffers() // questplaceoffer.go: a quest offered at a place
+			q.checkSurvive()     // questsurvive.go: the Trial of Endurance's kind of step
+			q.checkWaiting()     // questroom.go: steps that waited for room
 			q.expireSpawns()
 			q.respawnLost()             // questevents.go: a spawn-only creature's lost spawns
 			q.checkStranded(time.Now()) // questencounter.go: a kill whose encounter ended
@@ -661,6 +671,7 @@ func (q *QuestEngine) publishLocked() error {
 	cat.successors = successorsOf(cat.all)
 	cat.homeClassLevels = homeClassLevelsOf(cat.all)
 	cat.encounters = encounterLinks(cat.all)
+	cat.places = placeQuestsOf(cat.all) // questplaceoffer.go
 	texts, names := q.questTexts(cat.all)
 	marked, err := q.store.MarkedQuests()
 	if err != nil {
@@ -1539,7 +1550,7 @@ func containsInt(v []int, n int) bool {
 // once when nothing need be answered (its words said first).
 func (q *QuestEngine) offerLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest) {
 	if len(sayLines(qu.Accept)) == 0 {
-		q.tellLocked(c, sess, qu.Giver, sayLines(q.froglokWords(p, qu.ID, 0, qu.Giver, qu.Offer))...)
+		q.tellLocked(c, sess, questVoice(qu), sayLines(q.froglokWords(p, qu.ID, 0, qu.Giver, qu.Offer))...)
 		q.startLocked(sess, p, c, qu, 0, false)
 		return
 	}
@@ -1564,7 +1575,7 @@ func (q *QuestEngine) askStageLocked(sess *session.Session, p *entity.Player, c 
 	case k < len(paras):
 		words = paras[k]
 	}
-	q.askLocked(sess, c, qu.Giver, words, questAskOffer, offerChoices(qu, k, nil))
+	q.askLocked(sess, c, questVoice(qu), words, questAskOffer, offerChoices(qu, k, nil))
 }
 
 // offerChoices is the answers of an offer's stage k: the accept, the decline
@@ -1692,7 +1703,7 @@ func (q *QuestEngine) startLocked(sess *session.Session, p *entity.Player, c *qu
 	// give is the GM's to judge
 	if !gm {
 		if short := q.packShortLocked(sess, nil, startGains(qu, st)); short != "" {
-			q.tellLocked(c, sess, qu.Giver, fmt.Sprintf(questPackFull, short))
+			q.tellLocked(c, sess, questVoice(qu), fmt.Sprintf(questPackFull, short))
 			return "the pack is too full for what it hands over"
 		}
 	}
@@ -1710,7 +1721,7 @@ func (q *QuestEngine) startLocked(sess *session.Session, p *entity.Player, c *qu
 	// the live game's order (board 967: two tapes, 2009 and 2012): the
 	// journal's line, the giver's words, then "You received a quest!"
 	q.addLineLocked(sess, c, q.lineLocked(cq))
-	q.tellLocked(c, sess, qu.Giver, sayLines(qu.Started)...)
+	q.tellLocked(c, sess, questVoice(qu), sayLines(qu.Started)...)
 	q.tellLocked(c, sess, "", questReceived)
 	who := fmt.Sprintf("character %d", c.serverID)
 	if p != nil {
@@ -1974,7 +1985,7 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 				question = ls[len(ls)-1]
 			}
 		}
-		q.askLocked(sess, c, qu.Giver, strings.TrimSpace(a.Says+"\n"+question), questAskOffer, offerChoices(qu, ch.step, picked))
+		q.askLocked(sess, c, questVoice(qu), strings.TrimSpace(a.Says+"\n"+question), questAskOffer, offerChoices(qu, ch.step, picked))
 	case choiceBulk:
 		q.bulkHandInLocked(sess, p, c, qu, ch.option)
 	case choiceNotYet:

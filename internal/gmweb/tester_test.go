@@ -1116,6 +1116,36 @@ func TestATesterRevertsOnlyChangesToItsTables(t *testing.T) {
 
 // The admin scope: refused at every way to a credential, at the one place they
 // all come to, and an old one is not good on a tester's account.
+func TestGMReturnScrollGrantAndTesterRestrictions(t *testing.T) {
+	f := newFixture(t)
+	tester := &actor{AccountID: 5, Role: roleTester, Scope: scopeWrite, Via: "test"}
+	id := database.TestReturnScrollID
+	for op, body := range map[string]string{
+		"update_row": fmt.Sprintf(`{"table":"itempattern","key":{"patternid":"%d"},"values":{"trade":0}}`, id),
+		"clone_row":  fmt.Sprintf(`{"table":"itempattern","key":{"patternid":10},"changes":{"patternid":%d}}`, id),
+		"insert_row": fmt.Sprintf(`{"table":"itemeffect","values":{"patternid":%d,"line":"Self, Sow"}}`, id),
+	} {
+		if _, err := f.s.run(tester, op, json.RawMessage(body), nil); err == nil || errStatus(err) != 403 ||
+			!strings.Contains(err.Error(), "Only a GM") {
+			t.Errorf("%s: %v", op, err)
+		}
+	}
+
+	mustExec(t, f.db, `UPDATE itempattern SET patternid = ?, itemname = 'Scroll of Returning (Test)', trade = 1 WHERE patternid = 10`, id)
+	grant := json.RawMessage(fmt.Sprintf(`{"character":7,"item":%d}`, id))
+	if _, err := f.s.run(tester, "give_item", grant, nil); err == nil || errStatus(err) != 403 {
+		t.Fatalf("tester grant: %v", err)
+	}
+	gm := &actor{AccountID: 1, Level: 1, Role: roleGM, Scope: scopeWrite, Via: "test"}
+	if _, err := f.s.run(gm, "give_item", grant, nil); err != nil {
+		t.Fatalf("GM grant: %v", err)
+	}
+	var count int
+	if err := f.db.QueryRow(`SELECT SUM(stackleft) FROM charinventory WHERE serverid = 7 AND patternid = ?`, id).Scan(&count); err != nil || count != 1 {
+		t.Fatalf("granted scroll count %d, error %v", count, err)
+	}
+}
+
 func TestATesterCannotHoldTheAdminScope(t *testing.T) {
 	f := newFixture(t)
 	f.s.cfg.AdminLevel = 1 // the live server's: every GM an admin with a code

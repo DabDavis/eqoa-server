@@ -67,8 +67,10 @@ def row(db, sql, params):
 
 
 class Writer:
-    def __init__(self, db):
+    def __init__(self, db, *, log_table=LOG, detail=DETAIL):
         self.db = db
+        self.log_table = log_table
+        self.detail = detail
         self.n = 0
 
     def log(self, tbl, key, before, after, action="apply"):
@@ -76,9 +78,10 @@ class Writer:
         a = json.dumps(after, sort_keys=True) if after is not None else None
         k = json.dumps(key, sort_keys=True)
         cur = self.db.execute("INSERT INTO gm_audit (at, accountid, username, via, ip, action, tbl, rowkey, before, after, detail) "
-                              "VALUES (?, 0, ?, ?, '', ?, ?, ?, ?, ?, ?)", (now(), WHO, VIA, action, tbl, k, b, a, DETAIL))
+                              "VALUES (?, 0, ?, ?, '', ?, ?, ?, ?, ?, ?)", (now(), WHO, VIA, action, tbl, k, b, a, self.detail))
         if action == "apply":
-            self.db.execute(f"INSERT INTO {LOG} (tbl, rowkey, before, after, audit) VALUES (?, ?, ?, ?, ?)", (tbl, k, b, a, cur.lastrowid))
+            self.db.execute(f"INSERT INTO {self.log_table} (tbl, rowkey, before, after, audit) VALUES (?, ?, ?, ?, ?)",
+                            (tbl, k, b, a, cur.lastrowid))
         self.n += 1
         return cur.lastrowid
 

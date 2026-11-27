@@ -275,6 +275,8 @@ type World struct {
 	homes homesState
 	// dungeons are the instanced raid dungeons in their world (dungeons.go)
 	dungeons dungeonsState
+	// testReturns holds the GM-issued scroll's marks and cooldowns by character.
+	testReturns map[uint32]testReturn
 	// jumpsAllowed is world.jump: whether players may jump (jump.go)
 	jumpsAllowed bool
 	// vampireFemaleBody is world.vampire_female_body (illusion.go): 0, the human woman's

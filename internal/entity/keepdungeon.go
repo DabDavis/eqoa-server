@@ -56,6 +56,8 @@ type KeptDungeons struct {
 	Lockouts []KeptDungeonLock `json:"lockouts,omitempty"`
 	// Returns are the Scrolls of Returning's ways back still in their window (dungeonreturn.go)
 	Returns []KeptDungeonReturn `json:"returns,omitempty"`
+	// TestReturns are kept even on a server without heroic dungeons.
+	TestReturns []KeptTestReturn `json:"test_returns,omitempty"`
 }
 
 // KeptDungeonInst is one open instance.
@@ -120,10 +122,17 @@ func (w *World) KeepDungeons(now time.Time) *KeptDungeons {
 	w.mu.Lock() // not RLock: as KeepNPCs
 	defer w.mu.Unlock()
 	locks := w.keptLockoutsLocked(now)
-	if !w.dungeons.on || len(w.dungeons.insts) == 0 && len(w.dungeons.stays) == 0 && len(locks) == 0 {
+	testReturns := w.keepTestReturnsLocked(now)
+	if !w.dungeons.on {
+		if len(testReturns) > 0 {
+			return &KeptDungeons{TestReturns: testReturns}
+		}
 		return nil
 	}
-	k := &KeptDungeons{Next: w.dungeons.next, Lockouts: locks, Returns: w.keptReturnsLocked(now)}
+	if len(w.dungeons.insts) == 0 && len(w.dungeons.stays) == 0 && len(locks) == 0 && len(testReturns) == 0 {
+		return nil
+	}
+	k := &KeptDungeons{Next: w.dungeons.next, Lockouts: locks, Returns: w.keptReturnsLocked(now), TestReturns: testReturns}
 	ids := make([]uint32, 0, len(w.dungeons.insts))
 	for id := range w.dungeons.insts {
 		ids = append(ids, id)
@@ -186,6 +195,7 @@ func (w *World) RestoreDungeons(k *KeptDungeons) (ids map[EntityID]EntityID, r D
 	if k == nil {
 		return ids, r
 	}
+	w.restoreTestReturnsLocked(k.TestReturns)
 	if !w.dungeons.on {
 		r.InstsLost = len(k.Insts)
 		return ids, r

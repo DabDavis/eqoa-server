@@ -811,10 +811,14 @@ func (w *World) dungeonInstanceOnLoadLocked(p *Player) uint32 {
 // none, or a closed one) goes out after a grace; an instance no one stood in for CloseAfter closes. Must be called
 // with the lock held.
 func (w *World) dungeonsSystem(now time.Time) {
-	if !w.dungeons.on || now.Before(w.dungeons.checkAt) {
+	if now.Before(w.dungeons.checkAt) {
 		return
 	}
 	w.dungeons.checkAt = now.Add(dungeonsCheckEvery)
+	w.pruneTestReturnsLocked(now)
+	if !w.dungeons.on {
+		return
+	}
 	w.dungeonLockoutsPruneLocked(now)
 	w.dungeonReturnsPruneLocked(now)
 	for id, at := range w.dungeons.movedAt {

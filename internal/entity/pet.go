@@ -872,7 +872,7 @@ var petStanceWords = map[petStance]string{
 func petMayFight(pet, npc *NPC) bool {
 	return npc != nil && npc != pet && !npc.Dead && npc.World == pet.World && npc.NPCType&0x80 == 0 && npc.Owner == 0 &&
 		!challengeBars(npc, pet.Owner) && // another's duel (metalmoogie.go)
-		!isMoogie(npc) // no player's pet or merc fights Mr. Moogie (moogie.go)
+		!moogieSpares(npc, moogiePlayer(pet), time.Now()) // Mr. Moogie, only for its master's consent (moogie.go)
 }
 
 func distXZ(ax, az, bx, bz float32) float32 {

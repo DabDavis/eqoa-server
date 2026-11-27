@@ -375,6 +375,10 @@ type NPC struct {
 	// the one player it fights and the one alone who may hurt it, and whose its
 	// corpse's loot is; nil for every other NPC. Its corpse keeps it.
 	challenge *npcChallenge
+	// moogieWarned and moogieOK are Mr. Moogie's own (moogie.go, Heirloom petition 3331): the players
+	// he has warned off ("You are outmatched", when) and those who attacked him again after it, each with
+	// the time its consent lasts to once off his hate list; nil for every other NPC
+	moogieWarned, moogieOK map[EntityID]time.Time
 	// taunt is the last taunt that took it, a player's or a merc's (taunthold.go): who, and until when
 	// it fights the taunter whatever the others' hate
 	taunt tauntHold

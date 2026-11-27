@@ -705,7 +705,7 @@ func (w *World) areaCreaturesLocked(p *Player, cs *castState, cx, cy, cz, r floa
 		npc := w.NPCs[id]
 		if npc == nil || areaHas(cs.targets, id) || npc.Dead || npc.Owner != 0 || npc.NPCType&0x80 != 0 ||
 			!w.npcSharesLocked(npc, p) || npc.hiddenAt(now) || challengeBars(npc, p.ServerID) || w.metalSparesLocked(npc, p.ServerID) ||
-			isMoogie(npc) || w.areaSparesLocked(npc) { // no player's area touches Mr. Moogie (moogie.go), nor npcnoarea's (noarea.go)
+			moogieSpares(npc, p.ServerID, now) || w.areaSparesLocked(npc) { // Mr. Moogie, but by one who consented (moogie.go); nor npcnoarea's (noarea.go)
 			continue
 		}
 		if w.apartLocked(p, npc) || undead && !w.undeadLocked(npc) { // water.go, undead.go

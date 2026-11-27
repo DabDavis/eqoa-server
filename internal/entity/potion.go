@@ -544,6 +544,9 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 		if refusal != "" {
 			return refusal, nil, nil
 		}
+		if m := w.moogieSparedAmongLocked(p.ServerID, targets, now); m != nil && !w.moogieAttackLocked(p, m, now) {
+			return MoogieOutmatched, nil, nil // a throw at Mr. Moogie: an attack, the first warned (moogie.go)
+		}
 		if spell.SpellID == gloriousXPEffectID {
 			target := w.Players[targets[0]]
 			if target == nil || target.IsDead() || target.respawnPending() || !playersShare(p, target) {
@@ -753,7 +756,7 @@ func (w *World) throwLocked(sess *session.Session, p *Player, pe *PotionEffect, 
 		for _, id := range w.SpatialIndex.QueryRadius(npc.X, npc.Z, pe.Area) {
 			o := w.NPCs[id]
 			if o == nil || o == npc || o.Dead || o.World != npc.World || o.Owner != 0 || o.NPCType&0x80 != 0 || o.hiddenAt(now) ||
-				challengeBars(o, p.ServerID) || isMoogie(o) || w.areaSparesLocked(o) {
+				challengeBars(o, p.ServerID) || moogieSpares(o, p.ServerID, now) || w.areaSparesLocked(o) {
 				continue
 			}
 			if dist3(o.X, o.Y, o.Z, npc.X, npc.Y, npc.Z) > pe.Area || !w.reachesLocked(place, o.X, o.Y, o.Z) {

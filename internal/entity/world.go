@@ -1210,9 +1210,10 @@ func (w *World) addThreatLocked(npc *NPC, attackerID EntityID, damage int) {
 	if damage < 0 && npc.Threats[attackerID] <= 0 {
 		return // nothing on its list to take from (hatefloor.go)
 	}
-	w.wakeNPCLocked(npc)                  // a fight, and its regeneration's count after it (npcsets.go)
-	npc.calmTicks, npc.healing = 0, false // in a fight: no regeneration after it for a while (npcregen.go)
-	w.noteHateLocked(npc, attackerID)     // who held its hate, for a Hardcore character's kill (hcrules.go)
+	w.wakeNPCLocked(npc)                            // a fight, and its regeneration's count after it (npcsets.go)
+	npc.calmTicks, npc.healing = 0, false           // in a fight: no regeneration after it for a while (npcregen.go)
+	w.noteHateLocked(npc, attackerID)               // who held its hate, for a Hardcore character's kill (hcrules.go)
+	w.moogieHateLocked(npc, attackerID, time.Now()) // a consent to fight Mr. Moogie kept on (moogie.go)
 	if npc.Threats == nil {
 		npc.Threats = make(map[EntityID]int64)
 	}

@@ -81,6 +81,8 @@ type KeptDungeonInst struct {
 	// and when (instancemembers.go)
 	Added   []KeptInstMember `json:"added,omitempty"`
 	Removed []KeptInstMember `json:"removed,omitempty"`
+	// Done: its scripted fight completed (mythicnagafen.go); a pull under way is not carried
+	Done bool `json:"done,omitempty"`
 }
 
 // KeptInstMember is a character an instance added (its name) or took out (when).
@@ -131,7 +133,7 @@ func (w *World) KeepDungeons(now time.Time) *KeptDungeons {
 		in := w.dungeons.insts[id]
 		w.dungeonFollowOwnerLocked(in)
 		ki := KeptDungeonInst{ID: in.id, Key: w.dungeons.defs[in.def].Key, Owner: in.owner, OwnerName: in.ownerName,
-			Group: in.group, Opened: in.opened, LastIn: in.lastIn, Creatures: in.creatures, Killable: true}
+			Group: in.group, Opened: in.opened, LastIn: in.lastIn, Creatures: in.creatures, Killable: true, Done: in.mythicDone()}
 		for _, cid := range in.npcs {
 			c := w.NPCs[cid]
 			if c == nil || !c.Temporary || c.Instance != in.id || c.CopyOf == 0 || c.petOf != 0 {
@@ -284,6 +286,7 @@ func (w *World) RestoreDungeons(k *KeptDungeons) (ids map[EntityID]EntityID, r D
 		}
 		w.dungeons.insts[in.id] = in
 		w.dungeons.next = max(w.dungeons.next, in.id)
+		w.encounterRestoreLocked(in, ki.Done, time.Now()) // its scripted fight, at staging or done (mythicnagafen.go)
 		for _, c := range ki.In {
 			if w.dungeons.resumeIn == nil {
 				w.dungeons.resumeIn = map[uint32]uint32{}
@@ -305,7 +308,7 @@ func (w *World) RestoreDungeons(k *KeptDungeons) (ids map[EntityID]EntityID, r D
 func (w *World) DungeonResumeIn(char uint32, world int) (uint32, bool) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
-	if !w.dungeons.on || world != int(w.dungeons.world) {
+	if world < 0 || world > 255 || !w.dungeonWorldLocked(uint8(world)) {
 		return 0, false
 	}
 	id, ok := w.dungeons.resumeIn[char]

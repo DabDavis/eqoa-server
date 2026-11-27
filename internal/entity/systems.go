@@ -96,6 +96,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.bufferSystem(now)      // Buffer's casts landing (buffer.go)
 	w.ctfSystem(now)         // capture the flag's queue and match (ctf.go)
 	w.dungeonsSystem(now)    // the dungeons: who may stand in each instance, the empty ones closed (dungeons.go)
+	w.encounterSystem(now)   // the instances' scripted fights (mythicnagafen.go)
 	w.homesSystem(now)       // the homes: who may stand in each, the yards' edges (homes.go)
 	w.readySystem(now)       // the groups' ready checks' ends (readycheck.go)
 	w.rareCycleSystem(now)   // the NPCs only sometimes there (npcrarecycle.go)
@@ -221,6 +222,13 @@ func (w *World) aiSystem(now time.Time) {
 		}
 		if npc.heldNow(now) {
 			// held at 1 hit point: frozen where it stands, nothing of its own done (deathhold.go)
+			npc.stopMoving()
+			npc.loseDueHits(now)
+			continue
+		}
+		if npc.mythic != nil && w.mythicHoldsLocked(npc, now) {
+			// a scripted fight's boss shielded at a gate, or round his breath's impact: no swing, his hate
+			// kept (mythicnagafen.go)
 			npc.stopMoving()
 			npc.loseDueHits(now)
 			continue

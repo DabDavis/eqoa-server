@@ -242,7 +242,7 @@ func (w *World) makeCreaturePetLocked(owner, t *NPC, offset, slot int) *NPC {
 	w.setCreaturePetLevelLocked(c, max(1, owner.Level+offset))
 	st := w.cpets.owners[owner.ServerID]
 	st.pets = append(st.pets, c.ServerID)
-	if in := w.dungeons.insts[owner.Instance]; owner.Instance != 0 && owner.World == w.dungeons.world && in != nil {
+	if in := w.dungeons.insts[owner.Instance]; owner.Instance != 0 && w.dungeonWorldLocked(owner.World) && in != nil {
 		in.npcs = append(in.npcs, c.ServerID) // the instance's, closed with it (dungeons.go)
 	}
 	return c

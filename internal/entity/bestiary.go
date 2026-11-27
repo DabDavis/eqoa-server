@@ -80,9 +80,9 @@ func (w *World) bestiaryZoneLocked(npc *NPC) string {
 	if x == 0 && z == 0 {
 		x, z = npc.X, npc.Z
 	}
-	if w.dungeons.on && npc.World == w.dungeons.world {
+	if w.dungeonWorldLocked(npc.World) {
 		for i := range w.dungeons.defs {
-			if w.dungeons.defs[i].has(x, z) {
+			if w.dungeons.defs[i].holds(npc.World, x, z) {
 				return w.dungeons.defs[i].Name + " (Heroic)"
 			}
 		}

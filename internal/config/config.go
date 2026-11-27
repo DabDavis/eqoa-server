@@ -916,6 +916,10 @@ type DungeonsConfig struct {
 	// Lockout is how long a character who stood in a closed instance waits before it may enter a new instance of
 	// that dungeon (entity/dungeonlockout.go; unset: 10m, 0: off)
 	Lockout *ZeroDuration `yaml:"lockout"`
+	// Worlds are more server worlds (built, in server_worlds) whose recipes' dungeons are served beside world's,
+	// each in its own world: a dungeon whose disc zone shares a cell with another's (18, Mythic Lord Nagafen's
+	// island; work board 2429). Unset: none.
+	Worlds []int `yaml:"worlds"`
 }
 
 // ZeroDuration is a duration that also reads a bare 0 (yaml reads a time.Duration only from a string such as

@@ -348,6 +348,8 @@ type NPC struct {
 	tmpl   *ClassTemplate
 	tbase  templateBase
 	tfight *templateFight
+	// mythic is the scripted fight it is the boss of (mythicnagafen.go), nil for none
+	mythic *mythicFight
 	// kinIdleNext is when its heal of its kin out of its own fights may come
 	// next (kinheal.go)
 	kinIdleNext time.Time

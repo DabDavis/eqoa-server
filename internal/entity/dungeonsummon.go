@@ -27,6 +27,7 @@ const (
 	dungeonJoinRemoved  = "%s cannot be summoned into %s's instance of %s: they were taken out of it."
 	dungeonJoinNoInst   = "%s cannot be summoned to %s: %s stands in no open dungeon instance."
 	dungeonJoinLocked   = "%s cannot be summoned into %s's instance of %s: they are locked out of new instances of it for %d more minutes."
+	dungeonJoinHidden   = "%s cannot be summoned into %s's instance of %s: its party goes in at the %s alone."
 )
 
 // dungeonJoinInstLocked is the instance a summon from via takes its player into: nil, "" and true when via is not in
@@ -62,6 +63,10 @@ func (w *World) instanceJoinCheckLocked(p, via *Player, force bool, now time.Tim
 		return "", true
 	}
 	name := w.dungeons.defs[in.def].Name
+	if w.dungeons.defs[in.def].Hidden() {
+		// entered at its own NPC alone (DungeonDef.Via): no remote way in, a summon's neither
+		return fmt.Sprintf(dungeonJoinHidden, p.Name, in.ownerName, name, w.dungeons.defs[in.def].Via), false
+	}
 	if _, out := in.removed[p.CharServerID]; out {
 		return fmt.Sprintf(dungeonJoinRemoved, p.Name, in.ownerName, name), false
 	}

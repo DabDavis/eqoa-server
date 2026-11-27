@@ -126,6 +126,14 @@ type dungeonJSON struct {
 	// Cap is how many players its instance holds (entity/instancemembers.go; 0:
 	// world.dungeons.cap)
 	Cap int `json:"cap,omitempty"`
+	// Via is the one NPC that sends a party in (a hidden dungeon: entity.DungeonDef.Via; heroicraids.go)
+	Via string `json:"via,omitempty"`
+	// Encounter is its instances' scripted fight (entity/mythicnagafen.go)
+	Encounter string `json:"encounter,omitempty"`
+	// Spawned are the template names the opening leaves to the encounter
+	Spawned []string `json:"spawned,omitempty"`
+	// Layout is the encounter's places as chosen (read by its tests, never by the server)
+	Layout json.RawMessage `json:"layout,omitempty"`
 }
 
 // ReadDungeons is a built world's dungeons (its recipe's "dungeons" block), checked.
@@ -148,7 +156,11 @@ func ReadDungeons(b worlds.Built) ([]entity.DungeonDef, error) {
 		if j.Cap < 0 || j.Cap > 200 {
 			return nil, fmt.Errorf("world %d's dungeon %q: cap %d: 0 (world.dungeons.cap) to 200 players", b.World, j.Key, j.Cap)
 		}
-		d := entity.DungeonDef{Key: key, Name: j.Name, Cap: j.Cap}
+		if j.Encounter != "" && !strings.EqualFold(j.Encounter, entity.EncounterMythicNagafen) {
+			return nil, fmt.Errorf("world %d's dungeon %q: encounter %q is none the server knows", b.World, j.Key, j.Encounter)
+		}
+		d := entity.DungeonDef{Key: key, Name: j.Name, Cap: j.Cap, World: uint8(b.World), Via: strings.TrimSpace(j.Via),
+			Encounter: strings.ToLower(strings.TrimSpace(j.Encounter)), Spawned: j.Spawned}
 		for _, bx := range j.Boxes {
 			x0, z0, x1, z1 := min(bx[0], bx[2]), min(bx[1], bx[3]), max(bx[0], bx[2]), max(bx[1], bx[3])
 			d.Boxes = append(d.Boxes, entity.DungeonBox{X0: x0, Z0: z0, X1: x1, Z1: z1})
@@ -196,6 +208,35 @@ func SetupDungeons(gw *entity.World, c config.DungeonsConfig, _ *database.SQLite
 		gw.SetDungeons(false, world, nil, set)
 		return false
 	}
+	// the dungeons served in worlds of their own (world.dungeons.worlds: Mythic Lord Nagafen's island, work
+	// board 2429); one not built or listed is left out, the rest stay open
+	seen := map[string]bool{}
+	for _, d := range defs {
+		seen[d.Key] = true
+	}
+	for _, n := range c.Worlds {
+		if n <= 0 || n > 255 || uint8(n) == world {
+			continue
+		}
+		eb, ok := ServerWorld(uint8(n))
+		if !ok {
+			log.Printf("WARNING: world.dungeons.worlds: world %d is none of the server's own built worlds (world.server_worlds); its dungeons are closed", n)
+			continue
+		}
+		more, err := ReadDungeons(eb)
+		if err != nil {
+			log.Printf("WARNING: world.dungeons.worlds: %v; its dungeons are closed", err)
+			continue
+		}
+		for _, d := range more {
+			if seen[d.Key] {
+				log.Printf("WARNING: world.dungeons.worlds: world %d's dungeon %q has another's key; left out", n, d.Key)
+				continue
+			}
+			seen[d.Key] = true
+			defs = append(defs, d)
+		}
+	}
 	gw.SetDungeons(true, world, defs, set)
 	return true
 }
@@ -241,7 +282,7 @@ func (h *InteractHandler) dungeonsTalk(sess *session.Session, p *entity.Player, 
 		dungeonsSay(sess, dungeonsAs(npc), dungeonsClosed)
 	case p.Reliving():
 		dungeonsSay(sess, dungeonsAs(npc), WardenReliveLine) // relive.go
-	case !dungeonsReaches(sess, world):
+	case !dungeonsReaches(sess, world) && !gw.InDungeonWorld(p.World):
 		dungeonsSay(sess, dungeonsAs(npc), dungeonsNoWorld)
 		log.Printf("Dungeons: %s at the warden: its game cannot load world %d", p.Name, world)
 	default:
@@ -259,9 +300,14 @@ func (ds *Dungeons) askRoot(sess *session.Session, p *entity.Player, npc *entity
 		question = dungeonsAskBoard
 	}
 	var answers []dungeonsAnswer
-	if p.World == world {
+	if ds.gw.InDungeonWorld(p.World) {
 		question = fmt.Sprintf(dungeonsAskIn, "the dungeons")
 		answers = append(answers, dungeonsAnswer{do: dungeonsDoOut, label: dungeonsAnsOut})
+		if p.World != world {
+			// a dungeon's world of its own (a hidden dungeon's island): its way out, nothing more
+			ds.ask(sess, p, as+question, answers, npc.ServerID)
+			return
+		}
 	}
 	for _, c := range ds.gw.DungeonChoices(sess) {
 		label := fmt.Sprintf(dungeonsAnsOpen, c.Name)
@@ -329,7 +375,7 @@ func (h *InteractHandler) answerDungeons(sess *session.Session, p *entity.Player
 	a := asked.answers[option]
 	switch a.do {
 	case dungeonsDoEnter:
-		ds.enter(sess, p, a.key)
+		ds.enter(sess, p, a.key, "")
 	case dungeonsDoOut:
 		ds.leave(sess)
 	case dungeonsDoMore:
@@ -357,9 +403,13 @@ func dungeonsPage(answers []dungeonsAnswer, page, room int) []dungeonsAnswer {
 	return append(out, dungeonsAnswer{do: dungeonsDoMore, page: (page + 1) % pages, label: dungeonsAnsMore})
 }
 
-// enter sends the session's player into its party's instance of the dungeon key.
-func (ds *Dungeons) enter(sess *session.Session, p *entity.Player, key string) {
+// enter sends the session's player into its party's instance of the dungeon key, as the NPC named via sends it (""
+// a warden, the board or /dungeon: a hidden dungeon is none of theirs).
+func (ds *Dungeons) enter(sess *session.Session, p *entity.Player, key, via string) {
 	on, world := ds.gw.DungeonsOn()
+	if w, ok := ds.gw.DungeonWorldOf(key, via); ok {
+		world = w
+	}
 	switch {
 	case !on:
 		dungeonsTell(sess, dungeonsClosed)
@@ -369,11 +419,11 @@ func (ds *Dungeons) enter(sess *session.Session, p *entity.Player, key string) {
 		log.Printf("Dungeons: %s's game cannot load world %d: not moved", p.Name, world)
 		return
 	}
-	if why, ok := ds.gw.DungeonEnter(sess, key, ds.now()); !ok {
+	if why, ok := ds.gw.DungeonEnterVia(sess, key, via, ds.now()); !ok {
 		dungeonsTell(sess, why)
 		return
 	}
-	ds.takeGroup(p, key, world)
+	ds.takeGroup(p, key, via, world)
 }
 
 // dungeonsGroupWords is what a member the leader's entry takes along is told.
@@ -383,7 +433,7 @@ const dungeonsGroupWords = "%s takes the group into the instance."
 // 1834, a player, 2026-11-12, "selecting a raid instance from the board should transport the group all at once if
 // within range. Similar to the way the Portal was fixed"), alive, in the world and able to load the dungeons' world,
 // each into the same instance as though they had picked it. A member farther off, or whose entry is refused, stays.
-func (ds *Dungeons) takeGroup(p *entity.Player, key string, world uint8) {
+func (ds *Dungeons) takeGroup(p *entity.Player, key, via string, world uint8) {
 	gw := ds.gw
 	pw, px, _, pz, _, ok := gw.PlayerSpot(p)
 	if !ok {
@@ -401,7 +451,7 @@ func (ds *Dungeons) takeGroup(p *entity.Player, key string, world uint8) {
 		if ms == nil || !ms.CharacterInWorld() || ms.PendingTermination() || !dungeonsReaches(ms, world) {
 			continue
 		}
-		if why, ok := gw.DungeonEnter(ms, key, ds.now()); !ok {
+		if why, ok := gw.DungeonEnterVia(ms, key, via, ds.now()); !ok {
 			log.Printf("Dungeons: %s stays (%s's entry): %s", m.Name, p.Name, why)
 			continue
 		}
@@ -443,7 +493,7 @@ func dungeonCommand(gw *entity.World, sess *session.Session, rest string) {
 			dungeonsTell(sess, WardenReliveLine) // relive.go
 			return
 		}
-		ds.enter(sess, p, arg)
+		ds.enter(sess, p, arg, "")
 	case "leave", "out":
 		ds.leave(sess)
 	case "reset", "close":
@@ -467,7 +517,9 @@ func dungeonsHelpLine(gw *entity.World) string {
 	var keys []string
 	if gw != nil {
 		for _, d := range gw.DungeonDefs() {
-			keys = append(keys, d.Key)
+			if !d.Hidden() { // a hidden dungeon is named by its own NPC alone
+				keys = append(keys, d.Key)
+			}
 		}
 	}
 	if len(keys) == 0 {

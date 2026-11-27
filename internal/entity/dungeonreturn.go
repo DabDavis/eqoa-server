@@ -86,7 +86,8 @@ func (w *World) DungeonReturnRead(sess *session.Session, now time.Time) (Dungeon
 // dungeonReturnOutLocked keeps p's place in its instance and sends it home.
 func (w *World) dungeonReturnOutLocked(sess *session.Session, p *Player, now time.Time) (DungeonReturnResult, string) {
 	in := w.dungeons.insts[p.Instance]
-	if in == nil || !w.dungeonAllowsLocked(in, p) {
+	if in == nil || !w.dungeonAllowsLocked(in, p) || w.dungeons.defs[in.def].Hidden() {
+		// a hidden dungeon is entered at its own NPC alone (DungeonDef.Via): no way back kept to it
 		return ReturnRefused, returnLineNotHere
 	}
 	if w.dungeons.returns == nil {
@@ -135,7 +136,7 @@ func (w *World) dungeonReturnBackLocked(sess *session.Session, p *Player, now ti
 	in.markStood(p.CharServerID)
 	w.dungeons.movedAt[p.ServerID] = now
 	delete(w.dungeons.badAt, p.ServerID)
-	w.gates.due = append(w.gates.due, GateTravel{Sess: sess, P: p, To: GateSpot{World: w.dungeons.world, X: r.x, Y: r.y,
+	w.gates.due = append(w.gates.due, GateTravel{Sess: sess, P: p, To: GateSpot{World: d.World, X: r.x, Y: r.y,
 		Z: r.z, Place: d.Name}, Spell: "the Scroll of Returning", Facing: r.facing, HasFacing: true})
 	log.Printf("Dungeons: %s reads the Scroll of Returning: back into %s (instance %d, %s's) at (%.1f, %.1f, %.1f)",
 		p.Name, d.Name, in.id, in.ownerName, r.x, r.y, r.z)

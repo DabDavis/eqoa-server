@@ -43,6 +43,12 @@ func (w *World) npcTakesLocked(npc *NPC, n int, now time.Time) int {
 	if npc == nil || n <= 0 {
 		return n
 	}
+	if npc.mythic != nil {
+		// a scripted fight's boss: nothing while he shields, never past his next gate (mythicnagafen.go)
+		if n = w.mythicTakesLocked(npc, n, now); n <= 0 {
+			return 0
+		}
+	}
 	w.turkeyWavesLocked(npc, n, now)
 	if npc.heldNow(now) {
 		return 0

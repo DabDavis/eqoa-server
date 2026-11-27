@@ -24,41 +24,42 @@ import (
 
 // boxMarks is every feature's mark by its const's name.
 var boxMarks = map[string]uint32{
-	"questBoxMark":      questBoxMark,
-	"hardcoreBoxMark":   hardcoreBoxMark, // hardcoreask.go
-	"ogBoxMark":         ogBoxMark,       // hardcoreask.go: the [OG] choice
-	"triggerBoxMark":    triggerBoxMark,
-	"duelBoxMark":       entity.DuelBoxID(0), // entity/duelwire.go's, unexported there
-	"rehabBoxMark":      rehabBoxMark,
-	"advisorBoxMark":    advisorBoxMark,
-	"dyerBoxMark":       dyerBoxMark,
-	"coachBoxMark":      coachBoxMark,
-	"genieBoxMark":      genieBoxMark,
-	"boardBoxMark":      boardBoxMark,
-	"portalBoxMark":     portalBoxMark,
-	"moogieBoxMark":     moogieBoxMark,
-	"dabrishBoxMark":    dabrishBoxMark,
-	"archivistBoxMark":  archivistBoxMark,
-	"teleporterBoxMark": teleporterBoxMark,
-	"mercBoxMark":       mercBoxMark,
-	"welcomeBoxMark":    welcomeBoxMark,
-	"ctfBoxMark":        ctfBoxMark,
-	"heroCallBoxMark":   heroCallBoxMark,
-	"heroesBoxMark":     heroesBoxMark,
-	"homesBoxMark":      homesBoxMark,
-	"dungeonsBoxMark":   dungeonsBoxMark,
-	"enchanterBoxMark":  enchanterBoxMark,
-	"groomerBoxMark":    groomerBoxMark,
-	"tourBoxMark":       tourBoxMark,
-	"tokenShopBoxMark":  tokenShopBoxMark,
-	"raidPortalBoxMark": raidPortalBoxMark,
-	"gemSetterBoxMark":  gemSetterBoxMark,
-	"hotZoneBoxMark":    hotZoneBoxMark, // hotzones.go
-	"keeperBoxMark":     keeperBoxMark,  // keeper.go
-	"reliveBoxMark":     reliveBoxMark,  // relive.go
-	"talkBoxMark":       talkBoxMark,
-	"introBoxMark":      introBoxMark,              // cityintro.go
-	"placeTextBoxMark":  entity.PlaceTextBoxMark(), // entity/placetexts.go
+	"questBoxMark":       questBoxMark,
+	"hardcoreBoxMark":    hardcoreBoxMark, // hardcoreask.go
+	"ogBoxMark":          ogBoxMark,       // hardcoreask.go: the [OG] choice
+	"triggerBoxMark":     triggerBoxMark,
+	"duelBoxMark":        entity.DuelBoxID(0), // entity/duelwire.go's, unexported there
+	"rehabBoxMark":       rehabBoxMark,
+	"advisorBoxMark":     advisorBoxMark,
+	"dyerBoxMark":        dyerBoxMark,
+	"coachBoxMark":       coachBoxMark,
+	"genieBoxMark":       genieBoxMark,
+	"boardBoxMark":       boardBoxMark,
+	"portalBoxMark":      portalBoxMark,
+	"moogieBoxMark":      moogieBoxMark,
+	"dabrishBoxMark":     dabrishBoxMark,
+	"archivistBoxMark":   archivistBoxMark,
+	"teleporterBoxMark":  teleporterBoxMark,
+	"mercBoxMark":        mercBoxMark,
+	"welcomeBoxMark":     welcomeBoxMark,
+	"ctfBoxMark":         ctfBoxMark,
+	"heroCallBoxMark":    heroCallBoxMark,
+	"heroesBoxMark":      heroesBoxMark,
+	"homesBoxMark":       homesBoxMark,
+	"dungeonsBoxMark":    dungeonsBoxMark,
+	"heroicRaidsBoxMark": heroicRaidsBoxMark,
+	"enchanterBoxMark":   enchanterBoxMark,
+	"groomerBoxMark":     groomerBoxMark,
+	"tourBoxMark":        tourBoxMark,
+	"tokenShopBoxMark":   tokenShopBoxMark,
+	"raidPortalBoxMark":  raidPortalBoxMark,
+	"gemSetterBoxMark":   gemSetterBoxMark,
+	"hotZoneBoxMark":     hotZoneBoxMark, // hotzones.go
+	"keeperBoxMark":      keeperBoxMark,  // keeper.go
+	"reliveBoxMark":      reliveBoxMark,  // relive.go
+	"talkBoxMark":        talkBoxMark,
+	"introBoxMark":       introBoxMark,              // cityintro.go
+	"placeTextBoxMark":   entity.PlaceTextBoxMark(), // entity/placetexts.go
 }
 
 // boxMarkClashes says what is wrong with a set of marks: two of one high byte, a mark with any of the low 24 bits

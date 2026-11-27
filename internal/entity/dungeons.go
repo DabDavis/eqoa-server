@@ -106,7 +106,37 @@ type DungeonDef struct {
 	// (instancemembers.go; the recipe's "cap", 0: DungeonSettings.Cap); a raid's
 	// instance holds DungeonSettings.RaidCap
 	Cap int
+	// World is the server world it stands in (0: the dungeons' own, world.dungeons.world). A dungeon whose disc
+	// zone shares a cell with another's is served in a world of its own (world.dungeons.worlds: Mythic Lord
+	// Nagafen's island, Lavastorm's cell (2, 2), which Permafrost holds in world 14; work board 2429).
+	World uint8
+	// Via is the one NPC (by name) that sends a party in, "" for the wardens and the Heroic Dungeons board. A
+	// dungeon with one is hidden: none of the wardens' or the board's menus, /dungeon's help or its status names it,
+	// and an entry by its key from anywhere else (/dungeon enter, a summon, a Scroll of Returning) is refused as
+	// though there were no such dungeon (work board 2429: "Omit the new key from normal Heroic Dungeons menus,
+	// command discovery and the public map. Refuse direct remote entry by key").
+	Via string
+	// Encounter names the scripted fight its instances hold ("" none; mythicnagafen.go).
+	Encounter string
+	// Spawned are the names of its templates an instance's opening leaves out: its encounter spawns them.
+	Spawned []string
 }
+
+// Hidden reports a dungeon only its Via NPC sends a party into.
+func (d *DungeonDef) Hidden() bool { return d.Via != "" }
+
+// spawnedOnly reports a template of the name one the dungeon's encounter spawns (Spawned).
+func (d *DungeonDef) spawnedOnly(name string) bool {
+	for _, n := range d.Spawned {
+		if strings.EqualFold(strings.TrimSpace(n), strings.TrimSpace(name)) {
+			return true
+		}
+	}
+	return false
+}
+
+// holds reports (x, z) of world inside the dungeon's boxes.
+func (d *DungeonDef) holds(world uint8, x, z float32) bool { return d.World == world && d.has(x, z) }
 
 func (d *DungeonDef) has(x, z float32) bool {
 	for _, b := range d.Boxes {
@@ -148,6 +178,8 @@ type dungeonInst struct {
 	// stood are the characters who stood in it (its opener with them): each is locked out of its dungeon when it
 	// closes (dungeonlockout.go)
 	stood map[uint32]bool
+	// enc is its dungeon's scripted fight (mythicnagafen.go), nil for none
+	enc *mythicFight
 }
 
 // dungeonStay is where a character in the dungeons came from.
@@ -157,8 +189,11 @@ type dungeonStay struct {
 }
 
 type dungeonsState struct {
-	on      bool
-	world   uint8
+	on    bool
+	world uint8
+	// worlds are every world a dungeon stands in: world, and those of the dungeons served in worlds of their own
+	// (DungeonDef.World)
+	worlds  map[uint8]bool
 	defs    []DungeonDef
 	set     DungeonSettings
 	insts   map[uint32]*dungeonInst
@@ -184,9 +219,21 @@ type dungeonsState struct {
 func (w *World) SetDungeons(on bool, world uint8, defs []DungeonDef, set DungeonSettings) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	for wd := range w.dungeons.worlds {
+		dungeonWorlds[wd].Store(false)
+		SetInstancedWorld(wd, false)
+	}
 	if w.dungeons.on && w.dungeons.world != world {
 		dungeonWorlds[w.dungeons.world].Store(false)
 		SetInstancedWorld(w.dungeons.world, false)
+	}
+	defs = append([]DungeonDef(nil), defs...)
+	ws := map[uint8]bool{world: true}
+	for i := range defs {
+		if defs[i].World == 0 {
+			defs[i].World = world
+		}
+		ws[defs[i].World] = true
 	}
 	if set.CloseAfter <= 0 {
 		set.CloseAfter = DefaultDungeonCloseAfter
@@ -200,11 +247,16 @@ func (w *World) SetDungeons(on bool, world uint8, defs []DungeonDef, set Dungeon
 	if set.RaidCap <= 0 {
 		set.RaidCap = DefaultDungeonRaidCap
 	}
-	w.dungeons = dungeonsState{on: on, world: world, defs: defs, set: set, insts: map[uint32]*dungeonInst{},
+	w.dungeons = dungeonsState{on: on, world: world, worlds: ws, defs: defs, set: set, insts: map[uint32]*dungeonInst{},
 		stays: map[uint32]dungeonStay{}, movedAt: map[EntityID]time.Time{}, badAt: map[EntityID]time.Time{},
 		lockouts: map[dungeonLock]time.Time{}}
-	dungeonWorlds[world].Store(on)
-	SetInstancedWorld(world, on)
+	if !on {
+		w.dungeons.worlds = map[uint8]bool{}
+	}
+	for wd := range ws {
+		dungeonWorlds[wd].Store(on)
+		SetInstancedWorld(wd, on)
+	}
 	held := 0
 	for _, npc := range w.NPCs {
 		if npc.Temporary || npc.Owner != 0 {
@@ -229,15 +281,15 @@ func (w *World) SetDungeons(on bool, world uint8, defs []DungeonDef, set Dungeon
 		for i := range defs {
 			n := 0
 			for _, npc := range w.NPCs {
-				if w.dungeonTemplateLocked(npc) && defs[i].has(npc.SpawnX, npc.SpawnZ) {
+				if w.dungeonTemplateLocked(npc) && defs[i].holds(npc.World, npc.SpawnX, npc.SpawnZ) {
 					n++
 				}
 			}
-			log.Printf("Dungeons: %s (%s): %d creatures, the entrance at (%.1f, %.1f, %.1f)", defs[i].Name, defs[i].Key, n,
-				defs[i].Entrance.X, defs[i].Entrance.Y, defs[i].Entrance.Z)
+			log.Printf("Dungeons: %s (%s): %d creatures, the entrance at (%.1f, %.1f, %.1f) world=%d%s", defs[i].Name, defs[i].Key, n,
+				defs[i].Entrance.X, defs[i].Entrance.Y, defs[i].Entrance.Z, defs[i].World, dungeonViaWords(&defs[i]))
 		}
-		log.Printf("Dungeons: world %d, %d dungeons, %d templates held out of the world; an instance closes %v after its last player",
-			world, len(defs), held, set.CloseAfter)
+		log.Printf("Dungeons: world %d (and %d of their own), %d dungeons, %d templates held out of the world; an instance closes %v after its last player",
+			world, len(ws)-1, len(defs), held, set.CloseAfter)
 	}
 }
 
@@ -246,6 +298,27 @@ func (w *World) DungeonsOn() (bool, uint8) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	return w.dungeons.on, w.dungeons.world
+}
+
+// dungeonViaWords is the log's note of a hidden dungeon's NPC.
+func dungeonViaWords(d *DungeonDef) string {
+	if d.Via == "" {
+		return ""
+	}
+	return fmt.Sprintf(", entered only at %q", d.Via)
+}
+
+// InDungeonWorld reports world one a dungeon stands in, while the dungeons are on.
+func (w *World) InDungeonWorld(world uint8) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.dungeonWorldLocked(world)
+}
+
+// dungeonWorldLocked reports world one a dungeon stands in, while the dungeons are on. Must be called with the
+// lock held.
+func (w *World) dungeonWorldLocked(world uint8) bool {
+	return w.dungeons.on && w.dungeons.worlds[world]
 }
 
 // DungeonDefs is the dungeons (a copy).
@@ -258,13 +331,13 @@ func (w *World) DungeonDefs() []DungeonDef {
 // dungeonTemplateLocked is whether an NPC is a dungeon's template: a row of the dungeons' world (not a copy, a pet,
 // nor the warden's twin). Must be called with the lock held.
 func (w *World) dungeonTemplateLocked(npc *NPC) bool {
-	return npc != nil && w.dungeons.on && npc.World == w.dungeons.world && !npc.Temporary && npc.Owner == 0 &&
+	return npc != nil && w.dungeonWorldLocked(npc.World) && !npc.Temporary && npc.Owner == 0 &&
 		!IsDungeonWarden(npc.Name)
 }
 
 // inDungeonsLocked is whether p stands in the dungeons' world.
 func (w *World) inDungeonsLocked(p *Player) bool {
-	return w.dungeons.on && p != nil && p.World == w.dungeons.world
+	return p != nil && w.dungeonWorldLocked(p.World)
 }
 
 // dungeonAllowsLocked is whether p may stand in the instance. Must be called with the lock held.
@@ -311,6 +384,7 @@ func (w *World) dungeonLeaderLocked(p *Player) bool {
 // whether the player may open one.
 type DungeonChoice struct {
 	Key, Name string
+	World     uint8 // the world it stands in
 	Open      bool
 	MayOpen   bool
 	Owner     string
@@ -328,13 +402,54 @@ func (w *World) DungeonChoices(sess *session.Session) []DungeonChoice {
 	lead := w.dungeonLeaderLocked(p)
 	out := make([]DungeonChoice, 0, len(w.dungeons.defs))
 	for i, d := range w.dungeons.defs {
-		c := DungeonChoice{Key: d.Key, Name: d.Name, MayOpen: lead}
+		if d.Hidden() {
+			continue // only its own NPC offers it (DungeonViaChoice)
+		}
+		c := DungeonChoice{Key: d.Key, Name: d.Name, World: d.World, MayOpen: lead}
 		if in := w.dungeonInstForLocked(i, p); in != nil {
 			c.Open, c.Owner, c.Alive = true, in.ownerName, w.dungeonAliveLocked(in)
 		}
 		out = append(out, c)
 	}
 	return out
+}
+
+// DungeonViaChoices is the hidden dungeons the NPC named via sends parties into (DungeonDef.Via), as the session's
+// player finds them.
+func (w *World) DungeonViaChoices(sess *session.Session, via string) []DungeonChoice {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil || !w.dungeons.on || strings.TrimSpace(via) == "" {
+		return nil
+	}
+	lead := w.dungeonLeaderLocked(p)
+	var out []DungeonChoice
+	for i, d := range w.dungeons.defs {
+		if !d.Hidden() || !strings.EqualFold(d.Via, strings.TrimSpace(via)) {
+			continue
+		}
+		c := DungeonChoice{Key: d.Key, Name: d.Name, World: d.World, MayOpen: lead}
+		if in := w.dungeonInstForLocked(i, p); in != nil {
+			c.Open, c.Owner, c.Alive = true, in.ownerName, w.dungeonAliveLocked(in)
+		}
+		out = append(out, c)
+	}
+	return out
+}
+
+// DungeonWorldOf is the world the dungeon of the key stands in, as an entry from the NPC named via may name it.
+func (w *World) DungeonWorldOf(key, via string) (uint8, bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	if !w.dungeons.on {
+		return 0, false
+	}
+	def := w.dungeonByKeyViaLocked(key, via)
+	if def < 0 {
+		return 0, false
+	}
+	return w.dungeons.defs[def].World, true
 }
 
 // dungeonAliveLocked counts an instance's creatures still alive, those a player can kill alone
@@ -386,8 +501,15 @@ const (
 )
 
 // DungeonEnter sends the session's player into its party's instance of the dungeon key, opening one when it may
-// (alone or its group's leader) and none is open. It reports why not (false).
+// (alone or its group's leader) and none is open. It reports why not (false). A hidden dungeon (DungeonDef.Via) is
+// no dungeon here: DungeonEnterVia.
 func (w *World) DungeonEnter(sess *session.Session, key string, now time.Time) (string, bool) {
+	return w.DungeonEnterVia(sess, key, "", now)
+}
+
+// DungeonEnterVia is DungeonEnter from the NPC named via ("" a warden, the board or /dungeon): a hidden dungeon
+// takes only its own NPC's entry, and to any other it is a dungeon that does not exist.
+func (w *World) DungeonEnterVia(sess *session.Session, key, via string, now time.Time) (string, bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
@@ -397,12 +519,7 @@ func (w *World) DungeonEnter(sess *session.Session, key string, now time.Time) (
 	case p == nil || p.IsDead() || p.respawnPending():
 		return "You cannot go there now.", false
 	}
-	def := -1
-	for i, d := range w.dungeons.defs {
-		if strings.EqualFold(d.Key, key) || strings.EqualFold(d.Name, key) {
-			def = i
-		}
-	}
+	def := w.dungeonByKeyViaLocked(key, via)
 	if def < 0 {
 		return fmt.Sprintf("There is no dungeon named %s.", key), false
 	}
@@ -430,12 +547,28 @@ func (w *World) DungeonEnter(sess *session.Session, key string, now time.Time) (
 	w.dungeons.movedAt[p.ServerID] = now
 	delete(w.dungeons.badAt, p.ServerID)
 	e := d.Entrance
-	w.gates.due = append(w.gates.due, GateTravel{Sess: sess, P: p, To: GateSpot{World: w.dungeons.world, X: e.X, Y: e.Y,
+	w.gates.due = append(w.gates.due, GateTravel{Sess: sess, P: p, To: GateSpot{World: d.World, X: e.X, Y: e.Y,
 		Z: e.Z, Place: d.Name}, Spell: DungeonWardenName, Facing: e.Facing, HasFacing: true})
 	w.sendColoredLocked(sess, fmt.Sprintf(dungeonLineEnter, d.Name, in.ownerName), dungeonColour)
 	log.Printf("Dungeons: %s enters %s (instance %d, %s's), %d creatures alive", p.Name, d.Name, in.id, in.ownerName,
 		w.dungeonAliveLocked(in))
 	return "", true
+}
+
+// dungeonByKeyViaLocked is the dungeon of the key (or name) as an entry from the NPC named via may name it: a hidden
+// dungeon only from its own NPC; -1 for none. Must be called with the lock held.
+func (w *World) dungeonByKeyViaLocked(key, via string) int {
+	def := -1
+	for i, d := range w.dungeons.defs {
+		if !strings.EqualFold(d.Key, key) && !strings.EqualFold(d.Name, key) {
+			continue
+		}
+		if d.Hidden() && !strings.EqualFold(strings.TrimSpace(via), d.Via) {
+			continue // refused as no dungeon at all (the field's doc)
+		}
+		def = i
+	}
+	return def
 }
 
 // dungeonOpenLocked opens an instance of dungeon def for p: a copy of each of its templates, in it alone.
@@ -448,7 +581,8 @@ func (w *World) dungeonOpenLocked(def int, p *Player, now time.Time) *dungeonIns
 	var ts []*NPC
 	for _, npc := range w.NPCs {
 		// a creature pets' template row is copied only as an owner's pet (creaturepets.go)
-		if w.dungeonTemplateLocked(npc) && d.has(npc.SpawnX, npc.SpawnZ) && !w.cpets.templates[npc.ServerID] {
+		if w.dungeonTemplateLocked(npc) && d.holds(npc.World, npc.SpawnX, npc.SpawnZ) && !w.cpets.templates[npc.ServerID] &&
+			!d.spawnedOnly(npc.Name) {
 			ts = append(ts, npc)
 		}
 	}
@@ -466,6 +600,7 @@ func (w *World) dungeonOpenLocked(def int, p *Player, now time.Time) *dungeonIns
 	in.creatures = w.dungeonKillableCountLocked(in) // none a player cannot kill (dungeonKillable)
 	w.companionOf = nil                             // its shamans and their pets pair within it (companion.go), read again
 	w.dungeons.insts[in.id] = in
+	w.encounterOpenLocked(in, now) // its scripted fight (mythicnagafen.go)
 	if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
 		w.sendColoredLocked(sess, fmt.Sprintf(dungeonLineOpened, p.Name, d.Name, in.creatures), dungeonColour)
 	}
@@ -477,7 +612,7 @@ func (w *World) dungeonOpenLocked(def int, p *Player, now time.Time) *dungeonIns
 // its dungeon (dungeonlockout.go).
 func (w *World) dungeonCloseLocked(in *dungeonInst, why string, now time.Time) {
 	w.dungeonLockOutLocked(in, now)
-	gone := 0
+	gone := w.encounterCloseLocked(in) // its encounter's own spawns (mythicnagafen.go)
 	for _, id := range in.npcs {
 		if c := w.NPCs[id]; c != nil && c.Temporary && c.Instance == in.id {
 			w.removeNPCLocked(c)
@@ -501,8 +636,8 @@ func (w *World) DungeonReset(sess *session.Session, key string) string {
 		return ""
 	}
 	for i, d := range w.dungeons.defs {
-		if !strings.EqualFold(d.Key, key) && !strings.EqualFold(d.Name, key) {
-			continue
+		if !strings.EqualFold(d.Key, key) && !strings.EqualFold(d.Name, key) || d.Hidden() {
+			continue // a hidden dungeon is none to /dungeon (DungeonDef.Via)
 		}
 		in := w.dungeonInstForLocked(i, p)
 		if in == nil {
@@ -566,7 +701,7 @@ func (w *World) dungeonSendOutLocked(p *Player, line string) bool {
 
 // dungeonWayOutLocked is where a character leaving the dungeons goes.
 func (w *World) dungeonWayOutLocked(char uint32) (GateSpot, float32, bool) {
-	if s, ok := w.dungeons.stays[char]; ok && (s.From.X != 0 || s.From.Z != 0) && s.From.World != w.dungeons.world {
+	if s, ok := w.dungeons.stays[char]; ok && (s.From.X != 0 || s.From.Z != 0) && !w.dungeonWorldLocked(s.From.World) {
 		return s.From, s.FromFacing, true
 	}
 	return w.dungeonWardenSpotLocked()
@@ -576,7 +711,7 @@ func (w *World) dungeonWayOutLocked(char uint32) (GateSpot, float32, bool) {
 func (w *World) dungeonWardenSpotLocked() (GateSpot, float32, bool) {
 	var best *NPC
 	for _, npc := range w.NPCs {
-		if npc.Temporary || npc.Dead || !IsDungeonWarden(npc.Name) || npc.World == w.dungeons.world {
+		if npc.Temporary || npc.Dead || !IsDungeonWarden(npc.Name) || w.dungeonWorldLocked(npc.World) {
 			continue
 		}
 		if best == nil || npc.ServerID < best.ServerID {
@@ -596,7 +731,7 @@ func (w *World) dungeonWardenSpotLocked() (GateSpot, float32, bool) {
 func (w *World) DungeonLogin(char uint32, world int, x, z float32) (dungeon, resume bool, inst uint32, out GateSpot) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	if !w.dungeons.on || world != int(w.dungeons.world) {
+	if world < 0 || world > 255 || !w.dungeonWorldLocked(uint8(world)) {
 		return false, false, 0, GateSpot{}
 	}
 	var groupID uint32 // its group, kept over its logout (a player's entity id is its character's)
@@ -608,7 +743,7 @@ func (w *World) DungeonLogin(char uint32, world int, x, z float32) (dungeon, res
 		}
 	}
 	out, _, _ = w.dungeonWayOutLocked(char)
-	if in := w.dungeonLoginInstLocked(char, groupID, x, z); in != nil {
+	if in := w.dungeonLoginInstLocked(char, groupID, uint8(world), x, z); in != nil {
 		return true, true, in.id, out
 	}
 	return true, false, 0, out
@@ -626,11 +761,15 @@ func (w *World) DungeonEntrance(inst uint32) (HomeSpot, bool) {
 	return w.dungeons.defs[in.def].Entrance, true
 }
 
-// dungeonLoginInstLocked is the open instance a character (of group groupID) logging in at (x, z) stands in.
-func (w *World) dungeonLoginInstLocked(char, groupID uint32, x, z float32) *dungeonInst {
+// dungeonLoginInstLocked is the open instance a character (of group groupID) logging in at (x, z) of world stands
+// in.
+func (w *World) dungeonLoginInstLocked(char, groupID uint32, world uint8, x, z float32) *dungeonInst {
 	var best *dungeonInst
 	for _, in := range w.dungeons.insts {
 		w.dungeonFollowOwnerLocked(in)
+		if w.dungeons.defs[in.def].World != world {
+			continue
+		}
 		if !w.dungeons.defs[in.def].has(x, z) && !w.dungeonNearEntranceLocked(in.def, x, z) {
 			continue
 		}
@@ -662,7 +801,7 @@ func (w *World) dungeonInstanceOnLoadLocked(p *Player) uint32 {
 		w.dungeons.movedAt[p.ServerID] = time.Now()
 		return id
 	}
-	if in := w.dungeonLoginInstLocked(p.CharServerID, p.GroupID, p.X, p.Z); in != nil {
+	if in := w.dungeonLoginInstLocked(p.CharServerID, p.GroupID, p.World, p.X, p.Z); in != nil {
 		return in.id
 	}
 	return 0
@@ -747,6 +886,9 @@ func (w *World) DungeonStatus(sess *session.Session) string {
 	}
 	var parts []string
 	for i, d := range w.dungeons.defs {
+		if d.Hidden() {
+			continue // its own NPC tells of it (DungeonViaChoice)
+		}
 		if in := w.dungeonInstForLocked(i, p); in != nil {
 			// "xx of yy killed" (petition 1841: "a tracker to see how many of the total we killed")
 			parts = append(parts, fmt.Sprintf("%s (%s's): %d of %d creatures killed, %d inside", d.Name, in.ownerName,

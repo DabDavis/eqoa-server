@@ -1,0 +1,42 @@
+{
+  "world": 18,
+  "name": "Nagafen's Island",
+  "note": "Mythic Lord Nagafen's raid (work board 2429; entity/mythicnagafen.go, handlers/heroicraids.go; claude-notes/mythic-nagafen-20261127.md): Lavastorm's own cell (2, 2), the disc's LAVASTM.ESF zone record 0 (the npcs rows' zone 28 is the cell's number on Lavastorm's 13-wide grid; the file holds two zone records), served in a world of its own because Permafrost holds Tunaria's cell (2, 2) in world 14. The island is a dry triangle (x 4776-4904, z 4318-4440, y -28 to -29.5) in a ring of walkable lava (Heirloom's lava burns 49% of the most hit points every 3 s) under cliffs. Every party that goes in fights in a copy of its own, entered only at the Heroic Raids NPC by Tunaria's north-west mountains. The dungeons block is read by the server, never written into the file. Built by cmd/worldbuild from the operator's disc.",
+  "zones": [
+    {
+      "name": "Nagafen's Island",
+      "from": "LAVASTM.ESF",
+      "zone": 0,
+      "note": "Lavastorm cell (2, 2): x 4356-6000, z 4000-6000; Lord Nagafen's island at (4842, 4369), the portal's arrival at (4868, 4424)"
+    }
+  ],
+  "dungeons": [
+    {
+      "key": "mythic_nagafen",
+      "name": "Mythic Lord Nagafen",
+      "via": "Heroic Raids",
+      "encounter": "mythic_nagafen",
+      "spawned": ["Fire Giant Forgeguard", "cinder pool"],
+      "boxes": [[4770, 4310, 4910, 4445]],
+      "entrance": {"x": 4867.64, "y": -28.79, "z": 4423.88, "toward": [4841.72, 4369.27]},
+      "note": "lands on the portal's arrival (npcs 121183), the island's south-east, 59 from the boss (aggro 21)",
+      "layout": {
+        "note": "the places chosen off the baked ground (cmd/playerreach from the landing, the environment's lava flag, ground.Stand); TestMythicNagafenLayoutOnTheGround checks them where the ground is baked",
+        "boss": [4841.72, -28.25, 4369.27],
+        "landing": [4867.64, -28.79, 4423.88],
+        "exit": [4852, -29.08, 4430],
+        "east_valve": [4884, -28.72, 4398],
+        "west_valve": [4798, -29.09, 4398],
+        "guard": [4841, -28.25, 4395],
+        "pool": [4816, -28.64, 4370],
+        "lanes": {
+          "note": "the Cinder Brand's two dry flank lanes, level with him on the island's west and east sides, 26 and 28 from his middle (about 3 s at a run), clear of the valves' and the landing's pads and of the rock at (4872, 4382), 11 and 16 from the lava",
+          "west": [4816, -28.64, 4370],
+          "east": [4870, -28.76, 4368]
+        },
+        "heroic_raids": {"world": 0, "x": 5520, "y": 132.21, "z": 4012, "facing": 0,
+          "note": "Tunaria's north edge (its terrain ends at z 4000, so the request's z 3950 is off the world): a flat ledge (y 131.9-132.7) between the edge and the slope rising south, terrain alone, dry; 177 from the nearest mammoth's spawn (5697, 4003; roam 70)"}
+      }
+    }
+  ]
+}

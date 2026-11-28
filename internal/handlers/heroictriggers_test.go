@@ -333,3 +333,56 @@ func TestFixedTriggersIgnoreOtherWorldsDeaths(t *testing.T) {
 		t.Fatalf("after the open world's eel: %v (want one in world 0, still one in Cora's copy)", counts(got))
 	}
 }
+
+// A heroic raid's end as tools/heroic_raids2_20261128.py writes it: a party that wipes
+// (its copy's place empty past the clock's empty time) has its run end, so the boss
+// rises again for it; a party that kills him keeps its run (a 4-hour clock with no empty
+// time, and a wait as long), so he does not rise again in that copy, until it is over.
+func TestHeroicRaidWipeStartsAgainKillHolds(t *testing.T) {
+	h := newHeroicTrigRig(t)
+	a := h.enter(h.anna, h.pa)
+	c := h.enter(h.cora, h.pc)
+	h.setTrigger(909, "Test Heroic Kraken", 14, 1000, 50, 1000, `[{"do":"awaitnear","start":true,"radius":300},
+		{"do":"lock","lock":"heroic kraken"},{"do":"clock","seconds":3600,"empty":600},
+		{"do":"spawn","npc":"Test Kraken","hostile":true,"minutes":60,"world":14,"x":1000,"y":50,"z":1000},
+		{"do":"awaitdead","npc":"Test Kraken"},{"do":"broadcast","text":"The kraken sinks."},
+		{"do":"clock","seconds":14400},{"do":"wait","seconds":14400},{"do":"end"},{"do":"despawn"}]`)
+	h.e.StartNear()
+	got := h.copies("Test Kraken")
+	if len(got[a]) != 1 || len(got[c]) != 1 {
+		t.Fatalf("krakens: %v", counts(got))
+	}
+	step := func(d time.Duration) {
+		for i := 0; i < 4; i++ {
+			h.now = h.now.Add(d / 4)
+			h.e.Tick()
+		}
+	}
+	got[a][0].Dead = true       // Anna's party kills hers
+	h.pc.X, h.pc.Z = 5000, 5000 // Cora's party is gone from the place (a wipe)
+	step(11 * time.Minute)
+	if got := h.copies("Test Kraken"); len(got[c]) != 0 {
+		t.Fatalf("Cora's kraken after her wipe: %v (want taken away)", counts(got))
+	}
+	if runs := h.e.Runs(); len(runs) != 1 {
+		t.Fatalf("runs after the wipe and the kill: %+v (want Anna's alone)", runs)
+	}
+	h.pc.X, h.pc.Z = 1000, 1150
+	h.e.StartNear()
+	got = h.copies("Test Kraken")
+	if len(got[c]) != 1 {
+		t.Fatalf("Cora back: %v (want her kraken again)", counts(got))
+	}
+	if len(got[a]) != 0 {
+		t.Fatalf("Anna's kraken rose again after her kill: %v", counts(got))
+	}
+	step(3*time.Hour + 50*time.Minute)
+	h.e.StartNear()
+	if got := h.copies("Test Kraken"); len(got[a]) != 0 {
+		t.Fatalf("Anna's kraken rose again within her copy's rest: %v", counts(got))
+	}
+	step(20 * time.Minute)
+	if runs := h.e.Runs(); len(runs) != 1 || runs[0].Spawns != 1 {
+		t.Fatalf("after Anna's rest: %+v (want Cora's new run alone: the look after her first rest started it)", runs)
+	}
+}

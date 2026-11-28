@@ -95,6 +95,60 @@
       "from": "TUNARIA.ESF",
       "zone": 159,
       "note": "Tunaria cell (6, 15): the south shore's whale bones under the water near Old Man Antiok (13476, 31456), where Kratas rises; the bay's slopes and its griffons' and spinebacks' hills round it"
+    },
+    {
+      "name": "Cazic Thule's Estate",
+      "from": "TUNARIA.ESF",
+      "zone": 6,
+      "note": "Tunaria cell (12, 1): Cazic Thule's estate in the Field of Bone, the trials' halls (Kithgrin's) and the lava pool, the statue at (25421, 3096)"
+    },
+    {
+      "name": "The Thulite Anvil",
+      "from": "TUNARIA.ESF",
+      "zone": 138,
+      "note": "Tunaria cell (9, 12): the Thulite Golem's anvil at (18467, 25426) among the golem protectors and the chaos hounds' hills"
+    },
+    {
+      "name": "The Etheneric Portal",
+      "from": "TUNARIA.ESF",
+      "zone": 74,
+      "note": "Tunaria cell (2, 7): the Etheneric Portal at (4765, 14028), where Dynmath the Tyrant strides through"
+    },
+    {
+      "name": "Below the Etheneric Portal",
+      "from": "TUNARIA.ESF",
+      "zone": 61,
+      "note": "Tunaria cell (2, 6): the ground south of the Etheneric Portal (it stands 28 from the cell's edge), so Dynmath's fight has room"
+    },
+    {
+      "name": "Parathior's Broken Tower",
+      "from": "TUNARIA.ESF",
+      "zone": 10,
+      "note": "Tunaria cell (3, 2): the broken tower under the mountain at (7035, 4282), Parathior's way down from (7035, 4130)"
+    },
+    {
+      "name": "Jarek's Tent",
+      "from": "TUNARIA.ESF",
+      "zone": 45,
+      "note": "Tunaria cell (12, 4): Jarek N`Toxis's tent at (24162, 9577) and the woods round it, where his creation rises"
+    },
+    {
+      "name": "The Zek Camp",
+      "from": "TUNARIA.ESF",
+      "zone": 108,
+      "note": "Tunaria cell (10, 9): the Zek troops' camp at (20250, 18250), where their sergeant rallies them"
+    },
+    {
+      "name": "Envar's Island",
+      "from": "RATHE.ESF",
+      "zone": 15,
+      "note": "Rathe cell (2, 4): the Tal'thex dead's ground at (4160, 9810), where Lord Valkanith comes, and Envar's ruins east"
+    },
+    {
+      "name": "Geomancer's Citadel",
+      "from": "RATHE.ESF",
+      "zone": 3,
+      "note": "Rathe cell (2, 1): the Archons' towers, Sarek the Betrayer's top floor at (4700, 110.4, 2500)"
     }
   ],
   "dungeons": [
@@ -402,6 +456,213 @@
       },
       "cap": 4,
       "note": "Heirloom petition 3396 (the owner, 2026-11-28: a heroic dungeon for every raid): players land on the north-west beach (13250, 54.12, 31040), the first dry ground above the bay's water (its top 51), and swim the 465 to the whale bones, where Kratas rises in each party's copy (its trigger, world 14: tools/heroic_kratas_20261128.py)"
+    },
+    {
+      "key": "ct",
+      "cap": 4,
+      "name": "Cazic Thule's Trials",
+      "boxes": [
+        [
+          25200,
+          2850,
+          25900,
+          3550
+        ]
+      ],
+      "entrance": {
+        "x": 25635.0,
+        "y": 23.88,
+        "z": 3265.0,
+        "toward": [
+          25690.0,
+          3310.0
+        ]
+      },
+      "note": "Heirloom petition 3396 (the owner, 2026-11-28: a heroic dungeon for every raid): the landing is the nearest dry floor 70 or more from the raid's place (its trigger's near start), at its floor's height; tools/heroic_raids2_20261128.py"
+    },
+    {
+      "key": "thulite",
+      "cap": 4,
+      "name": "The Thulite Anvil",
+      "boxes": [
+        [
+          18167,
+          25126,
+          18767,
+          25726
+        ]
+      ],
+      "entrance": {
+        "x": 18467.0,
+        "y": 72.85,
+        "z": 25496.0,
+        "toward": [
+          18467.0,
+          25426.0
+        ]
+      },
+      "note": "Heirloom petition 3396 (the owner, 2026-11-28: a heroic dungeon for every raid): the landing is the nearest dry floor 70 or more from the raid's place (its trigger's near start), at its floor's height; tools/heroic_raids2_20261128.py"
+    },
+    {
+      "key": "dynmath",
+      "cap": 4,
+      "name": "The Etheneric Portal",
+      "boxes": [
+        [
+          4465,
+          13728,
+          5065,
+          14328
+        ]
+      ],
+      "entrance": {
+        "x": 4695.0,
+        "y": 59.06,
+        "z": 14028.0,
+        "toward": [
+          4765.0,
+          14028.0
+        ]
+      },
+      "note": "Heirloom petition 3396 (the owner, 2026-11-28: a heroic dungeon for every raid): the landing is the nearest dry floor 70 or more from the raid's place (its trigger's near start), at its floor's height; tools/heroic_raids2_20261128.py"
+    },
+    {
+      "key": "parathior",
+      "cap": 4,
+      "name": "Parathior's Descent",
+      "boxes": [
+        [
+          6735,
+          4000,
+          7335,
+          4550
+        ]
+      ],
+      "entrance": {
+        "x": 6965.0,
+        "y": 78.55,
+        "z": 4280.0,
+        "toward": [
+          7035.0,
+          4282.0
+        ]
+      },
+      "note": "Heirloom petition 3396 (the owner, 2026-11-28: a heroic dungeon for every raid): the landing is the nearest dry floor 70 or more from the raid's place (its trigger's near start), at its floor's height; tools/heroic_raids2_20261128.py"
+    },
+    {
+      "key": "jarek",
+      "cap": 4,
+      "name": "Jarek's Creation",
+      "boxes": [
+        [
+          24000,
+          9327,
+          24420,
+          9827
+        ]
+      ],
+      "entrance": {
+        "x": 24160.0,
+        "y": 54.16,
+        "z": 9647.0,
+        "toward": [
+          24162.0,
+          9577.0
+        ]
+      },
+      "note": "Heirloom petition 3396 (the owner, 2026-11-28: a heroic dungeon for every raid): the landing is the nearest dry floor 70 or more from the raid's place (its trigger's near start), at its floor's height; tools/heroic_raids2_20261128.py"
+    },
+    {
+      "key": "zek",
+      "cap": 4,
+      "name": "The Zek Camp",
+      "boxes": [
+        [
+          20030,
+          18030,
+          20480,
+          18480
+        ]
+      ],
+      "entrance": {
+        "x": 20250.0,
+        "y": 89.05,
+        "z": 18180.0,
+        "toward": [
+          20250.0,
+          18250.0
+        ]
+      },
+      "note": "Heirloom petition 3396 (the owner, 2026-11-28: a heroic dungeon for every raid): the landing is the nearest dry floor 70 or more from the raid's place (its trigger's near start), at its floor's height; tools/heroic_raids2_20261128.py"
+    },
+    {
+      "key": "valkanith",
+      "cap": 4,
+      "name": "Lord Valkanith's Rising",
+      "boxes": [
+        [
+          4000,
+          9500,
+          4460,
+          10000
+        ]
+      ],
+      "entrance": {
+        "x": 4160.0,
+        "y": 84.93,
+        "z": 9880.0,
+        "toward": [
+          4160.0,
+          9810.0
+        ]
+      },
+      "note": "Heirloom petition 3396 (the owner, 2026-11-28: a heroic dungeon for every raid): the landing is the nearest dry floor 70 or more from the raid's place (its trigger's near start), at its floor's height; tools/heroic_raids2_20261128.py"
+    },
+    {
+      "key": "sarek",
+      "cap": 4,
+      "name": "Sarek's Tower",
+      "boxes": [
+        [
+          4550,
+          2250,
+          4850,
+          2650
+        ]
+      ],
+      "entrance": {
+        "x": 4702.0,
+        "y": 110.38,
+        "z": 2492.0,
+        "toward": [
+          4700.0,
+          2500.0
+        ]
+      },
+      "note": "Heirloom petition 3396 (the owner, 2026-11-28): the landing is the Portal to Archon Aereth's own (handlers/waysender.go), on Aereth's floor atop the tower, where Sarek the Betrayer comes: the tower's portals lead to world 1, so a party lands on the top floor; tools/heroic_raids2_20261128.py"
+    },
+    {
+      "key": "jailor",
+      "cap": 4,
+      "name": "The Pickclaw Cells",
+      "boxes": [
+        [
+          16950,
+          13100,
+          17250,
+          13400
+        ]
+      ],
+      "entrance": {
+        "x": 17100.0,
+        "y": 9.65,
+        "z": 13320.0,
+        "toward": [
+          17098.0,
+          13250.0
+        ]
+      },
+      "note": "Heirloom petition 3396 (the owner, 2026-11-28: a heroic dungeon for every raid): the landing is the nearest dry floor 70 or more from the raid's place (its trigger's near start), at its floor's height; tools/heroic_raids2_20261128.py"
     }
   ]
 }

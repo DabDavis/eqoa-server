@@ -68,15 +68,21 @@ func maxLevel(levels []int) int {
 // its level against the highest and by the group's size.
 func killExp(mob int, levels []int) float32 {
 	top := maxLevel(levels)
-	r := int(float64(float32(top)) * 0.75) // (int)((float)max * 0.75): a double
-	limit := r
-	if !(top-r > 2) {
-		limit = top - 3
-	}
-	if mob < limit {
+	if mob < expLimit(top) {
 		return 0
 	}
 	return levelExp(mob) * levelDiffScale(mob, top) * groupScale(len(levels))
+}
+
+// expLimit is the lowest creature level a kill pays experience for at a
+// (group's highest) level top: three quarters of it, or three under where
+// that is nearer (KillExp, 0x00CC6D18). ConColor draws green below it.
+func expLimit(top int) int {
+	r := int(float64(float32(top)) * 0.75) // (int)((float)max * 0.75): a double
+	if !(top-r > 2) {
+		return top - 3
+	}
+	return r
 }
 
 // groupExp is one member's share of a kill (GroupExp, 0x00CC6A70): none for a

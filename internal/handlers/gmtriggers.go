@@ -131,6 +131,11 @@ type triggerRun struct {
 	gmChar  uint32 // the firing GM's character (serverid); 0 none
 	world   uint8
 	x, y, z float32
+	// inst is the instance of an instanced world it runs in (a heroic raid's: a
+	// dungeon's copy, entity/dungeons.go), 0 the world as one: its spawns stand in
+	// that copy alone, and only its players, kills and copies count (instance 0 is
+	// every run before heroic raids, unchanged)
+	inst    uint32
 	next    int       // the next step
 	at      time.Time // when it goes on (a wait's end)
 	start   time.Time
@@ -189,6 +194,7 @@ type triggerResummon struct {
 type triggerPlaceAt struct {
 	world   uint8
 	x, y, z float32
+	inst    uint32 // its instance (0: none)
 }
 
 // triggerSpawn is an NPC a run's spawn step placed.
@@ -250,6 +256,10 @@ type TriggerFirer struct {
 	At *triggerPlaceAt
 	// Waker is the party whose kill fires it (Killed), nil for none
 	Waker *entity.WakerParty
+	// Instance is the instance it runs in (StartNear's per-instance start of a heroic
+	// raid's trigger), 0: At's, else the firing player's when it stands in the
+	// trigger's world, else none
+	Instance uint32
 }
 
 // TriggerRunInfo is a run as the GM panel lists it.
@@ -386,10 +396,11 @@ func (e *TriggerEngine) heardKill(k entity.KillCredit) {
 // Killed fires what a creature's death fires (table npcdeath) where it fell.
 func (e *TriggerEngine) Killed(k entity.KillCredit) {
 	world, x, y, z, ok := e.gw.NPCSpot(k.NPCID)
+	inst, _ := e.gw.NPCInstance(k.NPCID) // a heroic raid's instance (0: none)
 	e.mu.Lock()
 	rows := e.deaths[database.NPCClassKey(k.NPCName)]
 	if ok {
-		e.heardKillLocked(k, world, x, z)
+		e.heardKillLocked(k, world, inst, x, z)
 	}
 	by := e.spawnedBy[k.NPCID]
 	delete(e.spawnedBy, k.NPCID)
@@ -406,7 +417,7 @@ func (e *TriggerEngine) Killed(k entity.KillCredit) {
 			continue
 		}
 		if _, err := e.FireNamed(r.Trigger, TriggerFirer{Name: k.NPCName + "'s death", Quiet: true,
-			At: &triggerPlaceAt{world: world, x: x, y: y, z: z}, Waker: wakerOf(k)}); err != nil && !errors.Is(err, ErrTriggerBusy) {
+			At: &triggerPlaceAt{world: world, x: x, y: y, z: z, inst: inst}, Waker: wakerOf(k)}); err != nil && !errors.Is(err, ErrTriggerBusy) {
 			log.Printf("Triggers: %q's death fires %q: %v", k.NPCName, r.Trigger, err)
 		}
 	}
@@ -436,10 +447,10 @@ func wakerOf(k entity.KillCredit) *entity.WakerParty {
 // heardKillLocked counts a credited kill for each run whose awaitkill waits on its
 // name within its reach: a creature of the world as well as its own (whose deaths
 // Tick counts, as its spawns' deaths ever were). Must be called with e.mu held.
-func (e *TriggerEngine) heardKillLocked(k entity.KillCredit, world uint8, x, z float32) {
+func (e *TriggerEngine) heardKillLocked(k entity.KillCredit, world uint8, inst uint32, x, z float32) {
 	for _, r := range e.runs {
 		s := r.await
-		if r.stopped || s == nil || s.Do != database.TriggerAwaitKill || world != r.world {
+		if r.stopped || s == nil || s.Do != database.TriggerAwaitKill || world != r.world || inst != r.inst {
 			continue
 		}
 		own := false
@@ -652,7 +663,40 @@ func (e *TriggerEngine) prepareRun(slot int, by TriggerFirer) (*triggerRun, []st
 		}
 		r.world, r.x, r.y, r.z = world, x, y, z
 	}
+	r.inst = e.runInstance(r, by)
+	if r.inst != 0 && r.lock != "" {
+		r.lock = instanceLock(r.lock, r.inst) // each instance's run its own (a heroic raid in every party's copy)
+	}
 	return r, nil, nil
+}
+
+// runInstance is the instance a run fires in: its firer's given one, else the place
+// At's (a death's: the dead creature's instance), else the firing player's when it
+// stands in the run's world; 0 for none. Only a dungeon's world has instances
+// triggers run in (entity.IsDungeonWorld): anywhere else it is 0, as ever.
+func (e *TriggerEngine) runInstance(r *triggerRun, by TriggerFirer) uint32 {
+	if !entity.IsDungeonWorld(r.world) {
+		return 0
+	}
+	switch {
+	case by.Instance != 0:
+		return by.Instance
+	case by.At != nil && by.At.world == r.world:
+		return by.At.inst
+	case by.Player != nil:
+		if inst, ok := e.gw.PlayerInstance(by.Player); ok {
+			if w, _, _, _, _, here := e.gw.PlayerSpot(by.Player); here && w == r.world {
+				return inst
+			}
+		}
+	}
+	return 0
+}
+
+// instanceLock is a lock's name in one instance: a run of a heroic raid's trigger in
+// one party's copy holds it there alone.
+func instanceLock(lock string, inst uint32) string {
+	return fmt.Sprintf("%s#%d", lock, inst)
 }
 
 // admitLocked starts a prepared run: numbered, timed, its first steps done. The
@@ -769,7 +813,7 @@ func (e *TriggerEngine) Tick() {
 				// dead (its corpse goes as a GM's spawn's does) or gone
 				r.died = append(r.died, s.name)
 				if world, x, y, z, ok := e.gw.NPCSpot(s.id); ok {
-					r.dead = &triggerPlaceAt{world: world, x: x, y: y, z: z}
+					r.dead = &triggerPlaceAt{world: world, x: x, y: y, z: z, inst: r.inst}
 				}
 			default:
 				if gone, why := e.spawnLeavesLocked(&s, now); gone {
@@ -784,6 +828,13 @@ func (e *TriggerEngine) Tick() {
 	}
 	for _, r := range append([]*triggerRun(nil), e.runs...) {
 		if r.stopped {
+			continue
+		}
+		if r.inst != 0 && !e.gw.InstanceOpen(r.inst) {
+			// its party's copy of the dungeon closed (its creatures, these spawns
+			// among them, went with it): nothing of it is left to run
+			log.Printf("Triggers: %s's run %d: its instance %d closed, the run ends", r.trig.Title(), r.id, r.inst)
+			e.stopLocked(func(o *triggerRun) bool { return o == r })
 			continue
 		}
 		if r.protect != nil && !e.gw.NPCAlive(r.protect.id) {
@@ -932,6 +983,11 @@ func (e *TriggerEngine) audience(r *triggerRun) []triggerMember {
 		if !ok {
 			continue
 		}
+		if r.inst != 0 && r.trig.Scope != database.TriggerScopeGM && r.trig.Scope != database.TriggerScopeAll {
+			if inst, _ := e.gw.PlayerInstance(p); inst != r.inst {
+				continue // another party's copy of the dungeon
+			}
+		}
 		switch r.trig.Scope {
 		case database.TriggerScopeGM:
 			if r.gmChar == 0 || p.CharServerID != r.gmChar {
@@ -1057,10 +1113,10 @@ func (e *TriggerEngine) stepLocked(r *triggerRun, s database.TriggerStep) string
 		if s.World != nil {
 			world = uint8(*s.World)
 		}
-		return fmt.Sprintf("%d of %s set walking", e.gw.WalkNPCsRoute(strings.TrimSpace(s.NPC), r.world, r.x, r.z, e.reachOf(r, s),
+		return fmt.Sprintf("%d of %s set walking", e.gw.WalkNPCsRouteIn(strings.TrimSpace(s.NPC), r.world, r.inst, r.x, r.z, e.reachOf(r, s),
 			world, s.Points, s.X, s.Y, s.Z, s.Pace), s.NPC)
 	case database.TriggerHome:
-		return fmt.Sprintf("%d of %s sent home", e.gw.SendNPCsHome(strings.TrimSpace(s.NPC), r.world, r.x, r.z, e.reachOf(r, s)), s.NPC)
+		return fmt.Sprintf("%d of %s sent home", e.gw.SendNPCsHomeIn(strings.TrimSpace(s.NPC), r.world, r.inst, r.x, r.z, e.reachOf(r, s)), s.NPC)
 	case database.TriggerRouse:
 		n := 0
 		for _, sp := range r.spawns {
@@ -1091,7 +1147,7 @@ func (e *TriggerEngine) stepLocked(r *triggerRun, s database.TriggerStep) string
 		}
 		return fmt.Sprintf("%d of %s set on %s", n, who, on)
 	case database.TriggerProtect:
-		id, ok := e.gw.NearestNPC(s.NPC, r.world, r.x, r.z, e.reachOf(r, s))
+		id, ok := e.gw.NearestNPCIn(s.NPC, r.world, r.inst, r.x, r.z, e.reachOf(r, s))
 		if !ok {
 			return fmt.Sprintf("no %s within reach to protect", strings.TrimSpace(s.NPC))
 		}
@@ -1141,7 +1197,7 @@ func (e *TriggerEngine) stepLocked(r *triggerRun, s database.TriggerStep) string
 		if s.Minutes > 0 {
 			until = e.now().Add(time.Duration(s.Minutes * float64(time.Minute)))
 		}
-		return fmt.Sprintf("%d of %s out of view for %s", e.gw.HideNPCs(strings.TrimSpace(s.NPC), r.world, r.x, r.z, e.reachOf(r, s), until), s.NPC, seconds(s.Minutes*60))
+		return fmt.Sprintf("%d of %s out of view for %s", e.gw.HideNPCsIn(strings.TrimSpace(s.NPC), r.world, r.inst, r.x, r.z, e.reachOf(r, s), until), s.NPC, seconds(s.Minutes*60))
 	}
 	return ""
 }
@@ -1158,7 +1214,7 @@ func (e *TriggerEngine) protectFailedLocked(r *triggerRun) {
 	}
 	log.Printf("Triggers: %s's run %d failed: %s (%d) fell (%s told)", r.trig.Title(), r.id, r.protect.name, r.protect.id, players(len(who)))
 	if m := r.protect.minutes; m > 0 && e.gw != nil {
-		n := e.gw.HideNPCs(r.protect.name, r.world, r.x, r.z, r.protect.reach, e.now().Add(time.Duration(m*float64(time.Minute))))
+		n := e.gw.HideNPCsIn(r.protect.name, r.world, r.inst, r.x, r.z, r.protect.reach, e.now().Add(time.Duration(m*float64(time.Minute))))
 		log.Printf("Triggers: %s's run %d: %d of %s out of view for %s", r.trig.Title(), r.id, n, r.protect.name, seconds(m*60))
 	}
 	e.stopLocked(func(o *triggerRun) bool { return o == r })
@@ -1204,7 +1260,7 @@ func (e *TriggerEngine) emptyLocked(r *triggerRun, now time.Time) bool {
 	if r.reach > 0 {
 		reach = r.reach
 	}
-	if e.gw.PlayerNear(r.world, r.x, r.z, reach) {
+	if e.gw.PlayerNearIn(r.world, r.inst, r.x, r.z, reach) {
 		r.lastNear = now
 		return false
 	}
@@ -1257,7 +1313,7 @@ func (e *TriggerEngine) awaitMetLocked(r *triggerRun) bool {
 		if s.Gone {
 			standing := 0
 			for _, n := range names {
-				standing += e.gw.CountNear(n, r.world, r.x, r.z, e.reachOf(r, *s))
+				standing += e.gw.CountNearIn(n, r.world, r.inst, r.x, r.z, e.reachOf(r, *s))
 			}
 			if standing == 0 {
 				return true
@@ -1284,7 +1340,7 @@ func (e *TriggerEngine) awaitMetLocked(r *triggerRun) bool {
 		}
 		return true
 	case database.TriggerAwaitNear:
-		return e.gw.PlayerNearAt(r.world, r.x, r.y, r.z, e.reachOf(r, *s), database.TriggerNearHeight)
+		return e.gw.PlayerNearAtIn(r.world, r.inst, r.x, r.y, r.z, e.reachOf(r, *s), database.TriggerNearHeight)
 	case database.TriggerAwaitDead:
 	default:
 		return false
@@ -1410,6 +1466,22 @@ func (e *TriggerEngine) busyLocked(ts *triggerStart) bool {
 	return e.runningLocked()[ts.slot] || e.lockHeldLocked(ts.lock)
 }
 
+// busyInLocked is busyLocked for one instance of a dungeon's world: a run of the
+// start's trigger in that instance, or its lock held there (instanceLock), and no
+// other instance's run (each party's copy of a heroic raid starts its own). inst 0 is
+// busyLocked. Must be called with e.mu held.
+func (e *TriggerEngine) busyInLocked(ts *triggerStart, inst uint32) bool {
+	if inst == 0 {
+		return e.busyLocked(ts)
+	}
+	for _, r := range e.runs {
+		if r.trig.Slot == ts.slot && r.inst == inst {
+			return true
+		}
+	}
+	return ts.lock != "" && e.lockHeldLocked(instanceLock(ts.lock, inst))
+}
+
 // startTalkLocked is the trigger a talk to npc fires (an awaittalk start of its name
 // whose place is within reach of it), nil for none. A class it does not take is told
 // its refusal, and a busy one its lock's words when the lock has some (else the NPC
@@ -1426,7 +1498,11 @@ func (e *TriggerEngine) startTalkLocked(sess *session.Session, p *entity.Player,
 			ts.answered = true
 			return ts
 		}
-		if e.busyLocked(ts) {
+		inst := uint32(0)
+		if entity.IsDungeonWorld(npc.World) {
+			inst = npc.Instance // the talker's copy of the dungeon (a heroic raid)
+		}
+		if e.busyInLocked(ts, inst) {
 			if ts.lockText == "" {
 				return nil
 			}
@@ -1446,18 +1522,32 @@ func (e *TriggerEngine) StartNear() {
 	if e == nil || e.gw == nil {
 		return
 	}
+	type nearStart struct {
+		slot int
+		inst uint32
+	}
 	e.mu.Lock()
-	var due []*triggerStart
+	var due []nearStart
 	for _, ts := range e.startsLocked(database.TriggerAwaitNear) {
 		t := ts.trig
-		if !e.busyLocked(ts) && e.gw.PlayerNearAt(uint8(t.World), t.X, t.Y, t.Z, ts.reach(), database.TriggerNearHeight) {
-			due = append(due, ts)
+		world := uint8(t.World)
+		if t.World >= 0 && entity.IsDungeonWorld(world) {
+			// a heroic raid's trigger: one run in each party's copy with a player near
+			for _, inst := range e.gw.InstancesNearAt(world, t.X, t.Y, t.Z, ts.reach(), database.TriggerNearHeight) {
+				if !e.busyInLocked(ts, inst) {
+					due = append(due, nearStart{slot: ts.slot, inst: inst})
+				}
+			}
+			continue
+		}
+		if !e.busyLocked(ts) && e.gw.PlayerNearAt(world, t.X, t.Y, t.Z, ts.reach(), database.TriggerNearHeight) {
+			due = append(due, nearStart{slot: ts.slot})
 		}
 	}
 	e.mu.Unlock()
-	for _, ts := range due {
-		if _, err := e.Fire(ts.slot, TriggerFirer{Name: "a player near", Quiet: true}); err != nil && !errors.Is(err, ErrTriggerBusy) {
-			log.Printf("Triggers: trigger %d's start near: %v", ts.slot, err)
+	for _, d := range due {
+		if _, err := e.Fire(d.slot, TriggerFirer{Name: "a player near", Quiet: true, Instance: d.inst}); err != nil && !errors.Is(err, ErrTriggerBusy) {
+			log.Printf("Triggers: trigger %d's start near: %v", d.slot, err)
 		}
 	}
 }
@@ -1467,7 +1557,8 @@ func (e *TriggerEngine) StartNear() {
 func (e *TriggerEngine) talkRunLocked(sess *session.Session, p *entity.Player, npc *entity.NPC) bool {
 	for _, r := range e.runs {
 		s := r.await
-		if r.stopped || s == nil || s.Do != database.TriggerAwaitTalk || !strings.EqualFold(strings.TrimSpace(s.NPC), strings.TrimSpace(npc.Name)) || npc.World != r.world {
+		if r.stopped || s == nil || s.Do != database.TriggerAwaitTalk || !strings.EqualFold(strings.TrimSpace(s.NPC), strings.TrimSpace(npc.Name)) || npc.World != r.world ||
+			r.inst != 0 && npc.Instance != r.inst {
 			continue
 		}
 		// one of the name elsewhere in the world (the main isle's Astral Light) is not this one
@@ -1669,7 +1760,7 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 	}
 	n := max(s.Count, 1)
 	if s.Max > 0 {
-		n = min(n, s.Max-e.gw.CountNear(e.gw.SpawnName(strings.TrimSpace(s.NPC), world), world, cx, cz, 300))
+		n = min(n, s.Max-e.gw.CountNearIn(e.gw.SpawnName(strings.TrimSpace(s.NPC), world), world, r.inst, cx, cz, 300))
 		if n <= 0 {
 			return fmt.Sprintf("%s: %d stand near already", s.NPC, s.Max)
 		}
@@ -1694,7 +1785,11 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 		d := float64(spread) * (0.4 + 0.6*e.rand())
 		x := cx + float32(d*math.Sin(a))
 		z := cz + float32(d*math.Cos(a))
-		id, sp, ok := e.gw.SpawnEventNPCFacing(name, world, cx, cy, cz, x, z, face, s.Hostile)
+		inst := r.inst
+		if world != r.world {
+			inst = 0 // a step's own world elsewhere: the world as one
+		}
+		id, sp, ok := e.gw.SpawnEventNPCFacingIn(name, world, inst, cx, cy, cz, x, z, face, s.Hostile)
 		if !ok {
 			return fmt.Sprintf("no NPC named %q to spawn", name)
 		}

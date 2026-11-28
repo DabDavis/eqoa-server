@@ -33,7 +33,7 @@ func (h *NPCWindowHandler) fireDropTriggers(npc *entity.NPC, items []database.Ch
 	if e == nil || len(names) == 0 {
 		return
 	}
-	at := &triggerPlaceAt{world: npc.World, x: npc.X, y: npc.Y, z: npc.Z}
+	at := &triggerPlaceAt{world: npc.World, x: npc.X, y: npc.Y, z: npc.Z, inst: npc.Instance} // a heroic raid's instance too
 	who := npc.Name + "'s loot"
 	for _, name := range names {
 		go func(name string) {

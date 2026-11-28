@@ -41,8 +41,9 @@ import (
 //     is put off the landing, the valves and the way out.
 //   - Avoidable impacts (the breath's, the brand's) at least 10 s apart, a Rising Heat pulse at least 3 s from
 //     either: a warning that would break that waits until it does not, and its next comes from when it began.
-//   - Rising Heat every 24 s from the pull, gates too: 360 on each player, 150 on each mercenary; from 17:00 into the
-//     fight 180 and 75 more each pulse, to 1,080 and 450.
+//   - Rising Heat pulses every 24 s, starting at 360 on players and 150 on mercenaries. Each ordinary pulse adds
+//     150 after the first. Spawning a Forgeguard freezes the current amounts and doubles them until both valves turn.
+//     The first ordinary pulse after the valve pair repeats the saved amounts, even while the guard is still alive.
 //   - A wipe (no living player of the instance on the island for mythicWipeGrace, or the boss out of every fight for
 //     mythicIdleGrace outside a gate) puts the room back to staging: the boss at his spawn at full health, his gates
 //     closed again, the guard and the pools gone. His death completes the instance, once.
@@ -89,14 +90,10 @@ const (
 	mythicImpactGap = 10 * time.Second
 	mythicHeatGap   = 3 * time.Second
 
-	mythicHeatEvery      = 24 * time.Second
-	mythicHeatPlayer     = 360
-	mythicHeatMerc       = 150
-	mythicHeatRampAt     = 17 * time.Minute
-	mythicHeatRampPlayer = 180
-	mythicHeatRampMerc   = 75
-	mythicHeatMostPlayer = 1080
-	mythicHeatMostMerc   = 450
+	mythicHeatEvery    = 24 * time.Second
+	mythicHeatPlayer   = 360
+	mythicHeatMerc     = 150
+	mythicHeatIncrease = 150
 
 	mythicWipeGrace = 3 * time.Second
 	mythicIdleGrace = 6 * time.Second
@@ -133,9 +130,9 @@ const (
 	mythicLineBreath    = "Lord Nagafen draws a furnace breath toward %s! Get out of its path!"
 	mythicLineBreathHit = "Furnace Breath burns you for %d."
 	mythicLineDropped   = "The forge's pull smothers the fire he was gathering."
-	mythicLineGate      = "Lord Nagafen draws on the forge and its fire shields him! A Fire Giant Forgeguard comes: slay it, and turn the East and West Valves, two of you, within 15 seconds of each other."
+	mythicLineGate      = "Lord Nagafen shields himself as a Fire Giant Forgeguard appears! Rising Heat doubles. Slay the guard. Two heroes must turn the East and West Valves within 15 seconds of each other to cool the forge."
 	mythicLineTurned    = "%s turns the %s! The %s must turn within 15 seconds, by another hand."
-	mythicLinePair      = "%s turns the %s: both valves stand open."
+	mythicLinePair      = "%s turns the %s and both valves stand open. Rising Heat returns to its earlier strength."
 	mythicLinePairWait  = "Both valves stand open; the shield fails when the Forgeguard falls."
 	mythicLineMissed    = "The %s grinds shut: both valves must turn within 15 seconds of each other. Try again."
 	mythicLineRelease   = "The forge's shield breaks, and Lord Nagafen fights on!"
@@ -217,8 +214,9 @@ type mythicFight struct {
 	brandY      float32
 	brandZ      float32
 
-	nextHeat time.Time
-	ramp     int // pulses past mythicHeatRampAt
+	nextHeat      time.Time
+	heatSteps     int  // 150-point increases already applied to the ordinary pulse
+	raiseNextHeat bool // an ordinary pulse has landed since the pull or the last completed valve pair
 	// lastImpact is the last avoidable impact landed (a breath's or a brand's burst)
 	lastImpact time.Time
 
@@ -565,6 +563,7 @@ func (w *World) MythicTurnValve(p *Player, valve EntityID, now time.Time) (line 
 		return fmt.Sprintf(mythicLineValveHand, names[which]), true
 	default:
 		f.latched = true
+		f.raiseNextHeat = false
 		w.mythicTellLocked(f, fmt.Sprintf(mythicLinePair, p.Name, names[which]), mythicWarnRGB)
 		log.Printf("Mythic: instance %d: %s turns the %s %.1fs after the first: the pair holds (gate %d)", f.inst, p.Name,
 			names[which], now.Sub(f.firstAt).Seconds(), f.gates+1)
@@ -884,10 +883,18 @@ func (w *World) mythicHeatStepLocked(f *mythicFight, now time.Time) {
 			}
 		}
 	}
-	if now.Sub(f.pulled) >= mythicHeatRampAt {
-		f.ramp++
+	overdrive := f.phase == mythicGate && !f.latched
+	if !overdrive {
+		if f.raiseNextHeat {
+			f.heatSteps++
+		}
+		f.raiseNextHeat = true
 	}
-	pn, mn := MythicHeat(f.ramp)
+	pn, mn := MythicHeat(f.heatSteps)
+	if overdrive {
+		pn *= 2
+		mn *= 2
+	}
 	boss := w.NPCs[f.boss]
 	for _, p := range w.mythicPlayersLocked(f) {
 		w.mythicHurtPlayerLocked(boss, p, pn, mythicLineHeat, now)
@@ -899,10 +906,10 @@ func (w *World) mythicHeatStepLocked(f *mythicFight, now time.Time) {
 	log.Printf("Mythic: instance %d: Rising Heat %d / %d (%v in)", f.inst, pn, mn, now.Sub(f.pulled).Round(time.Second))
 }
 
-// MythicHeat is a heat pulse's damage on a player and on a mercenary, ramp pulses after 17:00.
-func MythicHeat(ramp int) (player, merc int) {
-	return min(mythicHeatPlayer+mythicHeatRampPlayer*ramp, mythicHeatMostPlayer),
-		min(mythicHeatMerc+mythicHeatRampMerc*ramp, mythicHeatMostMerc)
+// MythicHeat gives the ordinary player and mercenary damage after the specified number of increases.
+func MythicHeat(steps int) (player, merc int) {
+	increase := steps * mythicHeatIncrease
+	return mythicHeatPlayer + increase, mythicHeatMerc + increase
 }
 
 // mythicResetLocked puts the room back to staging (a wipe): the boss home at full health out of his fight, the guard

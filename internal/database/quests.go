@@ -126,6 +126,12 @@ CREATE TABLE IF NOT EXISTS charquesttrials (
 	owestep  INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY (serverid, questid)
 );
+CREATE TABLE IF NOT EXISTS charquestpointers (
+	serverid INTEGER NOT NULL,
+	questid  INTEGER NOT NULL,
+	at       TEXT NOT NULL DEFAULT '',
+	PRIMARY KEY (serverid, questid)
+);
 `
 
 // initQuests moves Return Home's quest tables aside and makes the quest

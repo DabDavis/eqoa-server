@@ -355,7 +355,7 @@ type questChar struct {
 	bulking bool
 	// pointerIDs is the quests of the pointer lines at the end of shown, in
 	// order (questpointers.go); dismissed the pointers the player deleted
-	// since its login
+	// (kept in charquestpointers over logins)
 	pointerIDs []int
 	dismissed  map[int]bool
 	// headKey is what the marks over the NPCs' heads were last worked out
@@ -748,6 +748,12 @@ func (q *QuestEngine) charLocked(serverID uint32) *questChar {
 	for i := range rows {
 		cq := rows[i]
 		c.quests[cq.QuestID] = &cq
+	}
+	// the pointers it deleted, kept over logins (questpointers.go)
+	if dropped, err := q.store.DroppedPointers(serverID); err != nil {
+		log.Printf("Quests: reading character %d's deleted pointers: %v", serverID, err)
+	} else if len(dropped) > 0 {
+		c.dismissed = dropped
 	}
 	q.chars[serverID] = c
 	return c

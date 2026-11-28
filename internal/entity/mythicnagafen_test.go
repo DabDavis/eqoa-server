@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"net"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -175,6 +176,9 @@ func (r *mythicRig) state(t *testing.T, inst uint32) MythicState {
 func (r *mythicRig) gateDone(t *testing.T, inst uint32, a, b *Player) {
 	t.Helper()
 	st := r.state(t, inst)
+	if st.Gates == 1 {
+		r.step(time.Minute) // these fixture clears reuse the first gate's valve operators
+	}
 	r.killGuard(t, inst)
 	r.turn(t, a, st.Valves[0])
 	r.turn(t, b, st.Valves[1])
@@ -398,7 +402,10 @@ func TestMythicGuardAndValvePair(t *testing.T) {
 	if line := r.turn(t, b, east); !strings.Contains(line, "turned already") {
 		t.Fatalf("the same valve again: %q", line)
 	}
-	if line := r.turn(t, a, west); !strings.Contains(line, "One pair of hands") {
+	if b.hasEffect(mythicBurnedHandsID) {
+		t.Fatal("an unsuccessful turn burned the second player's hands")
+	}
+	if line := r.turn(t, a, west); !strings.Contains(line, "hands are still burned") {
 		t.Fatalf("one player turned both: %q", line)
 	}
 	// the guard wounded, then the window passes
@@ -413,6 +420,9 @@ func TestMythicGuardAndValvePair(t *testing.T) {
 	}
 	if !mythicHasLine(redLines(r.ss[2]), "grinds shut") {
 		t.Fatalf("the miss not told: %q", lines(r.ss[2]))
+	}
+	if line := r.turn(t, a, east); !strings.Contains(line, "hands are still burned") {
+		t.Fatalf("the missed pair cleared its operator's lockout: %q", line)
 	}
 	// a dead player turns none
 	c.HP = 0
@@ -442,6 +452,80 @@ func TestMythicGuardAndValvePair(t *testing.T) {
 	// its breath comes 18 s after the release
 	if st := r.state(t, inst); !st.NextBreath.Equal(r.now.Add(mythicBreathFirst)) {
 		t.Fatalf("next breath %v, now %v", st.NextBreath, r.now)
+	}
+}
+
+func TestMythicBurnedHands(t *testing.T) {
+	r := newMythic(t, 2)
+	r.group(r.ps...)
+	inst := r.enter(t, 0)
+	r.enter(t, 1)
+	a, b := r.ps[0], r.ps[1]
+	boss := r.boss(t, inst)
+	r.pull(boss, a)
+	r.toGate(t, inst, boss, 0)
+	valves := r.state(t, inst).Valves
+	firstTurn := r.now
+
+	// A raider can already have both client effects displays full.
+	for i := 0; i < BuffWindowPlayerMost; i++ {
+		r.w.addEffectLocked(a, &ActiveEffect{SpellID: 10000 + i, Name: fmt.Sprintf("Buff %d", i),
+			Icon: uint32(i + 1), Until: r.now.Add(time.Hour)}, r.now)
+	}
+	before := SerializeBuffUpdate(a)
+	if line := r.turn(t, a, valves[0]); line != "" {
+		t.Fatal(line)
+	}
+	window := r.w.buffWindowSetLocked(a, r.now)
+	last := window[len(window)-1]
+	if last.Name != "Burned hands" || last.Icon != 0x31782B37 || last.Removable || last.LeftMS != 60000 {
+		t.Fatalf("timed debuff in the full effects window: %+v", last)
+	}
+	icons, names, _ := channel43(SerializeBuffUpdate(a), EffectRecordSize)
+	if len(names) != MaxEffects || names[MaxEffects-1] != "Burned hands" || icons[MaxEffects-1] != last.Icon {
+		t.Fatalf("legacy effects display: icons %v, names %v", icons, names)
+	}
+
+	r.step(5 * time.Second)
+	r.killGuard(t, inst)
+	if line := r.turn(t, b, valves[1]); line != "" {
+		t.Fatal(line)
+	}
+	r.toGate(t, inst, boss, 1)
+	r.w.clearSpellsLocked(b) // death and resurrection must not give a second turn
+	if !b.hasEffect(mythicBurnedHandsID) {
+		t.Fatal("the player's second valve turn gave no debuff surviving death")
+	}
+	rows := savedEffects(b, r.now)
+	r.w.removeEffectLocked(b, mythicBurnedHandsID)
+
+	r.step(firstTurn.Add(time.Minute - 100*time.Millisecond).Sub(r.now))
+	if n := r.w.RestoreEffects(r.ss[1], rows, r.now); n != 1 {
+		t.Fatalf("restored %d effects before the second operator's deadline", n)
+	}
+	for _, valve := range valves {
+		if line := r.turn(t, a, valve); !strings.Contains(line, "still burned") {
+			t.Fatalf("turn at 59.9 seconds: %q", line)
+		}
+	}
+	r.step(100 * time.Millisecond)
+	r.w.effectSystem(r.now)
+	if !slices.Equal(SerializeBuffUpdate(a), before) {
+		t.Fatal("the original effects display did not return on expiry")
+	}
+	if line := r.turn(t, a, valves[0]); line != "" {
+		t.Fatalf("turn at exactly 60 seconds: %q", line)
+	}
+	if line := r.turn(t, b, valves[1]); !strings.Contains(line, "5s") {
+		t.Fatalf("second operator's remaining cooldown after reconnect: %q", line)
+	}
+	r.w.removeEffectLocked(b, mythicBurnedHandsID)
+	r.step(5 * time.Second)
+	if n := r.w.RestoreEffects(r.ss[1], rows, r.now); n != 0 {
+		t.Fatal("reconnecting restored an expired Burned hands")
+	}
+	if line := r.turn(t, b, valves[1]); line != "" || !r.state(t, inst).Latched {
+		t.Fatalf("second operator could not complete the pair at their own 60-second deadline: %q", line)
 	}
 }
 
@@ -565,7 +649,7 @@ func TestMythicBreath(t *testing.T) {
 }
 
 // Cinder Brand after the second gate: its warning 10 s after the release on a living player not the tank, its burst
-// 6 s on where that player stands; a pool lies 12 s, burning 5% of the most hit points every 2 s of each player in it
+// 6 s on where that player stands; a pool lies 12 s, burning 22% of each player's maximum HP every 2 s
 // (six burns), and is put off the pads.
 func TestMythicBrandAndPool(t *testing.T) {
 	r := newMythic(t, 3)
@@ -587,9 +671,9 @@ func TestMythicBrandAndPool(t *testing.T) {
 	if st := r.state(t, inst); st.NextBrand.Sub(released.Add(mythicBrandFirst)).Abs() > 150*time.Millisecond {
 		t.Fatalf("the first brand due at %v after the release", st.NextBrand.Sub(released))
 	}
-	// the carrier on the west lane; the other far east
+	// Both players are on the west lane when the pool forms.
 	carrier.X, carrier.Y, carrier.Z = 4790, -28.78, 4425
-	other.X, other.Y, other.Z = 4866, -29.44, 4350
+	other.X, other.Y, other.Z = carrier.X, carrier.Y, carrier.Z
 	r.step(mythicBrandFirst - 100*time.Millisecond)
 	st := r.state(t, inst)
 	for st.BrandOn == 0 && r.now.Sub(released) < mythicBrandFirst+mythicBrandWarn {
@@ -600,13 +684,23 @@ func TestMythicBrandAndPool(t *testing.T) {
 		t.Fatalf("the brand on %d, want the carrier (not the tank %d)", st.BrandOn, tank.ServerID)
 	}
 	marked := r.now
-	if !mythicHasLine(redLines(r.ss[1]), "You bear a Cinder Brand") || !mythicHasLine(redLines(r.ss[2]), "Mythic1 bears a Cinder Brand") {
-		t.Fatal("the brand not told")
+	const personalWarning = "Nagafen has branded you, move away from others"
+	for i, s := range r.ss {
+		lines := redLines(s)
+		if slices.Contains(lines, personalWarning) != (r.ps[i] == carrier) {
+			t.Errorf("wrong personal brand warning for %s: %q", r.ps[i].Name, lines)
+		}
+		if slices.Contains(lines, "Mythic1 bears a Cinder Brand!") != (r.ps[i] != carrier) {
+			t.Errorf("wrong raid brand warning for %s: %q", r.ps[i].Name, lines)
+		}
 	}
 	r.step(mythicBrandWarn - 200*time.Millisecond)
 	if st := r.state(t, inst); st.Pools != 0 {
 		t.Fatalf("the pool before 6 s: %+v", st)
 	}
+	carrier.Mods.MaxHP = 2000 // 10,000 effective maximum HP for the carrier, 8,000 for the other player
+	const startingHP = 6000
+	carrier.HP, other.HP = startingHP, startingHP
 	r.step(200 * time.Millisecond)
 	st = r.state(t, inst)
 	if st.Pools != 1 || st.BrandOn != 0 || r.now.Sub(marked) != mythicBrandWarn {
@@ -616,31 +710,30 @@ func TestMythicBrandAndPool(t *testing.T) {
 	if p := st.PoolSpots[0]; distXZ(p[0], p[2], 4790, 4425) > 0.01 {
 		t.Fatalf("the pool at %v, not where its carrier stood", p)
 	}
-	if carrier.HP != carrier.MaxHP-carrier.MaxHP*5/100 && carrier.HP != carrier.MaxHP {
-		t.Logf("the first burn at the burst: HP %d", carrier.HP)
+	if lost := startingHP - carrier.HP; lost != 2200 {
+		t.Errorf("carrier's first burn took %d, want 2200", lost)
 	}
-	carrier.HP = carrier.MaxHP
-	// it burns 5% every 2 s while the carrier stands in it: from now (the first burn was at the burst) five more
-	burned := 0
-	for i := 0; i < 60; i++ {
-		hp := carrier.HP
-		r.step(200 * time.Millisecond)
-		if carrier.HP < hp {
-			burned++
-			if hp-carrier.HP != carrier.MaxHP*5/100 {
-				t.Fatalf("a burn of %d, want 5%% (%d)", hp-carrier.HP, carrier.MaxHP*5/100)
-			}
+	if lost := startingHP - other.HP; lost != 1760 {
+		t.Errorf("other player's first burn took %d, want 1760", lost)
+	}
+	other.X -= 10 // leave the pool after the first burn
+	for tick := 2; tick <= 6; tick++ {
+		carrier.HP = startingHP // heal between burns to observe the whole lifetime
+		r.step(1900 * time.Millisecond)
+		if carrier.HP != startingHP {
+			t.Fatalf("burn %d landed early", tick)
 		}
-		carrier.HP = max(carrier.HP, 4000) // kept alive; a Rising Heat pulse may land too
+		r.step(100 * time.Millisecond)
+		if lost := startingHP - carrier.HP; lost != 2200 {
+			t.Fatalf("burn %d took %d, want 2200", tick, lost)
+		}
 	}
-	if burned != 5 {
-		t.Fatalf("%d burns over the pool's life", burned)
-	}
+	r.step(2 * time.Second)
 	if st := r.state(t, inst); st.Pools != 0 {
 		t.Fatalf("the pool outlived 12 s: %+v", st)
 	}
-	if other.HP != other.MaxHP && !mythicHasLine(redLines(r.ss[2]), "Rising Heat") {
-		t.Fatalf("the one far off burned: %d", other.HP)
+	if carrier.HP != startingHP-2200 || other.HP != startingHP-1760 {
+		t.Fatalf("unexpected extra burn: carrier HP %d, other HP %d", carrier.HP, other.HP)
 	}
 }
 
@@ -718,10 +811,11 @@ func TestMythicImpactsApart(t *testing.T) {
 // Drive the encounter clock, guard deaths and actual valve interactions. Both target categories keep the same
 // 24-second pulse schedule while the two gates freeze and restore different ordinary amounts.
 func TestMythicRisingHeat(t *testing.T) {
-	r := newMythic(t, 2)
+	r := newMythic(t, 3)
 	r.group(r.ps...)
 	inst := r.enter(t, 0)
 	r.enter(t, 1)
+	r.enter(t, 2)
 	boss := r.boss(t, inst)
 	tank, player := r.ps[0], r.ps[1]
 	merc := &NPC{ServerID: 931000, Name: "healer", Owner: player.ServerID, World: player.World, Instance: inst,
@@ -757,8 +851,8 @@ func TestMythicRisingHeat(t *testing.T) {
 	pulse(1020, 600)
 	r.killGuard(t, inst)
 	r.turn(t, tank, valves[0])
-	pulse(1020, 600) // killing the guard and letting one valve expire leaves overdrive active
-	r.turn(t, tank, valves[0])
+	pulse(1020, 600)              // killing the guard and letting one valve expire leaves overdrive active
+	r.turn(t, r.ps[2], valves[0]) // the tank's hands are still burned from the missed pair
 	r.turn(t, player, valves[1])
 	pulse(510, 300) // restore the amount before the giant appeared
 	pulse(660, 450)

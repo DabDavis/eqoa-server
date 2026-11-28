@@ -3,6 +3,7 @@ package entity
 import (
 	"encoding/binary"
 	"math"
+	"slices"
 	"strconv"
 	"time"
 	"unicode/utf16"
@@ -757,11 +758,18 @@ func SerializeStatUpdate(p *Player) []byte {
 // client that draws them under the pet's bar is sent them by OpcodePetEffects
 // (peteffects.go).
 func SerializeBuffUpdate(p *Player) []byte {
-	slots := p.Buffs
-	n := min(len(slots), MaxEffects)
+	slots := p.Buffs[:min(len(p.Buffs), MaxEffects)]
+	// Keep the valve lockout visible even when the legacy effects display is full.
+	// Its last ordinary slot shows again when the lockout expires.
+	hands := BuffSlot{Icon: mythicBurnedHandsIcon, Name: mythicBurnedHandsName}
+	if p.hasEffect(mythicBurnedHandsID) && !slices.Contains(slots, hands) {
+		keep := min(len(slots), MaxEffects-1)
+		slots = slices.Concat(slots[:keep], []BuffSlot{hands})
+	}
+	n := len(slots)
 	buf := make([]byte, 4+n*EffectRecordSize)
 	binary.LittleEndian.PutUint32(buf, uint32(n))
-	for i, e := range slots[:n] {
+	for i, e := range slots {
 		r := buf[4+i*EffectRecordSize : 4+(i+1)*EffectRecordSize]
 		binary.LittleEndian.PutUint32(r, e.Icon)
 		name := utf16.Encode([]rune(e.Name))

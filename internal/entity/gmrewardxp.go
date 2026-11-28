@@ -98,7 +98,7 @@ func (w *World) xpPctLocked(p *Player) (int, string) {
 // outlivesDeath reports effects kept through death, a strip and the ordinary buff clear.
 func outlivesDeath(spellID int) bool {
 	return spellID == BoonEffectID || spellID == RewardXPEffectID || spellID == InsightEffectID || spellID == gloriousXPEffectID ||
-		infectionEffect(spellID) // a were's infection: its row's (wereinfect.go)
+		spellID == mythicBurnedHandsID || infectionEffect(spellID)
 }
 
 // rewardXPEndedLocked tells p its reward's time is over. Must be called with the lock held.

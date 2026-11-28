@@ -32,12 +32,12 @@ import (
 //   - Furnace Valves at 70% and 35%: his hit points held at each threshold due (npcTakesLocked); there he shields
 //     (no damage lands), stops his swings and drops a breath or brand under way, and one Fire Giant Forgeguard (60,000
 //     hit points, its template's 200 a second) comes from the forge. The gate opens when the guard is dead and both
-//     valves have turned, in either order, by two different living players, the second within 15 s of the first. A
-//     missed window turns the first back (the guard keeps its wounds); a pair done stays done for that gate. His
-//     hate list stands through the gate.
+//     valves have turned, in either order, by two different living players, the second within 15 s of the first.
+//     Each successful turn burns its player's hands for 60 s, locking them out of both valves. A missed window
+//     resets the first valve. A completed pair stays latched, and the guard's wounds and Nagafen's hate persist.
 //   - Cinder Brand after the second gate: its first warning 10 s after the release, then every 28 s. A living
-//     player not his tank is marked and has six seconds to carry it off; where it stands then a pool of fire five
-//     across lies 12 s, taking 5% of the most hit points every 2 s of each player in it (the first at once). A pool
+//     player other than his tank is marked and has six seconds to carry it away. A fire pool with a five-unit radius
+//     lasts 12 s and burns each player inside for 22% of their maximum HP every 2 s, starting immediately. A pool
 //     is put off the landing, the valves and the way out.
 //   - Avoidable impacts (the breath's, the brand's) at least 10 s apart, a Rising Heat pulse at least 3 s from
 //     either: a warning that would break that waits until it does not, and its next comes from when it began.
@@ -78,14 +78,15 @@ const (
 	mythicPauseBefore  = 2 * time.Second
 	mythicPauseAfter   = 1 * time.Second
 
-	mythicValveWindow = 15 * time.Second
+	mythicValveWindow    = 15 * time.Second
+	mythicBurnedHandsFor = time.Minute
 
 	mythicBrandFirst = 10 * time.Second
 	mythicBrandEvery = 28 * time.Second
 	mythicBrandWarn  = 6 * time.Second
 	mythicPoolFor    = 12 * time.Second
 	mythicPoolEvery  = 2 * time.Second
-	mythicPoolPct    = 5
+	mythicPoolPct    = 22
 
 	mythicImpactGap = 10 * time.Second
 	mythicHeatGap   = 3 * time.Second
@@ -124,6 +125,13 @@ const (
 	mythicPoolFX   uint32 = 0x1AF4AF0D
 )
 
+// The valve's encounter effect uses Flame Arrow's fire icon.
+const (
+	mythicBurnedHandsID          = -1014 // beside the other server-defined player effects
+	mythicBurnedHandsName        = "Burned hands"
+	mythicBurnedHandsIcon uint32 = 0x31782B37
+)
+
 // The fight's lines (ours).
 const (
 	mythicLinePull      = "Lord Nagafen wakes in his fury, and the island's heat begins to rise!"
@@ -136,7 +144,7 @@ const (
 	mythicLinePairWait  = "Both valves stand open; the shield fails when the Forgeguard falls."
 	mythicLineMissed    = "The %s grinds shut: both valves must turn within 15 seconds of each other. Try again."
 	mythicLineRelease   = "The forge's shield breaks, and Lord Nagafen fights on!"
-	mythicLineBrandYou  = "You bear a Cinder Brand! Carry it to a dry lane away from the others: it bursts in 6 seconds."
+	mythicLineBrandYou  = "Nagafen has branded you, move away from others"
 	mythicLineBrand     = "%s bears a Cinder Brand!"
 	mythicLinePool      = "The Cinder Brand bursts into a pool of fire."
 	mythicLinePoolHit   = "The cinder pool burns you for %d."
@@ -552,6 +560,12 @@ func (w *World) MythicTurnValve(p *Player, valve EntityID, now time.Time) (line 
 	if f.first >= 0 && now.Sub(f.firstAt) > mythicValveWindow {
 		w.mythicMissLocked(f)
 	}
+	for _, effect := range p.Effects {
+		if effect.SpellID == mythicBurnedHandsID && now.Before(effect.Until) {
+			seconds := int(math.Ceil(effect.Until.Sub(now).Seconds()))
+			return fmt.Sprintf("Your hands are still burned. You can turn a valve again in %ds.", seconds), true
+		}
+	}
 	switch {
 	case f.first < 0:
 		f.first, f.firstBy, f.firstAt = which, p.CharServerID, now
@@ -568,6 +582,13 @@ func (w *World) MythicTurnValve(p *Player, valve EntityID, now time.Time) (line 
 		log.Printf("Mythic: instance %d: %s turns the %s %.1fs after the first: the pair holds (gate %d)", f.inst, p.Name,
 			names[which], now.Sub(f.firstAt).Seconds(), f.gates+1)
 		w.mythicGateStepLocked(f, now)
+	}
+	w.addEffectLocked(p, &ActiveEffect{
+		SpellID: mythicBurnedHandsID, Name: mythicBurnedHandsName, Icon: mythicBurnedHandsIcon,
+		Caster: valve, Until: now.Add(mythicBurnedHandsFor), Rules: EffectRules{Harm: true, NoCure: true},
+	}, now)
+	if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
+		w.sendColoredLocked(sess, "The valve burns your hands. You cannot turn either valve for 60 seconds.", mythicWarnRGB)
 	}
 	return "", true
 }

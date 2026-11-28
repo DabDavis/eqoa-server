@@ -226,19 +226,28 @@ func TestNPCEditsMirrorToHeirloom(t *testing.T) {
 		t.Fatalf("the pariah's copy: %d %v", hp, npcRowMap(t, m.hlDB, hp))
 	}
 
-	// /delete the wolf: its copy goes, from Heirloom's world too
+	// /delete the wolf: its copy hidden there too, out of Heirloom's world, every row kept (the owner, 2026-11-28)
 	targetAs(gp, entity.EntityID(nid), 100200, gs)
 	c.say(gs, "/delete")
-	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Its Heirloom copy (row %d) deleted too.", hid)) {
+	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Its Heirloom copy (row %d) hidden too.", hid)) {
 		t.Fatalf("/delete: %q", l)
 	}
-	if npcRowMap(t, m.hlDB, hid) != nil || count(t, m.hlDB, `SELECT COUNT(*) FROM npcwander WHERE npcid = ?`, hid) != 0 ||
-		m.mirrorOf(t, nid) != 0 {
-		t.Fatal("Heirloom's copy or its wander or mapping left")
+	if npcRowMap(t, m.hlDB, hid) == nil || count(t, m.hlDB, `SELECT COUNT(*) FROM npcwander WHERE npcid = ?`, hid) != 1 ||
+		m.mirrorOf(t, nid) != hid || count(t, m.hlDB, `SELECT COUNT(*) FROM npchidden WHERE npc_row = ?`, hid) != 1 {
+		t.Fatal("Heirloom's copy, its wander or its mapping not kept, or the copy not hidden")
 	}
 	m.hl.h.applyNPCMirrorInbox()
 	if _, ok := m.hl.gw.NPCStateOf(entity.EntityID(hid)); ok {
-		t.Fatal("the deleted copy in Heirloom's world")
+		t.Fatal("the hidden copy in Heirloom's world")
+	}
+	// /delete undo: the copy back there too
+	c.say(gs, "/delete undo")
+	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Its Heirloom copy (row %d) back too.", hid)) {
+		t.Fatalf("/delete undo: %q", l)
+	}
+	m.hl.h.applyNPCMirrorInbox()
+	if _, ok := m.hl.gw.NPCStateOf(entity.EntityID(hid)); !ok || count(t, m.hlDB, `SELECT COUNT(*) FROM npchidden WHERE npc_row = ?`, hid) != 0 {
+		t.Fatal("the copy not back in Heirloom's world")
 	}
 }
 

@@ -10,13 +10,17 @@ import (
 )
 
 // gmnpcrow.go — a GM's /delete and /clone in the game (handlers/gmnpcrow.go):
-// an npcs row deleted with the rows keyed by it, or copied with them onto the
-// GM's spot, each row's change with its gm_audit line in the change's own
-// transaction (as the GM panel writes one: revertible there), and /delete undo
-// putting the GM's last delete back from those lines.
+// an npcs row hidden (npchidden.go: out of the shard, every row kept in the
+// database; the owner, 2026-11-28: "never allow ./delete to remove items/mobs/etc
+// from database"), or copied with the rows keyed by it onto the GM's spot, each
+// change with its gm_audit line in the change's own transaction (as the GM panel
+// writes one: revertible there), and /delete undo taking the last hide off (or,
+// for a /delete of before 2026-11-28 that deleted its rows, putting them back from
+// its lines).
 
 // npcRowExtras are the tables keyed by an npcs row's id that are the row's
-// own: deleted with it, and (but npcpaths, whose points are where the row
+// own: kept with it when it is hidden (a /delete before 2026-11-28 deleted
+// them, which its undo puts back), and (but npcpaths, whose points are where the row
 // stood, and campspawns, which would make a copy one of a camp's) copied
 // with it. Name-keyed tables (npcaggro, npcclass, npcloot, ...) are the
 // name's, every row's of that name: untouched. npcitem is keyed by npc_id, a
@@ -92,17 +96,18 @@ func npcRowUses(tx *sql.Tx, id int64) ([]string, error) {
 	return uses, nil
 }
 
-// NPCRowDeleted is what DeleteNPCRowAudited took away: the row and the
-// tables of its extras that had one.
+// NPCRowDeleted is what DeleteNPCRowAudited hid: the row (as it stands, kept). Extras is
+// always empty now: nothing keyed by the row is touched.
 type NPCRowDeleted struct {
 	Row    map[string]any
 	Extras []string
 }
 
-// DeleteNPCRowAudited deletes npcs row id and its extras (npcRowExtras), in
-// one transaction with an audit line a row (detail: npcDeletePrefix + what).
-// A row another table names (npcRowUses) is refused (*ErrNPCRowInUse);
-// sql.ErrNoRows when there is no such row.
+// DeleteNPCRowAudited is a GM's /delete: npcs row id hidden (npchidden.go), its
+// npchidden line audited (detail: npcDeletePrefix + what), every row of every
+// table kept (the owner, 2026-11-28). A row another table names (npcRowUses) is
+// refused (*ErrNPCRowInUse), one hidden already ErrNPCRowHidden; sql.ErrNoRows
+// when there is no such row.
 func (db *SQLiteDB) DeleteNPCRowAudited(id int64, who GMEdit, what string) (NPCRowDeleted, error) {
 	var d NPCRowDeleted
 	if _, err := db.Exec(GMAuditSchema); err != nil {
@@ -114,34 +119,8 @@ func (db *SQLiteDB) DeleteNPCRowAudited(id int64, who GMEdit, what string) (NPCR
 	}
 	defer tx.Rollback()
 	fillWho(tx, &who)
-	row, err := fullRow(tx, `SELECT * FROM npcs WHERE id = ?`, id)
+	row, err := hideNPCRowTx(tx, who, id, npcDeletePrefix+what, what)
 	if err != nil {
-		return d, err
-	}
-	if row == nil {
-		return d, sql.ErrNoRows
-	}
-	uses, err := npcRowUses(tx, id)
-	if err != nil {
-		return d, err
-	}
-	if len(uses) > 0 {
-		return d, &ErrNPCRowInUse{Uses: uses}
-	}
-	detail := npcDeletePrefix + what
-	for _, x := range npcRowExtras {
-		if !tableExists(tx, x.Table) {
-			continue
-		}
-		gone, err := auditedDelete(tx, who, x.Table, x.Key, id, detail)
-		if err != nil {
-			return d, fmt.Errorf("%s: %w", x.Table, err)
-		}
-		if gone {
-			d.Extras = append(d.Extras, x.Table)
-		}
-	}
-	if _, err := auditedDelete(tx, who, "npcs", "id", id, detail); err != nil {
 		return d, err
 	}
 	d.Row = row
@@ -220,7 +199,7 @@ func (db *SQLiteDB) NPCDeletesToUndo(accountID int) (int, error) {
 		return 0, err
 	}
 	var n int
-	err := db.QueryRow(`SELECT COUNT(*) FROM gm_audit WHERE action = 'delete' AND tbl = 'npcs'
+	err := db.QueryRow(`SELECT COUNT(*) FROM gm_audit WHERE ((action = 'delete' AND tbl = 'npcs') OR (action = 'insert' AND tbl = 'npchidden'))
 		AND detail LIKE ? AND reverted_by IS NULL`, npcDeletePrefix+"%").Scan(&n)
 	return n, err
 }
@@ -241,11 +220,13 @@ func (db *SQLiteDB) UndoLastNPCDelete(accountID int, who GMEdit) (NPCRowRestored
 	}
 	defer tx.Rollback()
 	fillWho(tx, &who)
-	var detail string
+	var detail, tbl, key string
 	var delAccount int
+	var lineID int64
 	var by sql.NullString
-	err = tx.QueryRow(`SELECT detail, accountid, username FROM gm_audit WHERE action = 'delete' AND tbl = 'npcs'
-		AND detail LIKE ? AND reverted_by IS NULL ORDER BY id DESC LIMIT 1`, npcDeletePrefix+"%").Scan(&detail, &delAccount, &by)
+	err = tx.QueryRow(`SELECT id, tbl, rowkey, detail, accountid, username FROM gm_audit
+		WHERE ((action = 'delete' AND tbl = 'npcs') OR (action = 'insert' AND tbl = 'npchidden'))
+		AND detail LIKE ? AND reverted_by IS NULL ORDER BY id DESC LIMIT 1`, npcDeletePrefix+"%").Scan(&lineID, &tbl, &key, &detail, &delAccount, &by)
 	r.By = by.String
 	if errors.Is(err, sql.ErrNoRows) {
 		return r, false, nil
@@ -253,6 +234,23 @@ func (db *SQLiteDB) UndoLastNPCDelete(accountID int, who GMEdit) (NPCRowRestored
 	if err != nil {
 		return r, false, err
 	}
+	if tbl == "npchidden" {
+		// a hide (from 2026-11-28): its mark off, the row as it stands
+		k, err := auditRowOf(key)
+		if err != nil {
+			return r, false, fmt.Errorf("audit line %d: its key unreadable: %w", lineID, err)
+		}
+		r.ID, _ = k["npc_row"].(int64)
+		if err := tx.QueryRow(`SELECT COALESCE(npc_name, '') FROM npcs WHERE id = ?`, r.ID).Scan(&r.Name); err != nil {
+			return r, false, fmt.Errorf("NPC row %d: %w", r.ID, err)
+		}
+		if err := unhideNPCRowTx(tx, who, r.ID, "/delete undo in the game: "+strings.TrimPrefix(detail, npcDeletePrefix), lineID); err != nil {
+			return r, false, err
+		}
+		r.Tables = []string{"npchidden"}
+		return r, true, tx.Commit()
+	}
+	// a /delete of before 2026-11-28, which deleted its rows: put back from its lines
 	type line struct {
 		id     int64
 		table  string

@@ -98,11 +98,12 @@ const (
 	MirrorCreate = "create"
 	MirrorUpdate = "update"
 	MirrorDelete = "delete"
+	MirrorUnhide = "unhide" // a /delete undo: the copy's hidden mark off (npchidden.go)
 )
 
 // NPCMirrorEdit is one row edit to mirror.
 type NPCMirrorEdit struct {
-	Kind   string // MirrorCreate, MirrorUpdate or MirrorDelete
+	Kind   string // MirrorCreate, MirrorUpdate, MirrorDelete (a hide) or MirrorUnhide
 	FromID int64  // the row here
 	Source int64  // MirrorCreate: the row here it was copied from (0: none)
 	Cols   []string
@@ -220,36 +221,31 @@ func (db *SQLiteDB) MirrorNPCEdit(peer *SQLiteDB, e NPCMirrorEdit) (NPCMirrored,
 
 	switch kind {
 	case MirrorDelete:
-		uses, err := npcRowUses(tx, to)
-		if err != nil {
+		// a /delete hides its copy there too, every row kept (npchidden.go; the owner, 2026-11-28: "never allow
+		// ./delete to remove items/mobs/etc from database"); the mapping stays, so a later edit still finds it
+		switch _, err := hideNPCRowTx(tx, who, to, detail, e.Detail); {
+		case errors.Is(err, ErrNPCRowHidden):
+			return m, nil // hidden there already
+		case errors.Is(err, sql.ErrNoRows):
+			return m, fmt.Errorf("its copy there (row %d) is gone", to)
+		case err != nil:
 			return m, err
 		}
-		if len(uses) > 0 {
-			return m, &ErrNPCRowInUse{Uses: uses}
-		}
-		for _, x := range npcRowExtras {
-			if !tableExists(tx, x.Table) {
-				continue
-			}
-			did, err := auditedDelete(tx, who, x.Table, x.Key, to, detail)
-			if err != nil {
-				return m, fmt.Errorf("%s: %w", x.Table, err)
-			}
-			if did {
-				m.Tables = append(m.Tables, x.Table)
-			}
-		}
-		did, err := auditedDelete(tx, who, "npcs", "id", to, detail)
-		if err != nil {
-			return m, err
-		}
-		if did {
-			m.Tables = append([]string{"npcs"}, m.Tables...)
-		}
-		if _, err := tx.Exec(`DELETE FROM npc_mirror WHERE from_id = ?`, e.FromID); err != nil {
-			return m, err
-		}
+		m.Tables = []string{"npchidden"}
 		gone = 1
+
+	case MirrorUnhide:
+		hidden := 0
+		if err := tx.QueryRow(`SELECT COUNT(*) FROM npchidden WHERE npc_row = ?`, to).Scan(&hidden); err != nil {
+			return m, err
+		}
+		if hidden == 0 {
+			return m, nil // not hidden there
+		}
+		if err := unhideNPCRowTx(tx, who, to, detail, 0); err != nil {
+			return m, err
+		}
+		m.Tables = []string{"npcs", "npchidden"} // the inbox puts the row back into that world
 
 	case MirrorCreate:
 		have, err := tableColumns(tx, "npcs")
@@ -322,7 +318,7 @@ func (db *SQLiteDB) MirrorNPCEdit(peer *SQLiteDB, e NPCMirrorEdit) (NPCMirrored,
 		}
 	}
 
-	if kind != MirrorDelete {
+	if kind != MirrorDelete && kind != MirrorUnhide {
 		for _, x := range npcMirrorCopied() {
 			if _, here := extras[x.Table]; !here {
 				continue // not a table here

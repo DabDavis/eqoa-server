@@ -21,12 +21,18 @@ import (
 // (devcmds.go's subGMCommands, as /fly and /speed), as /delete, #delete or a
 // PS2's "/t delete" (and the same for clone and place):
 //
-//   - /delete: the GM's target, an NPC of a row, deleted for good: its npcs
-//     row and the rows keyed by it (database/gmnpcrow.go: npcrespawn,
-//     npcwander, npctitle, signtext, npcpaths, campspawns), out of the world
-//     at once. A row a quest step, a quest's wall or a GM portal names is
-//     refused. /delete undo puts the last delete back, any GM's (the owner, 2026-11-12), in the world at
-//     once; the GM panel's audit log reverts each line too.
+//   - /delete: the GM's target, an NPC of a row, out of the shard at once and
+//     for good, but HIDDEN, never deleted (the owner, 2026-11-28: "never allow
+//     ./delete to remove items/mobs/etc from database", then "./delete can
+//     remove from the shard like now, but we don't want the database to lose the
+//     data"): its npcs row and every row keyed by it (npcrespawn, npcwander,
+//     npctitle, signtext, npcpaths, campspawns, npcstands) stay, marked by a row
+//     of table npchidden (database/npchidden.go) that the shard's loaders skip.
+//     A row a quest step, a quest's wall or a GM portal names is refused.
+//     /delete undo takes the last one's mark off, any GM's (the owner,
+//     2026-11-12), the NPC back in the world at once (one deleted before
+//     2026-11-28 is put back from its audit lines, as then); the GM panel's audit
+//     log reverts each line too.
 //   - /clone: a copy of the target's row (every column, its npc_id, so a
 //     merchant sells the same) where the GM stands, facing as the GM faces,
 //     in the GM's world, with its respawn time, wander, title and sign text;
@@ -286,7 +292,7 @@ func (h *ChatHandler) deleteCommand(sess *session.Session, player *entity.Player
 		return
 	}
 	if len(args) > 0 {
-		h.gmReply(sess, "Usage: /delete - your target creature's row deleted for good; /delete undo puts the last delete back, any GM's, the one before at each press")
+		h.gmReply(sess, "Usage: /delete - your target creature out of the world, hidden, kept in the database; /delete undo brings back the last one, any GM's, the one before at each press")
 		return
 	}
 	id, rec, ok := h.npcRowTarget(sess, player, "/delete")
@@ -300,6 +306,9 @@ func (h *ChatHandler) deleteCommand(sess *session.Session, player *entity.Player
 	case errors.As(err, &inUse):
 		h.gmReply(sess, fmt.Sprintf("/delete: %s is not deleted: %v.", what, err))
 		return
+	case errors.Is(err, database.ErrNPCRowHidden):
+		h.gmReply(sess, fmt.Sprintf("/delete: %s is hidden already.", what))
+		return
 	case errors.Is(err, sql.ErrNoRows):
 		h.gmReply(sess, fmt.Sprintf("/delete: %s has no row any more.", what))
 		return
@@ -307,22 +316,14 @@ func (h *ChatHandler) deleteCommand(sess *session.Session, player *entity.Player
 		h.gmReply(sess, "/delete: nothing deleted: "+err.Error())
 		return
 	}
+	_ = d
 	h.gameWorld.RemoveNPC(id)
-	for _, t := range d.Extras {
-		if t == "npcpaths" {
-			h.gameWorld.ClearNPCPath(id)
-		}
-	}
-	h.reloadNPCExtras(d.Extras)
-	line := "Deleted " + what
-	if len(d.Extras) > 0 {
-		line += ", with its " + strings.Join(d.Extras, ", ")
-	}
-	line += ". /delete undo puts it back."
+	h.gameWorld.ClearNPCPath(id) // its path's row is kept: read again at its undo
+	line := "Deleted " + what + " from the world: hidden, kept in the database. /delete undo brings it back."
 	line += h.mirrorNPC(sess, database.MirrorDelete, int64(id), 0, nil, "/delete in the game: "+what) // npcmirror.go
 	h.gmReply(sess, line)
-	log.Printf("GM: %s deleted NPC %s at (%.1f, %.1f, %.1f) world %d, extras %v", player.Name, what,
-		rec.XCoord, rec.YCoord, rec.ZCoord, rec.World, d.Extras)
+	log.Printf("GM: %s deleted NPC %s at (%.1f, %.1f, %.1f) world %d (hidden, its rows kept)", player.Name, what,
+		rec.XCoord, rec.YCoord, rec.ZCoord, rec.World)
 }
 
 // deleteUndo is /delete undo: the GM's last delete put back, in the world at
@@ -343,7 +344,7 @@ func (h *ChatHandler) deleteUndo(sess *session.Session, player *entity.Player) {
 		live = fmt.Sprintf(" It is not in the world yet (at the next start): %v.", err)
 	}
 	for _, t := range r.Tables {
-		if t != "npcpaths" {
+		if t != "npcpaths" && t != "npchidden" {
 			continue
 		}
 		recs, _, err := database.NewNPCPathStore(h.camps.db).All()
@@ -364,7 +365,12 @@ func (h *ChatHandler) deleteUndo(sess *session.Session, player *entity.Player) {
 	if r.By != "" {
 		whose = " (deleted by " + r.By + ")"
 	}
-	h.gmReply(sess, fmt.Sprintf("Put back %s (row %d)%s with %s.%s%s", r.Name, r.ID, whose, strings.Join(r.Tables, ", "), live, more))
+	if hasTable(r.Tables, "npchidden") {
+		mirror := h.mirrorNPC(sess, database.MirrorUnhide, r.ID, 0, nil, "/delete undo in the game: "+fmt.Sprintf("%s (row %d)", r.Name, r.ID))
+		h.gmReply(sess, fmt.Sprintf("Put back %s (row %d)%s: its rows were kept.%s%s%s", r.Name, r.ID, whose, live, more, mirror))
+	} else {
+		h.gmReply(sess, fmt.Sprintf("Put back %s (row %d)%s with %s.%s%s", r.Name, r.ID, whose, strings.Join(r.Tables, ", "), live, more))
+	}
 	log.Printf("GM: %s put back NPC %d (%s): %v", player.Name, r.ID, r.Name, r.Tables)
 }
 

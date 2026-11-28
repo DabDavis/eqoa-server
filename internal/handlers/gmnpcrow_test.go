@@ -58,8 +58,11 @@ func count(t *testing.T, db *database.SQLiteDB, q string, args ...any) int {
 
 // /clone copies the GM's target's row where the GM stands, facing as it
 // faces, with its respawn time and title, in the database and the world at
-// once; /delete deletes a row with its extras, out of the world at once;
-// /delete undo puts it back exactly. Every row's change has its gm_audit line.
+// once; /delete takes a row out of the world at once, HIDDEN (npchidden): the row
+// and its extras kept in the database, no row of the shard's (GetNPC, a fresh
+// load), the owner, 2026-11-28: "never allow ./delete to remove items/mobs/etc
+// from database"; /delete undo brings it back exactly. Every change has its
+// gm_audit line.
 // The controls: a player's /clone and /delete do nothing (an unknown command;
 // "/t delete" a tell); a player, a GM's spawn of no row and a row a quest
 // step names are refused, nothing changed.
@@ -117,25 +120,46 @@ func TestGMDeleteAndClone(t *testing.T) {
 	before := npcRowMap(t, db, nid)
 	targetAs(gp, entity.EntityID(nid), 100200, gs)
 	c.say(gs, "#delete")
-	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Deleted wolf (row %d), with its npcrespawn, npctitle.", nid)) {
+	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Deleted wolf (row %d) from the world: hidden, kept in the database. /delete undo brings it back.", nid)) {
 		t.Fatalf("/delete: %q", l)
 	}
-	if npcRowMap(t, db, nid) != nil || count(t, db, `SELECT COUNT(*) FROM npcrespawn WHERE npc_row = ?`, nid) != 0 ||
-		count(t, db, `SELECT COUNT(*) FROM npctitle WHERE npcid = ?`, nid) != 0 {
-		t.Fatal("the row or its extras are left")
+	if !reflect.DeepEqual(npcRowMap(t, db, nid), before) || count(t, db, `SELECT COUNT(*) FROM npcrespawn WHERE npc_row = ?`, nid) != 1 ||
+		count(t, db, `SELECT COUNT(*) FROM npctitle WHERE npcid = ?`, nid) != 1 {
+		t.Fatal("the row or its extras are not kept")
+	}
+	if count(t, db, `SELECT COUNT(*) FROM npchidden WHERE npc_row = ?`, nid) != 1 {
+		t.Fatal("the row is not marked hidden")
 	}
 	if _, ok := c.gw.NPCStateOf(entity.EntityID(nid)); ok {
 		t.Fatal("the deleted NPC is in the world")
 	}
-	if n := auditLines(t, db, "npcs", "delete"); n != 1 {
-		t.Fatalf("%d npcs deletes audited", n)
+	if _, err := database.NewNPCStore(db).GetNPC(int(nid)); err == nil {
+		t.Fatal("a hidden row reads as the shard's")
+	}
+	if all, err := database.NewNPCStore(db).GetAllNPCs(); err != nil {
+		t.Fatal(err)
+	} else {
+		for _, r := range all {
+			if int64(r.ID) == nid {
+				t.Fatal("a fresh load takes the hidden row")
+			}
+		}
+	}
+	if n := auditLines(t, db, "npcs", "delete"); n != 0 {
+		t.Fatalf("%d npcs deletes audited, want none", n)
+	}
+	if n := auditLines(t, db, "npchidden", "insert"); n != 1 {
+		t.Fatalf("%d hides audited", n)
 	}
 	c.say(gs, "/delete undo")
-	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Put back wolf (row %d) (deleted by account 1) with npcs, npctitle, npcrespawn.", nid)) {
+	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Put back wolf (row %d) (deleted by account 1): its rows were kept.", nid)) {
 		t.Fatalf("/delete undo: %q", l)
 	}
 	if after := npcRowMap(t, db, nid); !reflect.DeepEqual(before, after) {
 		t.Fatalf("put back:\n%v\nwas\n%v", after, before)
+	}
+	if count(t, db, `SELECT COUNT(*) FROM npchidden WHERE npc_row = ?`, nid) != 0 {
+		t.Fatal("still hidden after the undo")
 	}
 	if st, ok := c.gw.NPCStateOf(entity.EntityID(nid)); !ok || st.RespawnSec != 100 {
 		t.Fatalf("put back in the world: %+v %v", st, ok)
@@ -154,8 +178,11 @@ func TestGMDeleteAndClone(t *testing.T) {
 		t.Fatal("a player's /t delete deleted")
 	}
 	c.say(gs, "/t delete")
-	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Deleted wolf (row %d).", campWolfFar)) {
+	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Deleted wolf (row %d) from the world: hidden, kept in the database. /delete undo brings it back.", campWolfFar)) {
 		t.Fatalf("/t delete: %q", l)
+	}
+	if npcRowMap(t, db, campWolfFar) == nil {
+		t.Fatal("/t delete removed the row from the database")
 	}
 
 	// refusals: a quest step's NPC, a player, a GM's spawn
@@ -182,8 +209,8 @@ func TestGMDeleteAndClone(t *testing.T) {
 	if l := gmReplies(t, gs); !hasLine(l, "is a spawn with no row") {
 		t.Fatalf("a GM's spawn: %q", l)
 	}
-	if n := count(t, db, `SELECT COUNT(*) FROM npcs`); n != 5 {
-		t.Fatalf("%d rows at the end", n)
+	if n := count(t, db, `SELECT COUNT(*) FROM npcs`); n != 6 {
+		t.Fatalf("%d rows at the end, want 6: the clone and the hidden wolf kept", n)
 	}
 }
 
@@ -250,7 +277,7 @@ func TestPlaceAndSubGMs(t *testing.T) {
 	c.say(ps, "/delete")
 	c.say(ps, "/spawn wolf")
 	l := gmReplies(t, ps)
-	if !hasLine(l, "Cloned pariah of Xrag as row") || !hasLine(l, fmt.Sprintf("Deleted pariah of Xrag (row %d).", nid)) ||
+	if !hasLine(l, "Cloned pariah of Xrag as row") || !hasLine(l, fmt.Sprintf("Deleted pariah of Xrag (row %d) from the world", nid)) ||
 		!hasLine(l, `Unrecognized command "/spawn"`) {
 		t.Fatalf("a sub GM's: %q", l)
 	}
@@ -277,26 +304,27 @@ func TestGMDeleteUndoKeepsGoing(t *testing.T) {
 		targetAs(gp, entity.EntityID(nid), uint32(100300+i), gs)
 		c.say(gs, "/delete")
 		gmReplies(t, gs)
-		if npcRowMap(t, db, nid) != nil {
-			t.Fatalf("row %d not deleted", nid)
+		if npcRowMap(t, db, nid) == nil || count(t, db, `SELECT COUNT(*) FROM npchidden WHERE npc_row = ?`, nid) != 1 {
+			t.Fatalf("row %d not hidden, or not kept", nid)
 		}
 	}
 	c.say(gs, "/delete undo")
-	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Put back wolf (row %d) (deleted by account 1) with npcs. /delete undo again puts back the one before (1 more).", ids[1])) {
+	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Put back wolf (row %d) (deleted by account 1): its rows were kept. /delete undo again puts back the one before (1 more).", ids[1])) {
 		t.Fatalf("the first undo: %q", l)
 	}
-	if npcRowMap(t, db, ids[1]) == nil || npcRowMap(t, db, ids[0]) != nil {
+	hidden := func(id int64) bool { return count(t, db, `SELECT COUNT(*) FROM npchidden WHERE npc_row = ?`, id) == 1 }
+	if hidden(ids[1]) || !hidden(ids[0]) {
 		t.Fatal("the first undo did not put back the last deleted alone")
 	}
 	// the one before was another GM's (the owner: "let any gm undo anyones delete")
-	if _, err := db.Exec(`UPDATE gm_audit SET accountid = 99, username = 'fernmeadow' WHERE action = 'delete' AND reverted_by IS NULL`); err != nil {
+	if _, err := db.Exec(`UPDATE gm_audit SET accountid = 99, username = 'fernmeadow' WHERE action = 'insert' AND tbl = 'npchidden' AND reverted_by IS NULL`); err != nil {
 		t.Fatal(err)
 	}
 	c.say(gs, "/delete undo")
-	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Put back wolf (row %d) (deleted by fernmeadow) with npcs.", ids[0])) {
+	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Put back wolf (row %d) (deleted by fernmeadow): its rows were kept.", ids[0])) {
 		t.Fatalf("the second undo: %q", l)
 	}
-	if npcRowMap(t, db, ids[0]) == nil {
+	if hidden(ids[0]) {
 		t.Fatal("the second undo did not put back the one before")
 	}
 	c.say(gs, "/delete undo")

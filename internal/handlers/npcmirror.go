@@ -110,7 +110,9 @@ func (h *ChatHandler) mirrorNPC(sess *session.Session, kind string, id, src int6
 	log.Printf("NPC mirror: %s's %s of row %d mirrored to %s as row %d: %v", username, kind, id, path, m.ToID, m.Tables)
 	switch {
 	case kind == database.MirrorDelete:
-		return fmt.Sprintf(" Its %s copy (row %d) deleted too.", npcMirrorShard, m.ToID)
+		return fmt.Sprintf(" Its %s copy (row %d) hidden too.", npcMirrorShard, m.ToID)
+	case kind == database.MirrorUnhide:
+		return fmt.Sprintf(" Its %s copy (row %d) back too.", npcMirrorShard, m.ToID)
 	case kind == database.MirrorCreate:
 		return fmt.Sprintf(" Mirrored to %s as row %d.", npcMirrorShard, m.ToID)
 	case len(m.Tables) > 0:
@@ -165,7 +167,7 @@ func (h *ChatHandler) applyNPCMirrorInbox() int {
 		if n.Gone {
 			h.gameWorld.RemoveNPC(id)
 			h.gameWorld.ClearNPCPath(id)
-			log.Printf("NPC mirror inbox: row %d deleted by another shard's mirror, out of the world", n.Row)
+			log.Printf("NPC mirror inbox: row %d hidden by another shard's mirror (its rows kept), out of the world", n.Row)
 			continue
 		}
 		if !hasTable(n.Tables, "npcs") {

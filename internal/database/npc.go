@@ -107,19 +107,23 @@ func (s *NPCStore) queryNPCs(query string, args ...any) ([]*NPCRecord, error) {
 	return npcs, rows.Err()
 }
 
-// GetAllNPCs returns all NPCs.
+// GetAllNPCs returns all NPCs of the shard: every row but a hidden one (npchidden.go: a GM's /delete).
 func (s *NPCStore) GetAllNPCs() ([]*NPCRecord, error) {
-	return s.queryNPCs(`SELECT ` + npcColumns + ` FROM npcs ORDER BY id`)
+	if err := s.db.ensureNPCHidden(); err != nil {
+		return nil, err
+	}
+	return s.queryNPCs(`SELECT ` + npcColumns + ` FROM npcs WHERE ` + npcNotHidden + ` ORDER BY id`)
 }
 
-// GetNPC returns the NPC of that row id, or sql.ErrNoRows.
+// GetNPC returns the NPC of that row id, or sql.ErrNoRows: for a hidden row too (npchidden.go), which is no row of the
+// shard's.
 func (s *NPCStore) GetNPC(id int) (*NPCRecord, error) {
-	return scanNPC(s.db.QueryRow(`SELECT `+npcColumns+` FROM npcs WHERE id = ?`, id).Scan)
+	return scanNPC(s.db.QueryRow(`SELECT `+npcColumns+` FROM npcs WHERE id = ? AND `+npcNotHidden, id).Scan)
 }
 
-// GetNPCsByZone returns all NPCs in a given zone.
+// GetNPCsByZone returns all NPCs in a given zone, a hidden row's aside (npchidden.go).
 func (s *NPCStore) GetNPCsByZone(zone int) ([]*NPCRecord, error) {
-	return s.queryNPCs(`SELECT `+npcColumns+` FROM npcs WHERE zone = ? ORDER BY id`, zone)
+	return s.queryNPCs(`SELECT `+npcColumns+` FROM npcs WHERE zone = ? AND `+npcNotHidden+` ORDER BY id`, zone)
 }
 
 // Count returns the total number of NPCs.

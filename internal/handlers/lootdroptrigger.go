@@ -38,7 +38,7 @@ func (h *NPCWindowHandler) fireDropTriggers(npc *entity.NPC, items []database.Ch
 	for _, name := range names {
 		go func(name string) {
 			if _, err := e.FireNamed(name, TriggerFirer{Name: who, Quiet: true, At: at}); err != nil {
-				if !errors.Is(err, ErrTriggerBusy) {
+				if !errors.Is(err, ErrTriggerBusy) && !errors.Is(err, ErrTriggerElsewhere) {
 					log.Printf("Loot: %s fires %q: %v", who, name, err)
 				}
 				return

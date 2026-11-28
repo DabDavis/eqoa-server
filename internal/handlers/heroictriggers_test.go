@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -237,4 +238,59 @@ func anyHas(lines []string, want string) bool {
 		}
 	}
 	return false
+}
+
+// A death row matches by name, so an eel of the open world and one of a heroic copy
+// fire both of its triggers: each runs where it belongs and the other is refused
+// (misplacedRun). The open world's eel brings the open world's kraken alone (none in
+// world 14, where one in no instance would stand in every copy); the copy's eel brings
+// the heroic kraken in its copy alone (none in world 0).
+func TestHeroicTriggerDeathRowsRunWhereTheyBelong(t *testing.T) {
+	h := newHeroicTrigRig(t)
+	c := h.enter(h.cora, h.pc)
+	h.gw.NPCs[802] = &entity.NPC{ServerID: 802, Name: "Test Eel", HP: 100, MaxHP: 100, Level: 10,
+		X: 20000, Y: 50, Z: 20000, SpawnX: 20000, SpawnY: 50, SpawnZ: 20000, World: 0}
+	// the open world's: its spawn put in world 0 by its step
+	h.setTrigger(904, "Open Eel Calls", -1, 0, 0, 0, `[{"do":"spawn","npc":"Test Kraken","minutes":30,"world":0,"x":20005,"y":50,"z":20005}]`)
+	// the heroic copy's: its spawn put in world 14 by its step
+	h.setTrigger(905, "Heroic Eel Calls", -1, 0, 0, 0, `[{"do":"spawn","npc":"Test Kraken","minutes":30,"world":14,"x":1050,"y":50,"z":1050}]`)
+	for _, trig := range []string{"Open Eel Calls", "Heroic Eel Calls"} {
+		if _, err := h.db.Exec(`INSERT INTO npcdeath (name, trigger, chance) VALUES ('test eel', ?, 100)`, trig); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := h.e.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	h.e.Killed(entity.KillCredit{NPCID: 802, NPCName: "Test Eel"})
+	got := h.copies("Test Kraken")
+	if len(got[0]) != 1 || got[0][0].World != 0 {
+		t.Fatalf("after the open world's eel: %v (want one kraken, in world 0)", counts(got))
+	}
+	for _, n := range got[0] {
+		if n.World == 14 {
+			t.Fatal("a kraken in world 14 outside any instance")
+		}
+	}
+	eels := h.copies("Test Eel")
+	h.e.Killed(entity.KillCredit{NPCID: eels[c][0].ServerID, NPCName: "Test Eel"})
+	got = h.copies("Test Kraken")
+	if len(got[c]) != 1 || got[c][0].World != 14 {
+		t.Fatalf("after Cora's eel: %v (want one kraken in her copy)", counts(got))
+	}
+	if n := 0; true {
+		for _, k := range got[0] {
+			if k.World == 0 {
+				n++
+			}
+		}
+		if n != 1 {
+			t.Fatalf("world 0 has %d krakens after Cora's eel, want still 1", n)
+		}
+	}
+	// a fixed heroic trigger fired by no instance (a GM's panel) is refused
+	h.setTrigger(906, "Heroic Fixed", 14, 1000, 50, 1000, `[{"do":"spawn","npc":"Test Kraken","minutes":30}]`)
+	if _, err := h.e.Fire(906, TriggerFirer{Name: "the panel"}); !errors.Is(err, ErrTriggerElsewhere) {
+		t.Fatalf("a heroic trigger fired outside any instance: %v", err)
+	}
 }

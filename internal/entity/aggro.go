@@ -59,7 +59,8 @@ import (
 //
 // Chosen, where no capture says more:
 //   - the level range: a creature attacks a player below three times its
-//     level (inAggroLevels). It fits the level-51 cut at 17/18; a window of 33
+//     level (inAggroLevels), but for one a GM's aggressive rule names: every
+//     level (the owner, 2026-11-28). It fits the level-51 cut at 17/18; a window of 33
 //     levels below the player fits it as well, and only another player level
 //     would tell them apart;
 //   - who is hostile by nature (hostileNatureLocked): an attackable creature
@@ -398,6 +399,12 @@ func (w *World) threatensLocked(npc *NPC, p *Player) bool {
 			return false // a disguise: no faction attacks it on sight (workbookmore.go)
 		}
 		return Kos(w.standingLocked(p, f))
+	}
+	if r, ok := w.aggroRuleLocked(npc); ok && r.Aggressive {
+		// a GM's aggressive rule for its name: the red face to every level, no level window (the owner,
+		// 2026-11-28: "yes show red face to every level"; Garrak, 60, saw level 18-20 skeletons white). Still no
+		// attack on sight on a player it is green to (the caller's ConColor rule).
+		return w.hostileLocked(npc)
 	}
 	return inAggroLevels(npc.Level, p.Level) && w.hostileLocked(npc)
 }

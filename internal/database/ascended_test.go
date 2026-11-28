@@ -415,3 +415,55 @@ func TestTheAscendedTablesReadAsNoSecret(t *testing.T) {
 		}
 	}
 }
+
+// The owner, 2026-11-28: Skywalker set the icons and models of Ascended weapons, and every start put their bases'
+// back. A look a GM gives the copy is kept through the start (model, icon, colour), while its figures still follow
+// its base. The controls: a base's new look still reaches a copy that has none of its own (the first test's sword
+// too), and a copy given its own keeps it even when its base's look changes later.
+func TestTheSyncKeepsAnAscendedRecordsOwnLook(t *testing.T) {
+	db := ascendedDB(t)
+	sword, _, _ := ascendedCopy(t, db, 1026)
+	helm, _, _ := ascendedCopy(t, db, 6207)
+	sync := func(when string) {
+		t.Helper()
+		if _, err := SyncAscendedCopies(db, time.Unix(1_800_000_000, 0)); err != nil {
+			t.Fatalf("%s: %v", when, err)
+		}
+	}
+	look := func(id int) (model, icon int) {
+		t.Helper()
+		if err := db.QueryRow(`SELECT model, itemicon FROM itempattern WHERE patternid = ?`, id).Scan(&model, &icon); err != nil {
+			t.Fatal(err)
+		}
+		return
+	}
+	sync("the first start")
+	if _, err := db.Exec(`UPDATE itempattern SET model = 1675423659, itemicon = 1473918600 WHERE patternid = ?`, sword); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`UPDATE itempattern SET str = 30 WHERE patternid = 1026`); err != nil {
+		t.Fatal(err)
+	}
+	sync("the start after the GM's look")
+	if m, i := look(sword); m != 1675423659 || i != 1473918600 {
+		t.Errorf("the sword's Ascended record's own look after the start: model %d icon %d, want the GM's kept", m, i)
+	}
+	var str int
+	if err := db.QueryRow(`SELECT str FROM itempattern WHERE patternid = ?`, sword).Scan(&str); err != nil || str != 33 {
+		t.Errorf("the sword's STR after its base's changed: %d (%v), want 33 (the figures still follow)", str, err)
+	}
+	// the base's new look: the helm (no look of its own) takes it, the sword keeps the GM's
+	if _, err := db.Exec(`UPDATE itempattern SET model = 612804823, itemicon = 5 WHERE patternid IN (1026, 6207)`); err != nil {
+		t.Fatal(err)
+	}
+	sync("the start after the bases' new look")
+	if m, i := look(helm); m != 612804823 || i != 5 {
+		t.Errorf("the helm's record after its base's new look: model %d icon %d, want the base's", m, i)
+	}
+	if m, i := look(sword); m != 1675423659 || i != 1473918600 {
+		t.Errorf("the sword's record after its base's new look: model %d icon %d, want the GM's still", m, i)
+	}
+	if n, err := SyncAscendedCopies(db, time.Unix(1_800_000_000, 0)); err != nil || n != 0 {
+		t.Errorf("a further start synced %d (%v), want none", n, err)
+	}
+}

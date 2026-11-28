@@ -179,8 +179,8 @@ func (r *mythicRig) state(t *testing.T, inst uint32) MythicState {
 func (r *mythicRig) gateDone(t *testing.T, inst uint32, a, b *Player) {
 	t.Helper()
 	st := r.state(t, inst)
-	if st.Gates == 1 {
-		r.step(time.Minute) // these fixture clears reuse the first gate's valve operators
+	if st.Gates > 0 {
+		r.step(mythicBurnedHandsFor) // the fixture reuses the previous gate's valve operators
 	}
 	r.killGuard(t, inst)
 	r.turn(t, a, st.Valves[0])
@@ -339,8 +339,8 @@ func TestMythicTwoPartiesApart(t *testing.T) {
 	}
 }
 
-// The thresholds hold: no hit takes him past 70% while that gate is due, none lands while he shields, and the second
-// gate holds at 35%; past both, a hit lands whole.
+// Hits stop at each of the 70%, 50% and 35% thresholds and deal zero damage while he shields. Full hits resume
+// once the third gate releases.
 func TestMythicThresholdsClamp(t *testing.T) {
 	r := newMythic(t, 2)
 	r.group(r.ps[0], r.ps[1])
@@ -372,15 +372,20 @@ func TestMythicThresholdsClamp(t *testing.T) {
 		t.Fatalf("his hate dropped at the release: %v %d", b.Threats, b.CurrentEnemy)
 	}
 	r.toGate(t, inst, b, 1)
-	if b.HP != 700_055 {
-		t.Fatalf("gate 2 at %d, want 700,055 (35%%)", b.HP)
+	if b.HP != 1_000_079 {
+		t.Fatalf("gate 2 at %d, want 1,000,079 (50%%)", b.HP)
 	}
 	r.gateDone(t, inst, r.ps[0], r.ps[1])
-	if st := r.state(t, inst); st.Gates != 2 {
-		t.Fatalf("gates: %+v", st)
+	r.toGate(t, inst, b, 2)
+	if b.HP != 700_055 {
+		t.Fatalf("gate 3 at %d, want 700,055 (35%%)", b.HP)
+	}
+	r.gateDone(t, inst, r.ps[0], r.ps[1])
+	if st := r.state(t, inst); st.Gates != 3 || st.NextBrand.Sub(r.now.Add(mythicBrandFirst)).Abs() > 100*time.Millisecond {
+		t.Fatalf("Brand did not resume after gate 3: %+v", st)
 	}
 	if n := r.hit(b, 600_000); n != 600_000 || b.HP != 100_055 {
-		t.Fatalf("past both gates a hit landed %d (HP %d)", n, b.HP)
+		t.Fatalf("past the third gate a hit landed %d (HP %d)", n, b.HP)
 	}
 }
 
@@ -651,7 +656,7 @@ func TestMythicBreath(t *testing.T) {
 	}
 }
 
-// Cinder Brand after the second gate: its warning 10 s after the release on a living player not the tank, its burst
+// Cinder Brand starts 10 s after the 50% gate releases on a living player other than the tank. Its burst is
 // 6 s on where that player stands; a pool lies 12 s, burning 22% of each player's maximum HP every 2 s
 // (six burns), and is put off the pads.
 func TestMythicBrandAndPool(t *testing.T) {
@@ -669,6 +674,9 @@ func TestMythicBrandAndPool(t *testing.T) {
 	}
 	r.gateDone(t, inst, carrier, other)
 	r.toGate(t, inst, boss, 1)
+	if st := r.state(t, inst); !st.NextBrand.IsZero() || st.BrandOn != 0 {
+		t.Fatalf("a brand while the 50%% gate holds: %+v", st)
+	}
 	r.gateDone(t, inst, carrier, other)
 	released := r.now.Add(-100 * time.Millisecond)
 	if st := r.state(t, inst); st.NextBrand.Sub(released.Add(mythicBrandFirst)).Abs() > 150*time.Millisecond {
@@ -886,7 +894,7 @@ func TestMythicImpactsApart(t *testing.T) {
 }
 
 // Drive the encounter clock, guard deaths and actual valve interactions. Both target categories keep the same
-// 24-second pulse schedule while the two gates freeze and restore different ordinary amounts.
+// 24-second pulse schedule while successive gates freeze and restore different ordinary amounts.
 func TestMythicRisingHeat(t *testing.T) {
 	r := newMythic(t, 3)
 	r.group(r.ps...)
@@ -995,10 +1003,10 @@ func TestMythicCompletesOnce(t *testing.T) {
 	r.enter(t, 1)
 	boss := r.boss(t, inst)
 	r.pull(boss, r.ps[0])
-	r.toGate(t, inst, boss, 0)
-	r.gateDone(t, inst, r.ps[0], r.ps[1])
-	r.toGate(t, inst, boss, 1)
-	r.gateDone(t, inst, r.ps[0], r.ps[1])
+	for gate := range mythicGates {
+		r.toGate(t, inst, boss, gate)
+		r.gateDone(t, inst, r.ps[0], r.ps[1])
+	}
 	r.hit(boss, boss.HP)
 	if !boss.Dead {
 		t.Fatalf("the last hit did not kill him: %d", boss.HP)
@@ -1017,10 +1025,8 @@ func TestMythicCompletesOnce(t *testing.T) {
 	if n != 1 {
 		t.Fatalf("the completion told %d times", n)
 	}
-	// and the other party's instance knows nothing of it
-	r2 := r.state(t, inst)
-	if r2.Gates != 2 {
-		t.Fatalf("%+v", r2)
+	if st.Gates != len(mythicGates) {
+		t.Fatalf("fight completed before all gates released: %+v", st)
 	}
 }
 
@@ -1037,8 +1043,10 @@ func TestMythicKeepRestart(t *testing.T) {
 		r.toGate(t, inst, boss, 0)
 		if done {
 			r.gateDone(t, inst, r.ps[0], r.ps[1])
-			r.toGate(t, inst, boss, 1)
-			r.gateDone(t, inst, r.ps[0], r.ps[1])
+			for gate := 1; gate < len(mythicGates); gate++ {
+				r.toGate(t, inst, boss, gate)
+				r.gateDone(t, inst, r.ps[0], r.ps[1])
+			}
 			r.hit(boss, boss.HP)
 			r.step(time.Second)
 		}

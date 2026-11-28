@@ -33,13 +33,13 @@ import (
 //     begins. His swings pause from 2 s before its impact to 1 s after. Its fire lands as a fire spell's on a player
 //     (its fire resist taking its share of mythicBreathFire) and at most 25% of a player's most hit points, 12% of a
 //     mercenary's.
-//   - Furnace Valves at 70% and 35%: his hit points held at each threshold due (npcTakesLocked); there he shields
+//   - Furnace Valves at 70%, 50% and 35%. His hit points are held at each threshold (npcTakesLocked), where he shields
 //     (no damage lands), stops his swings and drops a breath or brand under way, and one Fire Giant Forgeguard (60,000
 //     hit points, its template's 200 a second) comes from the forge. The gate opens when the guard is dead and both
 //     valves have turned, in either order, by two different living players, the second within 15 s of the first.
 //     Each successful turn burns its player's hands for 60 s, locking them out of both valves. A missed window
 //     resets the first valve. A completed pair stays latched, and the guard's wounds and Nagafen's hate persist.
-//   - Cinder Brand after the second gate: its first warning 10 s after the release, then every 28 s. A living
+//   - Cinder Brand starts after the 50% gate. Its first warning is 10 s after the release, then every 28 s. A living
 //     player other than his tank is marked and has six seconds to carry it away. A fire pool with a ten-unit radius
 //     lasts 12 s and burns each player inside for 22% of their maximum HP every 2 s, starting immediately. A pool
 //     is put off the landing, the valves and the way out.
@@ -85,6 +85,7 @@ const (
 	mythicValveWindow    = 15 * time.Second
 	mythicBurnedHandsFor = time.Minute
 
+	mythicBrandGate  = 2 // the 50% gate
 	mythicBrandFirst = 10 * time.Second
 	mythicBrandEvery = 28 * time.Second
 	mythicBrandWarn  = 6 * time.Second
@@ -116,7 +117,7 @@ const (
 )
 
 // mythicGates are the gates' thresholds, in percent of his most hit points.
-var mythicGates = [2]int{70, 35}
+var mythicGates = [...]int{70, 50, 35}
 
 // mythicIntn is the brand's pick (a test's own).
 var mythicIntn = rand.Intn
@@ -220,7 +221,7 @@ type mythicFight struct {
 	pauseFrom    time.Time // the swings' pause round an impact
 	pauseUntil   time.Time
 
-	nextBrand   time.Time // zero: none due (before the second gate)
+	nextBrand   time.Time // zero until the 50% gate releases
 	brandImpact time.Time
 	brandOn     EntityID // the marked player
 	brandX      float32
@@ -624,7 +625,7 @@ func (w *World) mythicGateStepLocked(f *mythicFight, now time.Time) {
 	f.phase = mythicActive
 	f.first, f.latched = -1, false
 	f.nextBreath = now.Add(mythicBreathFirst)
-	if f.gates >= 2 {
+	if f.gates >= mythicBrandGate {
 		f.nextBrand = now.Add(mythicBrandFirst)
 	}
 	w.mythicTellLocked(f, mythicLineRelease, mythicWarnRGB)
@@ -761,7 +762,7 @@ func (w *World) mythicHurtMercLocked(boss *NPC, m *NPC, n int, what string) {
 	}
 }
 
-// mythicBrandStepLocked is the brand's tick (after the second gate): a warning due begun on a player not the tank,
+// mythicBrandStepLocked starts warnings after the 50% gate on a player other than the tank,
 // its burst due a pool where its player stands.
 func (w *World) mythicBrandStepLocked(in *dungeonInst, f *mythicFight, boss *NPC, now time.Time) {
 	if f.brandOn != 0 {

@@ -130,6 +130,9 @@ type QuestEngine struct {
 	// [quest, step] by character, made again by respawnLost wherever it stands
 	// (keep.go's QuestSpawns)
 	owed map[uint32]map[[2]int]bool
+	// afterDeath are the events a quest's price waits to run until its player's
+	// respawn, by character (questdeath.go)
+	afterDeath map[uint32]priceRest
 
 	kills chan entity.KillCredit
 	// queued is the kills in kills not yet taken to be worked, by NPC and death

@@ -103,7 +103,9 @@ func (w *World) playerFallsLocked(sess *session.Session, p *Player, now time.Tim
 		return
 	}
 	var fall *HardcoreFall
-	if p.HardcoreBound() && !p.Fallen {
+	price := p.priceDeath // questdeath.go: a quest's price is no Hardcore fall
+	p.priceDeath = false
+	if p.HardcoreBound() && !p.Fallen && !price {
 		f := w.hardcoreFallLocked(p, now) // hardcore.go: its last death, read before the hate lists drop it
 		fall = &f
 	}

@@ -672,6 +672,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureNPCAggro(); err != nil {
 		return err
 	}
+	if err := db.ensureNPCAggroPlace(); err != nil { // npcaggroplace.go
+		return err
+	}
 	if err := db.ensureNPCRespawn(); err != nil { // npcrespawn.go
 		return err
 	}

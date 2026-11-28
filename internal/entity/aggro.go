@@ -152,10 +152,11 @@ type AggroRule struct {
 type aggroState struct {
 	off        bool
 	factionOff bool
-	rules      map[string]AggroRule // by NPCClassKey
-	leash      map[string]float32   // by NPCClassKey: the rows' leashes, NoWord's too
-	seeInvis   map[string]bool      // by NPCClassKey: the rows' see_invis, NoWord's too
-	holds      map[string]bool      // by NPCClassKey: the rows' holds, NoWord's too
+	rules      map[string]AggroRule    // by NPCClassKey
+	leash      map[string]float32      // by NPCClassKey: the rows' leashes, NoWord's too
+	seeInvis   map[string]bool         // by NPCClassKey: the rows' see_invis, NoWord's too
+	holds      map[string]bool         // by NPCClassKey: the rows' holds, NoWord's too
+	places     map[string][]aggroPlace // by NPCClassKey: npcaggroplace's rows (SetAggroPlaces)
 	gen        uint32
 	reach      float32
 	ignored    map[uint32]bool
@@ -193,12 +194,69 @@ func (a *aggroState) ruleFor(name string) (AggroRule, bool) {
 // Heirloom petition 2508 (2026-11-20, "The elementals in Grundle's cave should all be aggressive"): the cave's
 // Earth, Fire and Water Elementalkin stand alone, no one's pet, yet the seed's rows for the magicians' pets'
 // names left them peaceful; a place row says these are creatures, and their nature decides as any creature's.
+//
+// A GM's place row for its name (npcaggroplace, SetAggroPlaces) holding where it spawned has the last word on
+// whether it attacks on sight, the rest of the name's rule kept (Heirloom petition 3508: the Unkempt Woods'
+// werewolves attack, the name's rule leaving every other werewolf peaceful).
 func (w *World) aggroRuleLocked(npc *NPC) (AggroRule, bool) {
 	r, ok := w.aggro.ruleFor(npc.Name)
 	if ok && r.PetName && !r.Aggressive && (IsDungeonWorld(npc.World) || w.placedCreatureLocked(npc)) {
-		return AggroRule{}, false
+		r, ok = AggroRule{}, false
+	}
+	if pl, found := w.aggro.placeFor(npc); found {
+		if !ok {
+			r = AggroRule{}
+		}
+		r.Aggressive, r.NoWord, r.PetName = pl.aggressive, false, false
+		return r, true
 	}
 	return r, ok
+}
+
+// aggroPlace is a row of npcaggroplace: the creatures of its name that spawned
+// within r of (x, z) in world attack on sight, or never.
+type aggroPlace struct {
+	world      uint8
+	x, z, r    float32
+	aggressive bool
+}
+
+// placeFor is the smallest place row of npc's name holding where it spawned.
+func (a *aggroState) placeFor(npc *NPC) (aggroPlace, bool) {
+	if len(a.places) == 0 {
+		return aggroPlace{}, false
+	}
+	var best aggroPlace
+	found := false
+	for _, pl := range a.places[database.NPCClassKey(npc.Name)] {
+		if npc.World != pl.world || distXZ(npc.SpawnX, npc.SpawnZ, pl.x, pl.z) > pl.r {
+			continue
+		}
+		if !found || pl.r < best.r {
+			best, found = pl, true
+		}
+	}
+	return best, found
+}
+
+// SetAggroPlaces sets the GMs' place rows (table npcaggroplace): at the start
+// and when a GM edits one. Every creature's nature is looked at again.
+func (w *World) SetAggroPlaces(rows []database.NPCAggroPlace) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	var places map[string][]aggroPlace
+	for _, r := range rows {
+		if r.Radius <= 0 || r.World < 0 || r.World > 255 {
+			continue
+		}
+		if places == nil {
+			places = make(map[string][]aggroPlace)
+		}
+		k := database.NPCClassKey(r.Name)
+		places[k] = append(places[k], aggroPlace{world: uint8(r.World), x: float32(r.X), z: float32(r.Z), r: float32(r.Radius), aggressive: r.Aggressive})
+	}
+	w.aggro.places = places
+	w.aggro.gen++
 }
 
 // placedCreatureLocked reports an NPC an npcfaction row of a place (a radius) holds: a GM's word that the
@@ -667,6 +725,11 @@ func (w *World) LoadAggroRules(db *database.SQLiteDB) (int, error) {
 		rules[r.Name] = AggroRule{Aggressive: r.Aggressive, Radius: float32(r.Radius), Leash: float32(r.Leash), NoWord: r.NoWord, Holding: r.Holding, SeeInvis: r.SeeInvis, Holds: r.Holds, PetName: r.PetName, Greens: r.Greens}
 	}
 	w.SetAggroRules(rules)
+	places, err := db.NPCAggroPlaces()
+	if err != nil {
+		return len(rules), fmt.Errorf("npcaggroplace: %w", err)
+	}
+	w.SetAggroPlaces(places)
 	return len(rules), nil
 }
 

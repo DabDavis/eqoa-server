@@ -66,6 +66,9 @@ import (
 //     while the player on it stands within a place, once each coming in, not
 //     while a trigger among them is held by its lock (questnear.go; petition
 //     3332, Tallon's fortress woken again by those past its reach step).
+//   - playerdeath: the player dies as the quest's price (questdeath.go): no
+//     debt, no tunar, never a Hardcore fall; the events after it wait for its
+//     respawn at the bind point (Envaric Ascension, petition 3488).
 //   - classquest: the player's own city class quests of the event's level
 //     finished too (classQuestLocked): a homeland's starter quest stands for
 //     its city's, so the guildmaster on the mainland goes on from there.
@@ -141,8 +144,12 @@ func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c
 	if sess == nil || p == nil || len(evs) == 0 {
 		return
 	}
-	for _, e := range evs {
+	for i, e := range evs {
 		switch e.Do {
+		case database.EventPlayerDeath:
+			if q.priceDeathLocked(sess, p, c, qu, step, spawnStep, evs[i+1:]) { // questdeath.go
+				return // the rest after its respawn
+			}
 		case database.EventPopup:
 			q.popupLocked(sess, c, e.Text, e.Answer)
 		case database.EventSay:

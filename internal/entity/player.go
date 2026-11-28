@@ -587,6 +587,9 @@ type Player struct {
 	// deathCause and deathBy name the cause of the death about to be dealt by a
 	// hazard with no creature behind it (setDeathCause; hardcore.go)
 	deathCause, deathBy string
+	// priceDeath: the death about to be dealt is a quest's price (questdeath.go), never a
+	// Hardcore character's final one
+	priceDeath bool
 	// ArmorBody is its race's body for the armour on its chest, 0 its own (armorbody.go)
 	ArmorBody uint32
 	// stuckNext is when /stuck may be used again (stuck.go)

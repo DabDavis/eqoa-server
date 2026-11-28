@@ -289,6 +289,13 @@ const (
 	// credit to anyone, back on its own respawn (Live petition 5638, the owner 2026-11-26: Delwin
 	// Stitchfinger eats Ilenar's poisoned chocolates in the Assassination quests). A step's.
 	EventDie = "die"
+	// EventPlayerDeath: the player laid down dead as the quest's price (entity.World.QuestDeath): a death as
+	// any other on its client, the respawn at its bind point, but no experience debt, no tunar lost, and never
+	// a Hardcore character's fall. The events written after it in the same list wait for that respawn and run
+	// a few seconds after it (handlers/questdeath.go). A step's on its done, or a quest's on its finish.
+	// Heirloom petition 3488 (Nathan, 2026-11-28, the owner approved as asked): Envaric Ascension's turn-in
+	// kills the player, who then has the port told at the spirit master.
+	EventPlayerDeath = "playerdeath"
 	// A trial's three setbacks (handlers/questtrials.go; Live petition 5663, the owner 2026-11-26: "fix these",
 	// the Were-Hunter Trials as eqoa.forumotion.com t235 has them). Each puts the quest back to an earlier step
 	// (Back), its Factions changed and, with Regain, that step not done again until the standing lost is
@@ -335,7 +342,7 @@ const TeleportMainland = "mainland"
 var (
 	QuestEventWhens   = []string{EventAccept, EventFinish}
 	StepEventWhens    = []string{EventStart, EventDone, EventLacking, EventNear}
-	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventAttack, EventVisual, EventTeleport, EventVampire, EventTrigger, EventDoStep, EventClassQuest, EventCast, EventHide, EventDie, EventClock, EventWard, EventBack}
+	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventAttack, EventVisual, EventTeleport, EventVampire, EventTrigger, EventDoStep, EventClassQuest, EventCast, EventHide, EventDie, EventPlayerDeath, EventClock, EventWard, EventBack}
 )
 
 // DoesStep reports a step tried at once when it starts (EventDoStep).
@@ -578,6 +585,10 @@ func EventProblems(s string, step bool) []string {
 		case EventDie:
 			if !step {
 				add(i, "a die is a step's: the NPC near the player then, its target unless named")
+			}
+		case EventPlayerDeath:
+			if e.On != EventDone && e.On != EventFinish {
+				add(i, "a playerdeath is a step's on its done or a quest's on its finish: the price paid as it is done")
 			}
 		case EventAttack:
 			if !step {

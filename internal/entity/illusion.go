@@ -278,7 +278,27 @@ func (w *World) raceBodyLocked(model uint32, sex int) (body uint32, race int, ok
 // Tserrina wears, the human woman's). A body not here is everyone's.
 var femaleFormBodies = map[uint32]uint32{
 	bodyFledglingVampire: bodyHumanFemale,
+	// the lionwere line's one body (every lion and lioness were of the disc
+	// wears it, Lionesswere too): a female were wears the four-legged
+	// lioness Feral and Sabretooth Lioness Form show (Heirloom petition
+	// 3462; the owner, 2026-11-28: "yes to the lioness body for female lion
+	// forms")
+	bodyLionwere: bodyLionessForm,
 }
+
+// femaleFormOwnSize is the female bodies of femaleFormBodies worn at the
+// form's own size (a creature's body, as Feral Lioness Form shows it at its
+// bearer's), not at a race's: the lioness.
+var femaleFormOwnSize = map[uint32]bool{bodyLionessForm: true}
+
+// bodyLionwere is the lionwere line's body (the werelions' and lionweres'
+// npcs.modelid; the workbook's sprite 0xD5BC72DA read the other way round);
+// bodyLionessForm the lioness Feral Lioness Form (901811) shows (its sprite
+// 0x03BF1406 read the other way round).
+const (
+	bodyLionwere    = 0xDA72BCD5
+	bodyLionessForm = 0x0614BF03
+)
 
 // SetVampireFemaleBody is world.vampire_female_body: the body a female
 // vampire wears in Vampire Form. 0 keeps femaleFormBodies' (the human woman's).
@@ -342,8 +362,12 @@ func (w *World) landIllusionLocked(cs *castState, t *Player, ae *ActiveEffect) {
 		size = d.FormSize
 	}
 	if b, race, female := w.femaleFormBodyLocked(model, t.Sex); female && onDisc(b) {
-		// a woman's body for a form of a man's (Vampire Form), at its race's size
-		model, size = b, w.raceSizeLocked(race)
+		// a woman's body for a form of a man's (Vampire Form), at its race's
+		// size; a creature's (the lioness) at the form's own
+		model = b
+		if !femaleFormOwnSize[b] {
+			size = w.raceSizeLocked(race)
+		}
 	}
 	ae.Form, ae.FormSize = model, size
 	log.Printf("Cast: %q shows %s as %q (model %#x, size %.2f)", cs.spell.Name, t.Name, d.Form, model, size)

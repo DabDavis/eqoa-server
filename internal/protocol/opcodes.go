@@ -1647,6 +1647,12 @@ const (
 	OpcodeNpcRoles GameOpcode = 0x7EE0
 )
 
+// OpcodeCinderPool is the ground boundary of a Heroic Nagafen pool, sent reliably to its
+// instance. The body is world (u8), instance and remaining milliseconds (u32 each).
+// When time remains, four f32s follow: world x, y, z and the horizontal damage radius.
+// Zero milliseconds clears the boundary for that instance. All numbers are little endian.
+const OpcodeCinderPool GameOpcode = 0x7EC4
+
 // The bestiary (handlers/bestiary.go). Not retail, away from the other lanes' ranges
 // (0x7EC0-0x7EC3 the group effects' and the creatures' debuffs, 0x7ED0-0x7ED2 another
 // lane's, 0x7EF0 a test's unknown opcode).

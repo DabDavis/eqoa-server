@@ -50,7 +50,8 @@ import (
 // A copy follows its base: at every start SyncAscendedCopies makes each copy
 // its base again by the rule (a fixed look or figure on the base reaches its
 // copy at the next start: fix the base, never a copy; a copy's race mask a GM
-// widened past its base's is kept, petition 3235). The bosses' loot points
+// widened past its base's is kept, petition 3235, and a look a GM gave the copy
+// itself, the owner 2026-11-28). The bosses' loot points
 // at the copies (tools/ascend_boss_loot.py, which makes them in this file's
 // SQL, held to it by TestAscendBossLootToolKeepsTheRule); a quest hand-in takes
 // an Ascended item for its base and rewards Ascended (handlers/questascended.go),
@@ -96,6 +97,18 @@ const AscendedSchema = `CREATE TABLE IF NOT EXISTS itemascended (
 	made      TEXT NOT NULL DEFAULT '',
 	source    TEXT NOT NULL DEFAULT ''
 )`
+
+// The look a GM gives an Ascended record is its own (the owner, 2026-11-28: Skywalker's icons and models for the
+// Ascended weapons went back to their bases' at every start). basemodel and baseicon are the base's model and icon as
+// the last start's sync left them: a copy whose model and icon are still those follows its base's look (a fixed look
+// on the base reaches it); one whose look differs from them was given its own, which the sync keeps
+// (ascendedOwnLookSQL), with its colour and unk2 (the icon's second word). NULL (never synced): the base's. The
+// two columns are added at the start (ascendedLookMigrate), so the table's SCHEMA stays the tools' own.
+var ascendedLookColumns = map[string]bool{"model": true, "itemicon": true, "color": true, "unk2": true}
+
+// ascendedOwnLookSQL is true when the copy (row cp) was given a look of its own since the last start.
+const ascendedOwnLookSQL = `EXISTS (SELECT 1 FROM itemascended a WHERE a.patternid = cp.patternid AND a.basemodel IS NOT NULL ` +
+	`AND (CAST(cp."model" AS INTEGER), CAST(cp."itemicon" AS INTEGER)) IS NOT (a.basemodel, a.baseicon))`
 
 // AscendedFigure is a figure as an Ascended record has it.
 func AscendedFigure(v int) int {
@@ -220,6 +233,11 @@ func ascendedSyncColumns(cols []string) (set, from string) { return ascendedColu
 
 func ascendedColumnsFor(cols []string, sync bool) (set, from string) {
 	var s, f []string
+	have := map[string]bool{}
+	for _, c := range cols {
+		have[strings.ToLower(c)] = true
+	}
+	ownLook := have["model"] && have["itemicon"] // the rule reads both
 	for _, c := range cols {
 		low := strings.ToLower(c)
 		if low == "patternid" {
@@ -236,6 +254,8 @@ func ascendedColumnsFor(cols []string, sync bool) (set, from string) {
 			f = append(f, fmt.Sprintf(ascendedRentSQL, q))
 		case low == "raceuse" && sync:
 			f = append(f, fmt.Sprintf(ascendedRaceKeptSQL, q))
+		case ascendedLookColumns[low] && sync && ownLook:
+			f = append(f, `CASE WHEN `+ascendedOwnLookSQL+` THEN cp.`+q+` ELSE `+q+` END`)
 		default:
 			f = append(f, q)
 		}
@@ -309,6 +329,7 @@ func AscendedCopyTx(tx *sql.Tx, base int, source string, now time.Time) (id int,
 // SyncAscendedCopies makes every Ascended record its base again by the rule
 // (the server's start): a base a GM or a petition's fix changes (its look, its
 // figures, its name) takes its Ascended record with it, its use effects too.
+// A look a GM gave the copy itself is kept (ascendedOwnLookSQL).
 // Its race mask alone a GM may widen on the copy: one that lets every race
 // wear it that its base's does, and more, is kept (ascendedRaceKeptSQL).
 // It says how many records changed.
@@ -319,6 +340,9 @@ func SyncAscendedCopies(db *sql.DB, now time.Time) (int, error) {
 	}
 	defer tx.Rollback()
 	if _, err := tx.Exec(AscendedSchema); err != nil {
+		return 0, err
+	}
+	if err := ascendedLookMigrate(tx); err != nil {
 		return 0, err
 	}
 	cols, err := tableColumns(tx, "itempattern")
@@ -376,7 +400,45 @@ func SyncAscendedCopies(db *sql.DB, now time.Time) (int, error) {
 			return 0, err
 		}
 	}
+	if err := ascendedLookRemember(tx, cols); err != nil {
+		return 0, err
+	}
 	return changed, tx.Commit()
+}
+
+// ascendedLookMigrate adds basemodel and baseicon to an itemascended made before them.
+func ascendedLookMigrate(tx *sql.Tx) error {
+	have, err := tableColumns(tx, "itemascended")
+	if err != nil {
+		return err
+	}
+	got := map[string]bool{}
+	for _, c := range have {
+		got[strings.ToLower(c)] = true
+	}
+	for _, c := range []string{"basemodel", "baseicon"} {
+		if !got[c] {
+			if _, err := tx.Exec(`ALTER TABLE itemascended ADD COLUMN ` + c + ` INTEGER`); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// ascendedLookRemember records each base's model and icon as this start leaves them (ascendedOwnLookSQL's mark).
+func ascendedLookRemember(tx *sql.Tx, cols []string) error {
+	have := map[string]bool{}
+	for _, c := range cols {
+		have[strings.ToLower(c)] = true
+	}
+	if !have["model"] || !have["itemicon"] {
+		return nil
+	}
+	_, err := tx.Exec(`UPDATE itemascended SET
+		basemodel = (SELECT CAST(model AS INTEGER) FROM itempattern WHERE patternid = itemascended.base),
+		baseicon = (SELECT CAST(itemicon AS INTEGER) FROM itempattern WHERE patternid = itemascended.base)`)
+	return err
 }
 
 // AscendedMap is ItemPatternStore's view of table itemascended (copy -> base).

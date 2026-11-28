@@ -304,6 +304,7 @@ func (m *HeirloomMarks) buy(sess *session.Session, p *entity.Player, what int) {
 		}
 	}
 	if what == keeperRank {
+		m.heir.ForgetRanks() // the account's other characters have it too
 		m.heir.SetRank(p.CharServerID, after.HeirloomRank)
 		if m.refresh != nil {
 			go m.refresh(p) // the worn heirlooms' figures at once, as at a level up

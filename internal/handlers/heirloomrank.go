@@ -11,7 +11,9 @@ import (
 )
 
 // heirloomrank.go — the Heirloom Rank (work board 1927 section 8b, a GM's spec; bought at an
-// Heirloom Keeper with Heirloom Marks, marks.go): each rank raises THIS character's heirloom cap
+// Heirloom Keeper with Heirloom Marks, marks.go; an account's since Heirloom petition 3415, the
+// owner 2026-11-28: every character of the account has the highest rank any of them bought,
+// database.accountheirloom): each rank raises the character's heirloom cap
 // one level past heirloomTopLevel (49), to 55 at rank 6, and adds the AC of table heirloomrankac
 // (class, rank) to each heirloom armour piece of role head, hands, chest, robe, bracers, waist,
 // legs, feet or shield; never an earring, a necklace, a ring, a bracelet or a weapon. The AC goes on
@@ -95,6 +97,17 @@ func (h *Heirlooms) rankOf(serverID uint32) int {
 	h.ranks[serverID] = r
 	h.mu.Unlock()
 	return r.rank
+}
+
+// ForgetRanks drops every character's cached rank: a rank bought is its whole account's
+// (database.accountheirloom), so the account's other characters read it afresh.
+func (h *Heirlooms) ForgetRanks() {
+	if h == nil {
+		return
+	}
+	h.mu.Lock()
+	h.ranks = nil
+	h.mu.Unlock()
 }
 
 // SetRank is a rank just bought: the view takes it at once.

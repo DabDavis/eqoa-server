@@ -518,7 +518,18 @@ var catalog = map[string]tableNote{
 			"kill_hour_marks": {Label: "Kill marks this hour", Help: "of 38, before bonuses"},
 			"ring_rank":       {Label: "Ring of Guises rank", Help: "0-14"},
 			"ring_guise":      {Label: "Guise", Help: "the spell id of the illusion the ring lands"},
-			"heirloom_rank":   {Label: "Heirloom Rank", Help: "0-6"},
+			"heirloom_rank":   {Label: "Heirloom Rank", Help: "0-6; the character has its account's when that is higher (Heirloom Rank by account)"},
+		},
+	},
+	"accountheirloom": {
+		Label: "Heirloom Rank by account", Group: "Players", Sort: "accountid",
+		Help: "Each account's Heirloom Rank (0-6): the highest any of its characters bought, which every character of " +
+			"the account has (Heirloom petition 3415); a character's own heirloom_rank (Heirloom Marks) is read as the higher of the two.",
+		Live: "Within 30 s for the account's characters' heirlooms; at once for the Keeper.",
+		Show: []string{"accountid", "rank"},
+		Cols: map[string]colNote{
+			"accountid": {Label: "Account", Ref: "accountinfo"},
+			"rank":      {Label: "Heirloom Rank", Help: "0-6"},
 		},
 	},
 	"charmarks_log": {

@@ -19,6 +19,11 @@ import (
 //     ever earned (lifetime), its hour of kill marks (kill_hour_start, unix seconds, and how many
 //     kill marks it holds, before bonuses), its Ring of Guises rank (0-14) and the guise picked
 //     (a spell id), and its Heirloom Rank (0-6);
+//   - accountheirloom: an account's Heirloom Rank (0-6), the highest any of its characters bought:
+//     every character of the account reads it (Heirloom petition 3415, the owner 2026-11-28:
+//     "heirloom rank account wide"). CharMarksOf hands back the higher of it and the character's
+//     own charmarks.heirloom_rank, so a character's row is written with the account's at its next
+//     write, and a write raises the account's (never lowers it);
 //   - charmarks_log: each award and spending (source quest, kill, spend or gm), its whole marks,
 //     what it was for (ref: a quest id, an NPC row, what was bought) and its bonus factor;
 //   - hotzones: the GMs' Hot zones (a camp, by its place and radius, or a quest set, by an import
@@ -45,6 +50,10 @@ CREATE TABLE IF NOT EXISTS charmarks (
 	ring_rank       INTEGER NOT NULL DEFAULT 0,
 	ring_guise      INTEGER NOT NULL DEFAULT 0,
 	heirloom_rank   INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS accountheirloom (
+	accountid INTEGER PRIMARY KEY,
+	rank      INTEGER NOT NULL DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS charmarks_log (
 	id       INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -114,7 +123,32 @@ func (db *SQLiteDB) ensureMarks() error {
 			return fmt.Errorf("heirloom marks: %s.%s: %w", c.t, c.col, err)
 		}
 	}
+	return db.migrateAccountHeirloom()
+}
+
+// migrateAccountHeirloom raises each account's rank to the highest its characters bought
+// (charmarks.heirloom_rank): never lowers one, so it runs at every start.
+func (db *SQLiteDB) migrateAccountHeirloom() error {
+	var chars int
+	db.QueryRow(`SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'characters'`).Scan(&chars)
+	if chars == 0 {
+		return nil
+	}
+	if _, err := db.Exec(`INSERT INTO accountheirloom (accountid, rank)
+		SELECT c.accountid, MAX(m.heirloom_rank) FROM charmarks m JOIN characters c ON c.serverid = m.serverid
+		WHERE m.heirloom_rank > 0 GROUP BY c.accountid
+		ON CONFLICT(accountid) DO UPDATE SET rank = MAX(rank, excluded.rank)`); err != nil {
+		return fmt.Errorf("heirloom marks: the accounts' ranks: %w", err)
+	}
 	return nil
+}
+
+// accountHeirloomRank is the rank of serverID's account (0: none, or no account known).
+func accountHeirloomRank(q querier, serverID uint32) int {
+	var r sql.NullInt64
+	q.QueryRow(`SELECT MAX(a.rank) FROM characters c JOIN accountheirloom a ON a.accountid = c.accountid
+		WHERE c.serverid = ?`, serverID).Scan(&r)
+	return int(r.Int64)
 }
 
 // CharMarks is a character's charmarks row; one with none is the zero row.
@@ -149,12 +183,17 @@ type querier interface {
 	QueryRow(string, ...any) *sql.Row
 }
 
+// charMarksTx is the row, its HeirloomRank the account's where that is higher (accountheirloom).
 func charMarksTx(q querier, serverID uint32) (CharMarks, error) {
 	m, err := scanCharMarks(q.QueryRow(`SELECT `+charMarksCols+` FROM charmarks WHERE serverid = ?`, serverID))
 	if errors.Is(err, sql.ErrNoRows) {
-		return CharMarks{ServerID: serverID}, nil
+		m, err = CharMarks{ServerID: serverID}, nil
 	}
-	return m, err
+	if err != nil {
+		return m, err
+	}
+	m.HeirloomRank = max(m.HeirloomRank, accountHeirloomRank(q, serverID))
+	return m, nil
 }
 
 func writeCharMarks(tx *sql.Tx, m CharMarks) error {
@@ -163,6 +202,16 @@ func writeCharMarks(tx *sql.Tx, m CharMarks) error {
 			kill_hour_start = excluded.kill_hour_start, kill_hour_marks = excluded.kill_hour_marks,
 			ring_rank = excluded.ring_rank, ring_guise = excluded.ring_guise, heirloom_rank = excluded.heirloom_rank`,
 		m.ServerID, m.Marks, m.Frac, m.Lifetime, m.KillHourStart, m.KillHourMarks, m.RingRank, m.RingGuise, m.HeirloomRank)
+	if err != nil || m.HeirloomRank <= 0 {
+		return err
+	}
+	// the account takes the rank (never lower): every character of it reads it
+	_, err = tx.Exec(`INSERT INTO accountheirloom (accountid, rank)
+		SELECT accountid, ? FROM characters WHERE serverid = ?
+		ON CONFLICT(accountid) DO UPDATE SET rank = MAX(rank, excluded.rank)`, m.HeirloomRank, m.ServerID)
+	if err != nil && strings.Contains(err.Error(), "no such table") {
+		err = nil // a store with no characters table (tests): the row alone
+	}
 	return err
 }
 

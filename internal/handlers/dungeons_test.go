@@ -38,7 +38,7 @@ func TestReadDungeonsRecipe(t *testing.T) {
 	for _, d := range defs {
 		keys[d.Key] = d
 	}
-	for _, k := range []string{"guk", "blackburrow", "runnyeye", "saltmines", "crethley"} {
+	for _, k := range []string{"guk", "blackburrow", "runnyeye", "saltmines", "crethley", "kratas"} {
 		d, ok := keys[k]
 		if !ok || len(d.Boxes) == 0 || d.Entrance.X == 0 {
 			t.Fatalf("%s: %+v", k, d)
@@ -72,6 +72,21 @@ func TestReadDungeonsRecipe(t *testing.T) {
 	}
 	if e := cm.Entrance; e.X != 6716.4 || e.Z != 14519.3 || e.Facing < 3.55 || e.Facing > 3.61 {
 		t.Fatalf("Crethley Manor's landing %+v, want Dust's spot facing 3.58", e)
+	}
+	// Kratas's Deep (2026-11-28, the first heroic raid, Heirloom petition 3396): its box inside Tunaria's cell
+	// (6, 15), the shore's zone 159; its landing on the first dry ground above the bay (its water's top 51), inside the
+	// box; and the whale bones, where its trigger raises Kratas, inside the box too
+	kd := keys["kratas"]
+	for _, b := range kd.Boxes {
+		if b.X0 < 12000 || b.X1 > 14000 || b.Z0 < 30000 || b.Z1 > 32000 {
+			t.Fatalf("Kratas's Deep's box %+v is not in cell (6, 15)", b)
+		}
+		if !(13476 >= b.X0 && 13476 <= b.X1 && 31456 >= b.Z0 && 31456 <= b.Z1) {
+			t.Fatalf("Kratas's Deep's box %+v leaves out the whale bones", b)
+		}
+	}
+	if e := kd.Entrance; e.X != 13250 || e.Z != 31040 || e.Y <= 51 {
+		t.Fatalf("Kratas's Deep's landing %+v, want the beach at (13250, 31040) above the water", e)
 	}
 	// Guk's entrance faces north (toward smaller z: its gate), a facing of pi
 	if f := keys["guk"].Entrance.Facing; f < 3.1 || f > 3.2 {

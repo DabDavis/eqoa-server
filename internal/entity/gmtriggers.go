@@ -30,6 +30,12 @@ func (w *World) SpawnEventNPC(name string, world uint8, cx, cy, cz, x, z float32
 // radians, 0 south, pi/2 east, as headingTo's); a negative one faces (cx, cz) as
 // SpawnEventNPC's (a trigger spawn step's face: Heirloom petition 2253).
 func (w *World) SpawnEventNPCFacing(name string, world uint8, cx, cy, cz, x, z, face float32, hostile bool) (EntityID, string, bool) {
+	return w.SpawnEventNPCFacingIn(name, world, 0, cx, cy, cz, x, z, face, hostile)
+}
+
+// SpawnEventNPCFacingIn is SpawnEventNPCFacing in one instance of an instanced world
+// (SpawnNPCCopyIn: a heroic raid's trigger spawn); inst 0 is SpawnEventNPCFacing.
+func (w *World) SpawnEventNPCFacingIn(name string, world uint8, inst uint32, cx, cy, cz, x, z, face float32, hostile bool) (EntityID, string, bool) {
 	y := cy
 	if fy, ok := w.GroundFloor(world, x, cy+3, z); ok && fy-cy <= triggerFloorReach && cy-fy <= triggerFloorReach {
 		y = fy
@@ -40,7 +46,7 @@ func (w *World) SpawnEventNPCFacing(name string, world uint8, cx, cy, cz, x, z, 
 	} else if dx, dz := cx-x, cz-z; dx != 0 || dz != 0 {
 		facing = headingTo(dx, dz)
 	}
-	id, spelled, ok := w.SpawnNPCCopy(name, x, y, z, facing, world)
+	id, spelled, ok := w.SpawnNPCCopyIn(name, x, y, z, facing, world, inst)
 	if !ok {
 		return 0, "", false
 	}
@@ -112,9 +118,20 @@ func (w *World) NPCSpot(id EntityID) (world uint8, x, y, z float32, ok bool) {
 // world: what a trigger's walk, home and hide take, the spawn-only originals not
 // among them. Must be called with the lock held.
 func (w *World) npcsNearLocked(name string, world uint8, x, z, reach float32) []*NPC {
+	return w.npcsNearInLocked(name, world, 0, x, z, reach)
+}
+
+// npcsNearInLocked is npcsNearLocked in one copy of an instanced world: inst 0
+// takes every NPC of the world as before, another only those standing in that
+// instance (a heroic raid's trigger run: handlers/gmtriggers.go). Must be called
+// with the lock held.
+func (w *World) npcsNearInLocked(name string, world uint8, inst uint32, x, z, reach float32) []*NPC {
 	var out []*NPC
 	for _, n := range w.NPCs {
 		if n.Dead || n.SpawnOnly || n.World != world || !strings.EqualFold(strings.TrimSpace(n.Name), name) {
+			continue
+		}
+		if inst != 0 && n.Instance != inst {
 			continue
 		}
 		if distXZ(n.X, n.Z, x, z) <= reach {
@@ -128,12 +145,17 @@ func (w *World) npcsNearLocked(name string, world uint8, x, z, reach float32) []
 // NearestNPC is the living NPC named name (any case) nearest (x, z) in world within
 // reach, not hidden: what a trigger's protect step guards. False: none.
 func (w *World) NearestNPC(name string, world uint8, x, z, reach float32) (EntityID, bool) {
+	return w.NearestNPCIn(name, world, 0, x, z, reach)
+}
+
+// NearestNPCIn is NearestNPC in one instance (inst 0: any, as NearestNPC).
+func (w *World) NearestNPCIn(name string, world uint8, inst uint32, x, z, reach float32) (EntityID, bool) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	now := time.Now()
 	var best *NPC
 	var bestD float32
-	for _, n := range w.npcsNearLocked(strings.TrimSpace(name), world, x, z, reach) {
+	for _, n := range w.npcsNearInLocked(strings.TrimSpace(name), world, inst, x, z, reach) {
 		if n.hiddenAt(now) {
 			continue
 		}
@@ -149,10 +171,15 @@ func (w *World) NearestNPC(name string, world uint8, x, z, reach float32) (Entit
 
 // PlayerNear reports a living player within reach of (x, z) in world.
 func (w *World) PlayerNear(world uint8, x, z, reach float32) bool {
+	return w.PlayerNearIn(world, 0, x, z, reach)
+}
+
+// PlayerNearIn is PlayerNear in one instance (inst 0: any, as PlayerNear).
+func (w *World) PlayerNearIn(world uint8, inst uint32, x, z, reach float32) bool {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	for _, p := range w.Players {
-		if p.World == world && !p.IsDead() && distXZ(p.X, p.Z, x, z) <= reach {
+		if p.World == world && (inst == 0 || p.Instance == inst) && !p.IsDead() && distXZ(p.X, p.Z, x, z) <= reach {
 			return true
 		}
 	}
@@ -163,14 +190,71 @@ func (w *World) PlayerNear(world uint8, x, z, reach float32) bool {
 // more than height above or below y: a trigger's awaitnear (the Plane of Sky's isles
 // lie over one another, so the flat reach alone would take a player on the isle above).
 func (w *World) PlayerNearAt(world uint8, x, y, z, reach, height float32) bool {
+	return w.PlayerNearAtIn(world, 0, x, y, z, reach, height)
+}
+
+// PlayerNearAtIn is PlayerNearAt in one instance (inst 0: any, as PlayerNearAt).
+func (w *World) PlayerNearAtIn(world uint8, inst uint32, x, y, z, reach, height float32) bool {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	for _, p := range w.Players {
-		if p.World == world && !p.IsDead() && distXZ(p.X, p.Z, x, z) <= reach && p.Y-y <= height && y-p.Y <= height {
+		if p.World == world && (inst == 0 || p.Instance == inst) && !p.IsDead() && distXZ(p.X, p.Z, x, z) <= reach && p.Y-y <= height && y-p.Y <= height {
 			return true
 		}
 	}
 	return false
+}
+
+// InstancesNearAt is the instances (each once, in order) of the living players within
+// reach of (x, z) in world, no more than height above or below y: where an awaitnear
+// start of an instanced world's trigger fires, one run an instance (handlers/gmtriggers.go
+// StartNear). Players in no instance (0) are left out.
+func (w *World) InstancesNearAt(world uint8, x, y, z, reach, height float32) []uint32 {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	seen := map[uint32]bool{}
+	var out []uint32
+	for _, p := range w.Players {
+		if p.World == world && p.Instance != 0 && !seen[p.Instance] && !p.IsDead() && distXZ(p.X, p.Z, x, z) <= reach && p.Y-y <= height && y-p.Y <= height {
+			seen[p.Instance] = true
+			out = append(out, p.Instance)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
+	return out
+}
+
+// PlayerInstance is the instance a player stands in (0: none); false for one no longer
+// the world's.
+func (w *World) PlayerInstance(p *Player) (uint32, bool) {
+	if p == nil {
+		return 0, false
+	}
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	cur, found := w.Players[p.ServerID]
+	if !found || cur != p {
+		return 0, false
+	}
+	return p.Instance, true
+}
+
+// NPCInstance is the instance an NPC stands in (0: none, or every copy); false for one gone.
+func (w *World) NPCInstance(id EntityID) (uint32, bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	npc := w.NPCs[id]
+	if npc == nil {
+		return 0, false
+	}
+	return npc.Instance, true
+}
+
+// InstanceOpen reports a dungeon's instance of that id open.
+func (w *World) InstanceOpen(inst uint32) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.dungeons.insts[inst] != nil
 }
 
 // SpawnName is the name a copy of name would have: a row key's ("#119543") row's own
@@ -189,9 +273,14 @@ func (w *World) SpawnName(name string, world uint8) string {
 
 // CountNear is how many living NPCs of that name stand within reach of (x, z) in world.
 func (w *World) CountNear(name string, world uint8, x, z, reach float32) int {
+	return w.CountNearIn(name, world, 0, x, z, reach)
+}
+
+// CountNearIn is CountNear in one instance (inst 0: any, as CountNear).
+func (w *World) CountNearIn(name string, world uint8, inst uint32, x, z, reach float32) int {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
-	return len(w.npcsNearLocked(name, world, x, z, reach))
+	return len(w.npcsNearInLocked(name, world, inst, x, z, reach))
 }
 
 // MarkSpawn sets what a trigger's spawn step asks of its copy beyond hostile and
@@ -266,7 +355,7 @@ func (w *World) SetNPCOn(id EntityID, target string, reach float32, casts bool) 
 	now := time.Now()
 	var best *NPC
 	var bestD float32
-	for _, n := range w.npcsNearLocked(strings.TrimSpace(target), c.World, c.X, c.Z, reach) {
+	for _, n := range w.npcsNearInLocked(strings.TrimSpace(target), c.World, c.Instance, c.X, c.Z, reach) {
 		if n == c || n.Owner != 0 || n.Dummy != NotDummy || n.hiddenAt(now) || n.challenge != nil {
 			continue // a Metal Moogie is his challenger's alone (metalmoogie.go)
 		}
@@ -298,11 +387,16 @@ func (w *World) WalkNPCsTo(name string, world uint8, x, z, reach float32, toWorl
 // pace of its own (0: the run's; under pathRunFrom it is walked: an escort, Ryini down
 // her mountain).
 func (w *World) WalkNPCsRoute(name string, world uint8, x, z, reach float32, toWorld uint8, route [][3]float32, tx, ty, tz, pace float32) int {
+	return w.WalkNPCsRouteIn(name, world, 0, x, z, reach, toWorld, route, tx, ty, tz, pace)
+}
+
+// WalkNPCsRouteIn is WalkNPCsRoute in one instance (inst 0: any, as WalkNPCsRoute).
+func (w *World) WalkNPCsRouteIn(name string, world uint8, inst uint32, x, z, reach float32, toWorld uint8, route [][3]float32, tx, ty, tz, pace float32) int {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	now := time.Now()
 	var npcs []*NPC
-	for _, n := range w.npcsNearLocked(name, world, x, z, reach) {
+	for _, n := range w.npcsNearInLocked(name, world, inst, x, z, reach) {
 		if !n.hiddenAt(now) {
 			npcs = append(npcs, n)
 		}
@@ -332,9 +426,14 @@ func (w *World) WalkNPCsRoute(name string, world uint8, x, z, reach float32, toW
 // wherever they are now they are looked for across the world when it is wide
 // enough. It says how many went.
 func (w *World) SendNPCsHome(name string, world uint8, x, z, reach float32) int {
+	return w.SendNPCsHomeIn(name, world, 0, x, z, reach)
+}
+
+// SendNPCsHomeIn is SendNPCsHome in one instance (inst 0: any, as SendNPCsHome).
+func (w *World) SendNPCsHomeIn(name string, world uint8, inst uint32, x, z, reach float32) int {
 	w.mu.Lock()
 	var ids []EntityID
-	for _, n := range w.npcsNearLocked(name, world, x, z, reach) {
+	for _, n := range w.npcsNearInLocked(name, world, inst, x, z, reach) {
 		if w.paths.byNPC[n.ServerID] != nil {
 			ids = append(ids, n.ServerID)
 		}
@@ -350,9 +449,14 @@ func (w *World) SendNPCsHome(name string, world uint8, x, z, reach float32) int 
 // then (zero: back in view at once), as the panel's refresh hold does (hiddenAt): a
 // guide's "he disappears". It says how many.
 func (w *World) HideNPCs(name string, world uint8, x, z, reach float32, until time.Time) int {
+	return w.HideNPCsIn(name, world, 0, x, z, reach, until)
+}
+
+// HideNPCsIn is HideNPCs in one instance (inst 0: any, as HideNPCs).
+func (w *World) HideNPCsIn(name string, world uint8, inst uint32, x, z, reach float32, until time.Time) int {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	npcs := w.npcsNearLocked(name, world, x, z, reach)
+	npcs := w.npcsNearInLocked(name, world, inst, x, z, reach)
 	for _, n := range npcs {
 		n.HiddenUntil = until
 		if !until.IsZero() {

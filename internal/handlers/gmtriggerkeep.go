@@ -58,6 +58,7 @@ type KeptTriggerRun struct {
 	GMChar uint32                `json:"gm_char,omitempty"`
 	Quiet  bool                  `json:"quiet,omitempty"`
 	World  uint8                 `json:"world"`
+	Inst   uint32                `json:"inst,omitempty"` // its dungeon instance (a heroic raid's run; 0 none)
 	X      float32               `json:"x"`
 	Y      float32               `json:"y"`
 	Z      float32               `json:"z"`
@@ -132,7 +133,7 @@ func (e *TriggerEngine) keep(now time.Time) *KeptTriggers {
 		if r.stopped {
 			continue
 		}
-		kr := KeptTriggerRun{ID: r.id, Trig: r.trig, By: r.by, GMChar: r.gmChar, Quiet: r.quiet, World: r.world, X: r.x, Y: r.y, Z: r.z,
+		kr := KeptTriggerRun{ID: r.id, Trig: r.trig, By: r.by, GMChar: r.gmChar, Quiet: r.quiet, World: r.world, Inst: r.inst, X: r.x, Y: r.y, Z: r.z,
 			Next: r.next, At: r.at, Start: r.start, Lock: r.lock, Reach: r.reach, Deadline: r.deadline, EmptyAfter: r.emptyAfter,
 			LastNear: r.lastNear, Died: append([]string(nil), r.died...), Waker: r.waker}
 		if r.await != nil {
@@ -220,7 +221,7 @@ func (e *TriggerEngine) restore(k *KeptTriggers, copies map[entity.EntityID]enti
 			r.RunsLost++
 			continue
 		}
-		run := &triggerRun{id: kr.ID, trig: kr.Trig, steps: steps, by: kr.By, gmChar: kr.GMChar, quiet: kr.Quiet, world: kr.World,
+		run := &triggerRun{id: kr.ID, trig: kr.Trig, steps: steps, by: kr.By, gmChar: kr.GMChar, quiet: kr.Quiet, world: kr.World, inst: kr.Inst,
 			x: kr.X, y: kr.Y, z: kr.Z, next: kr.Next, at: later(kr.At), start: kr.Start, lock: kr.Lock, reach: kr.Reach,
 			deadline: later(kr.Deadline), emptyAfter: kr.EmptyAfter, lastNear: later(kr.LastNear), died: kr.Died, waker: kr.Waker}
 		if kr.Await != nil {

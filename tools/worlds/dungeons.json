@@ -89,6 +89,12 @@
       "from": "TUNARIA.ESF",
       "zone": 75,
       "note": "Tunaria cell (3, 7): the Crethleys' manor south of Wyndhaven, north of the lake: the house (6660-6790, 14410-14500; its floors y 58-64, the study y 44-48 and the cellar y 31-33, Lord and Mary Crethley's) and its graveyard yard south to 14570; Elzilor Marbe's farm by the lake south is in the world, empty"
+    },
+    {
+      "name": "Kratas's Shore",
+      "from": "TUNARIA.ESF",
+      "zone": 159,
+      "note": "Tunaria cell (6, 15): the south shore's whale bones under the water near Old Man Antiok (13476, 31456), where Kratas rises; the bay's slopes and its griffons' and spinebacks' hills round it"
     }
   ],
   "dungeons": [
@@ -373,6 +379,29 @@
         ]
       },
       "note": "the owner, 2026-11-14 (\"dust is there\"): players start where Dust stood (6716.4, 57.7, 14519.3), in the graveyard yard south of the house, facing it as he did (205 degrees, north-north-west); its zombies 25 off, the house's door guards and the cellar's Lord Crethley beyond"
+    },
+    {
+      "key": "kratas",
+      "name": "Kratas's Deep",
+      "boxes": [
+        [
+          13050,
+          30950,
+          13900,
+          31700
+        ]
+      ],
+      "entrance": {
+        "x": 13250.0,
+        "y": 54.12,
+        "z": 31040.0,
+        "toward": [
+          13476.0,
+          31456.0
+        ]
+      },
+      "cap": 4,
+      "note": "Heirloom petition 3396 (the owner, 2026-11-28: a heroic dungeon for every raid): players land on the north-west beach (13250, 54.12, 31040), the first dry ground above the bay's water (its top 51), and swim the 465 to the whale bones, where Kratas rises in each party's copy (its trigger, world 14: tools/heroic_kratas_20261128.py)"
     }
   ]
 }

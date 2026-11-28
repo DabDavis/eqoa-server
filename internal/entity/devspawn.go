@@ -146,6 +146,28 @@ func (w *World) SpawnNPCCopy(name string, x, y, z, facing float32, world uint8) 
 	return c.ServerID, t.Name, true
 }
 
+// SpawnNPCCopyIn is SpawnNPCCopy in one copy of an instanced world: the copy stands
+// in instance inst from its first moment (never a copy of every instance, as 0 is),
+// and a dungeon's instance holds it among its creatures (taken away when it closes,
+// kept over a keep restart: dungeons.go). inst 0 is SpawnNPCCopy.
+func (w *World) SpawnNPCCopyIn(name string, x, y, z, facing float32, world uint8, inst uint32) (EntityID, string, bool) {
+	if inst == 0 {
+		return w.SpawnNPCCopy(name, x, y, z, facing, world)
+	}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	t := w.npcByNameForLocked(name, world)
+	if t == nil {
+		return 0, "", false
+	}
+	c := w.spawnCopyLocked(t, x, y, z, facing, world)
+	c.Instance = inst
+	if in := w.dungeons.insts[inst]; in != nil {
+		in.npcs = append(in.npcs, c.ServerID)
+	}
+	return c.ServerID, t.Name, true
+}
+
 // spawnCopyLocked is SpawnNPCCopy's copy of t, put in the world. Must be called
 // with the lock held.
 func (w *World) spawnCopyLocked(t *NPC, x, y, z, facing float32, world uint8) *NPC {

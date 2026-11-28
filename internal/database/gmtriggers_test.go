@@ -1,6 +1,7 @@
 package database
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 )
@@ -89,5 +90,20 @@ func TestTriggerMenuName(t *testing.T) {
 		if got := c.t.MenuName(); got != c.want {
 			t.Errorf("%q: %q, want %q", c.t.Name, got, c.want)
 		}
+	}
+}
+
+// A spawn step's exact (Heirloom petition 3517) reads from its JSON and is left out when false.
+func TestTriggerSpawnExactReads(t *testing.T) {
+	var s []TriggerStep
+	if err := json.Unmarshal([]byte(`[{"do":"spawn","npc":"#198764","exact":true,"y":69.6},{"do":"spawn","npc":"a"}]`), &s); err != nil {
+		t.Fatal(err)
+	}
+	if !s[0].Exact || s[1].Exact {
+		t.Errorf("exact read %v, %v", s[0].Exact, s[1].Exact)
+	}
+	b, _ := json.Marshal(s[1])
+	if strings.Contains(string(b), "exact") {
+		t.Errorf("a step without it writes %s", b)
 	}
 }

@@ -715,53 +715,66 @@ func TestMythicImpactsApart(t *testing.T) {
 	}
 }
 
-// Rising Heat: every 24 s from the pull, gates too; 360 on a player and 150 on a mercenary, from 17:00 into the fight
-// 180 and 75 more a pulse, to 1,080 and 450.
+// Drive the encounter clock, guard deaths and actual valve interactions. Both target categories keep the same
+// 24-second pulse schedule while the two gates freeze and restore different ordinary amounts.
 func TestMythicRisingHeat(t *testing.T) {
-	for ramp, want := range [][2]int{{360, 150}, {540, 225}, {720, 300}, {900, 375}, {1080, 450}, {1080, 450}, {1080, 450}} {
-		if p, m := MythicHeat(ramp); p != want[0] || m != want[1] {
-			t.Fatalf("ramp %d: %d / %d, want %v", ramp, p, m, want)
-		}
-	}
 	r := newMythic(t, 2)
 	r.group(r.ps...)
 	inst := r.enter(t, 0)
 	r.enter(t, 1)
 	boss := r.boss(t, inst)
-	p := r.ps[1]
-	p.X, p.Z = boss.X, boss.Z-20 // behind him: no breath
-	p.MaxHP, p.HP = 20000, 20000
-	r.pull(boss, r.ps[0])
-	r.toGate(t, inst, boss, 0) // a gate: the heat goes on
-	r.step(mythicHeatEvery - 300*time.Millisecond)
-	if p.HP != p.MaxHP {
-		t.Fatalf("heat before 24 s: %d", p.HP)
-	}
-	r.step(300 * time.Millisecond)
-	if p.MaxHP-p.HP != 360 {
-		t.Fatalf("the first pulse took %d, want 360", p.MaxHP-p.HP)
-	}
-	// past 17:00 (still at the gate: no breath, no brand)
-	var taken []int
-	for r.now.Sub(r.w.dungeons.insts[inst].enc.pulled) < 20*time.Minute {
-		p.HP = p.MaxHP
-		r.ps[0].HP = r.ps[0].MaxHP
-		r.step(mythicHeatEvery)
-		taken = append(taken, p.MaxHP-p.HP)
-	}
-	tail := taken[len(taken)-7:]
-	if tail[len(tail)-1] != 1080 {
-		t.Fatalf("the heat at 20:00 is %d, want 1,080 (%v)", tail[len(tail)-1], taken)
-	}
-	saw := map[int]bool{}
-	for _, n := range taken {
-		saw[n] = true
-	}
-	for _, n := range []int{360, 540, 720, 900, 1080} {
-		if !saw[n] {
-			t.Fatalf("no pulse of %d: %v", n, taken)
+	tank, player := r.ps[0], r.ps[1]
+	merc := &NPC{ServerID: 931000, Name: "healer", Owner: player.ServerID, World: player.World, Instance: inst,
+		X: player.X, Y: player.Y, Z: player.Z, Level: 60, HP: 20000, MaxHP: 20000}
+	merc.merc = &mercState{owner: player, npc: merc, slot: 1, body: &Player{HP: merc.HP, MaxHP: merc.MaxHP}}
+	r.w.putNPCLocked(merc)
+	r.w.mercs = map[EntityID][]*mercState{player.ServerID: {merc.merc}}
+	r.pull(boss, tank)
+
+	due := r.now.Add(mythicHeatEvery)
+	pulse := func(wantPlayer, wantMerc int) {
+		t.Helper()
+		if got := r.state(t, inst).NextHeat; !got.Equal(due) {
+			t.Fatalf("next heat at %v, want %v", got, due)
 		}
+		r.step(due.Sub(r.now) - 100*time.Millisecond)
+		playerHP, mercHP := player.HP, merc.HP
+		r.step(100 * time.Millisecond)
+		if gotPlayer, gotMerc := playerHP-player.HP, mercHP-merc.HP; gotPlayer != wantPlayer || gotMerc != wantMerc {
+			t.Fatalf("heat at %v took %d / %d, want %d / %d", due, gotPlayer, gotMerc, wantPlayer, wantMerc)
+		}
+		for _, p := range r.ps {
+			p.HP = p.MaxHP
+		}
+		merc.HP = merc.MaxHP
+		due = due.Add(mythicHeatEvery)
 	}
+
+	pulse(360, 150)
+	pulse(510, 300)
+	r.toGate(t, inst, boss, 0)
+	valves := r.state(t, inst).Valves
+	pulse(1020, 600)
+	r.killGuard(t, inst)
+	r.turn(t, tank, valves[0])
+	pulse(1020, 600) // killing the guard and letting one valve expire leaves overdrive active
+	r.turn(t, tank, valves[0])
+	r.turn(t, player, valves[1])
+	pulse(510, 300) // restore the amount before the giant appeared
+	pulse(660, 450)
+
+	r.toGate(t, inst, boss, 1)
+	pulse(1320, 900)
+	r.turn(t, tank, valves[1])
+	r.turn(t, player, valves[0])
+	if s := r.state(t, inst); s.Phase != "gate" || !s.Latched {
+		t.Fatalf("the valves should be open while the living guard holds the shield: %+v", s)
+	}
+	pulse(660, 450)
+	pulse(810, 600)
+	r.killGuard(t, inst)
+	pulse(960, 750) // shield release does not cool the same gate a second time
+	pulse(1110, 900)
 }
 
 // A wipe puts the room back to staging: no living player on the island for 3 s, and the boss is home at full
@@ -773,6 +786,7 @@ func TestMythicWipeResets(t *testing.T) {
 	r.enter(t, 1)
 	boss := r.boss(t, inst)
 	r.pull(boss, r.ps[0])
+	r.step(2 * mythicHeatEvery) // the first pull has already increased its heat
 	r.toGate(t, inst, boss, 0)
 	guard := r.state(t, inst).Guard
 	boss.X += 10
@@ -794,6 +808,11 @@ func TestMythicWipeResets(t *testing.T) {
 	r.pull(boss, r.ps[0])
 	if st := r.state(t, inst); st.Phase != "active" {
 		t.Fatalf("the next pull: %+v", st)
+	}
+	hp := r.ps[1].HP
+	r.step(mythicHeatEvery)
+	if got := hp - r.ps[1].HP; got != 360 {
+		t.Fatalf("first heat after wipe took %d, want 360", got)
 	}
 }
 

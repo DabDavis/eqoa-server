@@ -955,6 +955,7 @@ func TestMythicRisingHeat(t *testing.T) {
 	r.killGuard(t, inst)
 	r.turn(t, tank, valves[0])
 	pulse(2270, 596)              // the ramp rises even after the guard dies and the first turn expires
+	r.step(2 * time.Second)       // release between pulses so a timer restart would change the next due time
 	r.turn(t, r.ps[2], valves[0]) // the tank's hands are still burned from the missed pair
 	r.turn(t, player, valves[1])
 	pulse(1483, 443) // the shield's multiplier ends and the ramp advances
@@ -962,6 +963,7 @@ func TestMythicRisingHeat(t *testing.T) {
 
 	r.toGate(t, inst, boss, 1)
 	pulse(2873, 1018)
+	r.step(2 * time.Second)
 	r.turn(t, tank, valves[1])
 	r.turn(t, player, valves[0])
 	if s := r.state(t, inst); s.Phase != "gate" || !s.Latched {

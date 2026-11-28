@@ -248,3 +248,58 @@ func (db *SQLiteDB) NamedCharacter(name string) (named, gm bool, err error) {
 	}
 	return named, gm, rows.Err()
 }
+
+// SetMercSurnameAudited writes a character's merc's surname ("" none) with its
+// gm_audit row, the player named (handlers/mercsurname.go, petition 3430).
+func (db *SQLiteDB) SetMercSurnameAudited(serverID uint32, slot int, surname string, who GMEdit, detail string) error {
+	if _, err := db.Exec(GMAuditSchema); err != nil {
+		return err
+	}
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	who = auditWho(tx, who)
+	const sel = `SELECT * FROM charmerc WHERE serverid = ? AND slot = ?`
+	slot = max(slot, 1)
+	prev, err := fullRow(tx, sel, serverID, slot)
+	if err != nil {
+		return err
+	}
+	if prev == nil {
+		return fmt.Errorf("character %d has no mercenary %d", serverID, slot)
+	}
+	if _, err := tx.Exec(`UPDATE charmerc SET surname = ? WHERE serverid = ? AND slot = ?`, surname, serverID, slot); err != nil {
+		return err
+	}
+	after, err := fullRow(tx, sel, serverID, slot)
+	if err != nil {
+		return err
+	}
+	key := map[string]any{"serverid": int64(serverID), "slot": int64(slot)}
+	if _, err := auditRowChange(tx, who, "update", "charmerc", key, prev, after, detail); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+// MercSurnames is every merc's surname, by its name, the mercs with one alone:
+// what vanilla's plates are told beside the characters' (a merc's name is the
+// world's, petition 2409, so its name names it).
+func (db *SQLiteDB) MercSurnames() (map[string]string, error) {
+	rows, err := db.Query(`SELECT name, surname FROM charmerc WHERE surname != ''`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[string]string{}
+	for rows.Next() {
+		var name, surname string
+		if err := rows.Scan(&name, &surname); err != nil {
+			return nil, err
+		}
+		out[name] = surname
+	}
+	return out, rows.Err()
+}

@@ -301,6 +301,12 @@ func (m *Mercs) rename(sess *session.Session, p *entity.Player, rows []database.
 		return
 	}
 	m.gw.RenameMerc(p.CharServerID, slot, v.name) // out or on standby; resting, its row alone
+	// its surname follows its new name (mercsurname.go)
+	if row.Surname != "" {
+		if s := surnamesH.Load(); s != nil {
+			s.tell(surnamePair{row.Name, ""}, surnamePair{v.name, row.Surname})
+		}
+	}
 	SendClientMessage(sess, fmt.Sprintf(mercRenamedLine, row.Name, v.name))
 }
 

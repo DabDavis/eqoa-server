@@ -180,7 +180,13 @@ func (r *mythicRig) gateDone(t *testing.T, inst uint32, a, b *Player) {
 	t.Helper()
 	st := r.state(t, inst)
 	if st.Gates > 0 {
-		r.step(mythicBurnedHandsFor) // the fixture reuses the previous gate's valve operators
+		// Keep the fixture group healed while the previous operators wait for Burned hands to expire.
+		for until := r.now.Add(mythicBurnedHandsFor); r.now.Before(until); {
+			r.step(time.Second)
+			for _, p := range r.ps {
+				p.HP = p.MaxHPNow()
+			}
+		}
 	}
 	r.killGuard(t, inst)
 	r.turn(t, a, st.Valves[0])
@@ -553,6 +559,7 @@ func TestMythicMercsAloneStallAtTheFirstGate(t *testing.T) {
 	}
 	id := EntityID(931000)
 	for _, p := range r.ps {
+		p.HP, p.MaxHP = 30_000, 30_000 // survive the late doubled pulses between the test's heals
 		for slot := 1; slot <= MercSlots; slot++ {
 			n := &NPC{ServerID: id, Name: fmt.Sprintf("merc%d", id), Level: 60, HP: 9000, MaxHP: 9000, X: p.X, Y: p.Y, Z: p.Z,
 				World: 18, Instance: inst, Owner: p.ServerID}
@@ -579,11 +586,9 @@ func TestMythicMercsAloneStallAtTheFirstGate(t *testing.T) {
 	}
 }
 
-// Furnace Breath: its warning 18 s after the pull at the soonest; here the first heat pulse (24 s) would fall a
-// second before its impact (25 s), so it waits until its impact is 3 s past the pulse (its warning at 20 s, its
-// impact at 27 s). Its cone is frozen toward the tank as it begins (the tank's step aside after does not move it),
-// its impact 7 s on, the next 32 s after it began; it lands at most 25% of a player's most hit points and 12% of a
-// mercenary's, on those in the cone alone; his swings pause round the impact.
+// Furnace Breath warns 18 s after the pull and lands 7 s later. Its cone stays aimed at the tank's position
+// at the warning. Targets in the cone take at most 25% of a player's maximum HP or 12% of a mercenary's.
+// Nagafen pauses swings around the impact and schedules the next warning 32 s from this one.
 func TestMythicBreath(t *testing.T) {
 	r := newMythic(t, 3)
 	r.group(r.ps...)
@@ -608,15 +613,15 @@ func TestMythicBreath(t *testing.T) {
 	r.w.mu.Unlock()
 	r.pull(boss, tank)
 	pulled := r.now
-	r.step(20*time.Second - 200*time.Millisecond)
+	r.step(18*time.Second - 200*time.Millisecond)
 	if st := r.state(t, inst); !st.BreathImpact.IsZero() {
-		t.Fatalf("a breath before 20 s: %+v", st)
+		t.Fatalf("a breath before 18 s: %+v", st)
 	}
 	r.step(200 * time.Millisecond)
 	st := r.state(t, inst)
 	began := r.now
-	if want := pulled.Add(27 * time.Second); st.BreathImpact.Sub(want).Abs() > 150*time.Millisecond {
-		t.Fatalf("its impact at %v, want 27s", st.BreathImpact.Sub(pulled))
+	if want := pulled.Add(25 * time.Second); st.BreathImpact.Sub(want).Abs() > 150*time.Millisecond {
+		t.Fatalf("its impact at %v, want 25s", st.BreathImpact.Sub(pulled))
 	}
 	if !mythicHasLine(redLines(r.ss[1]), "furnace breath toward Mythic0") {
 		t.Fatalf("the warning not told: %q", lines(r.ss[1]))
@@ -624,7 +629,7 @@ func TestMythicBreath(t *testing.T) {
 	// the tank steps aside after the warning began: the cone stays where it was aimed
 	tank.X = boss.X + 30
 	r.step(mythicBreathWarn - mythicPauseBefore)
-	for _, p := range []*Player{tank, in, out} { // the heat pulse at 24 s healed off
+	for _, p := range []*Player{tank, in, out} { // heal off the heat pulse at 20 s
 		p.HP = p.MaxHP
 	}
 	m.HP = m.MaxHP
@@ -893,9 +898,17 @@ func TestMythicImpactsApart(t *testing.T) {
 	}
 }
 
-// Drive the encounter clock, guard deaths and actual valve interactions. Both target categories keep the same
-// 24-second pulse schedule while successive gates freeze and restore different ordinary amounts.
+// Rising Heat ramps every 20 s, including through successive valve shields. Each shield doubles the pulse until
+// both valves are open and the guard is down. Mercenaries take 70% of their ordinary amount before doubling.
 func TestMythicRisingHeat(t *testing.T) {
+	const targetPulse = 30
+	if at := targetPulse * mythicHeatEvery; at != 10*time.Minute {
+		t.Fatalf("pulse %d scheduled at %v, want 10m", targetPulse, at)
+	}
+	if player, merc := MythicHeat(targetPulse - 1); player != 4500 || merc != 2555 {
+		t.Fatalf("pulse %d: %d / %d, want 4500 / 2555", targetPulse, player, merc)
+	}
+
 	r := newMythic(t, 4)
 	r.group(r.ps[:3]...)
 	inst := r.enter(t, 0)
@@ -907,7 +920,7 @@ func TestMythicRisingHeat(t *testing.T) {
 	boss := r.boss(t, inst)
 	tank, player, outsider := r.ps[0], r.ps[1], r.ps[3]
 	r.w.mu.Lock()
-	merc := r.w.spawnMercLocked(player, 1, MercKit{Name: "raid mercenary"}, MercAssist, r.now).npc
+	merc := r.w.spawnMercLocked(player, 1, MercKit{Name: "raid mercenary", Gear: Gear{MaxHP: 2_000}}, MercAssist, r.now).npc
 	otherMerc := r.w.spawnMercLocked(outsider, 1, MercKit{Name: "solo mercenary"}, MercAssist, r.now).npc
 	r.w.mu.Unlock()
 	r.pull(boss, tank)
@@ -934,31 +947,30 @@ func TestMythicRisingHeat(t *testing.T) {
 		due = due.Add(mythicHeatEvery)
 	}
 
-	pulse(360, 150)
-	pulse(510, 300)
+	pulse(1000, 105)
+	pulse(1121, 189)
 	r.toGate(t, inst, boss, 0)
 	valves := r.state(t, inst).Valves
-	pulse(1020, 600)
+	pulse(2482, 546)
 	r.killGuard(t, inst)
 	r.turn(t, tank, valves[0])
-	pulse(1020, 600)              // killing the guard and letting one valve expire leaves overdrive active
+	pulse(2724, 716)              // the ramp rises even after the guard dies and the first turn expires
 	r.turn(t, r.ps[2], valves[0]) // the tank's hands are still burned from the missed pair
 	r.turn(t, player, valves[1])
-	pulse(510, 300) // restore the amount before the giant appeared
-	pulse(660, 450)
+	pulse(1483, 443) // the shield's multiplier ends and the ramp advances
+	pulse(1603, 527)
 
 	r.toGate(t, inst, boss, 1)
-	pulse(1320, 900)
+	pulse(3448, 1222)
 	r.turn(t, tank, valves[1])
 	r.turn(t, player, valves[0])
 	if s := r.state(t, inst); s.Phase != "gate" || !s.Latched {
 		t.Fatalf("the valves should be open while the living guard holds the shield: %+v", s)
 	}
-	pulse(660, 450)
-	pulse(810, 600)
+	pulse(3690, 1392)
+	pulse(3932, 1562)
 	r.killGuard(t, inst)
-	pulse(960, 750) // shield release does not cool the same gate a second time
-	pulse(1110, 900)
+	pulse(2086, 865)
 }
 
 // A wipe puts the room back to staging: no living player on the island for 3 s, and the boss is home at full
@@ -995,8 +1007,8 @@ func TestMythicWipeResets(t *testing.T) {
 	}
 	hp := r.ps[1].HP
 	r.step(mythicHeatEvery)
-	if got := hp - r.ps[1].HP; got != 360 {
-		t.Fatalf("first heat after wipe took %d, want 360", got)
+	if got := hp - r.ps[1].HP; got != 1000 {
+		t.Fatalf("first heat after wipe took %d, want 1000", got)
 	}
 }
 

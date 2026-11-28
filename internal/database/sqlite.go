@@ -1017,6 +1017,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureHardcore(); err != nil { // hardcore.go: [HC] Hardcore characters and their falls
 		return err
 	}
+	if err := db.ensureNPCHidden(); err != nil { // npchidden.go: the rows a GM's /delete hid (the owner, 2026-11-28)
+		return err
+	}
 	if err := db.ensureSurname(); err != nil { // surname.go: a character's surname (Live petition 5648)
 		return err
 	}

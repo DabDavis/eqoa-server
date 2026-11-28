@@ -104,24 +104,25 @@ func TestPlaceSpawnOnlyNameStands(t *testing.T) {
 		t.Fatal("the clone stands out of the world")
 	}
 
-	// /delete takes the exemption with the row; undo puts both back
+	// /delete hides the row, its exemption kept with it (the owner, 2026-11-28: nothing leaves the database); undo
+	// brings it back standing
 	targetAs(gp, entity.EntityID(nid), 100300, gs)
 	c.say(gs, "/delete")
-	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Deleted filth squid (row %d), with its npcstands.", nid)) {
+	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Deleted filth squid (row %d) from the world: hidden, kept in the database.", nid)) {
 		t.Fatalf("/delete: %q", l)
 	}
-	if n := count(t, db, `SELECT COUNT(*) FROM npcstands WHERE npc_row = ?`, nid); n != 0 {
-		t.Fatal("the exemption outlived its row")
+	if n := count(t, db, `SELECT COUNT(*) FROM npcstands WHERE npc_row = ?`, nid); n != 1 {
+		t.Fatal("the exemption was not kept")
 	}
 	if _, ok := c.gw.NPCStateOf(entity.EntityID(nid)); ok {
 		t.Fatal("the deleted row is in the world")
 	}
 	c.say(gs, "/delete undo")
-	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Put back filth squid (row %d)", nid)) || !hasLine(l, "npcstands") {
+	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Put back filth squid (row %d)", nid)) || !hasLine(l, "its rows were kept") {
 		t.Fatalf("/delete undo: %q", l)
 	}
 	if n := count(t, db, `SELECT COUNT(*) FROM npcstands WHERE npc_row = ?`, nid); n != 1 {
-		t.Fatal("undo did not put the exemption back")
+		t.Fatal("the exemption is gone after the undo")
 	}
 	if spawnOnly(nid) || !spawnOnly(121) {
 		t.Fatal("after undo the row is not standing (or the others are)")

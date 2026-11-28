@@ -46,8 +46,12 @@ func TestPlaceholderSurvivesDeletingItsOnlyNamedSpawn(t *testing.T) {
 	if got := gmReplies(t, gs); !hasLine(got, "Deleted pariah of Xrag") {
 		t.Fatal(got)
 	}
-	if n := count(t, db, "SELECT COUNT(*) FROM npcs WHERE npc_name = 'pariah of Xrag'"); n != 0 {
+	// hidden, kept in the database (the owner, 2026-11-28): no fixed rare spawn of the shard's remains
+	if n := count(t, db, "SELECT COUNT(*) FROM npcs WHERE npc_name = 'pariah of Xrag' AND id NOT IN (SELECT npc_row FROM npchidden)"); n != 0 {
 		t.Fatalf("%d fixed rare spawns remain", n)
+	}
+	if n := count(t, db, "SELECT COUNT(*) FROM npcs WHERE npc_name = 'pariah of Xrag'"); n != 1 {
+		t.Fatalf("the hidden row is not kept: %d rows", n)
 	}
 	if _, err := c.gw.LoadCampSpawns(db); err != nil {
 		t.Fatal(err)

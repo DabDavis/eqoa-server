@@ -1215,7 +1215,8 @@ func (q *QuestEngine) LoggedIn(serverID uint32) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	if c := q.chars[serverID]; c != nil {
-		c.windowOffered, c.windowNotYet, c.declined, c.dismissed = nil, nil, nil, nil
+		// the pointers it deleted stay deleted (Heirloom petition 3467)
+		c.windowOffered, c.windowNotYet, c.declined = nil, nil, nil
 		c.atPlace, c.placeBox, c.placeQuest = nil, 0, 0 // a login at a quest's place is a coming in (questplaceoffer.go)
 		c.nearAt = nil                                  // so is one at a step's near place (questnear.go)
 	} else if q.store != nil {

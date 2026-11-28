@@ -75,7 +75,7 @@ func TestAFinishedQuestPointsToTheNextGiver(t *testing.T) {
 // The pointer's rules: none for a quest the player may not take yet (level),
 // none with the flag off, none when the finished quest ended at the next
 // one's giver; a quest under way keeps its place before it, and the
-// player's delete of it is kept for the session.
+// player's delete of it is kept over logins.
 func TestNextGiverPointerRules(t *testing.T) {
 	f, _, _ := pointerFixture(t)
 	f.exec(`INSERT INTO charquests (serverid, questid, step, done, updated) VALUES (?, 20001, 0, 1, '2026-11-11')`, f.sid)
@@ -132,9 +132,28 @@ func TestNextGiverPointerRules(t *testing.T) {
 	if m := f.msgs(); len(m) != 0 {
 		t.Errorf("a deleted pointer came back: %q", m)
 	}
+	// a login keeps the delete (Heirloom petition 3467: it came back at every
+	// login), a restart's fresh read too
 	f.qe.LoggedIn(f.sid)
+	if _, lines := f.qe.JournalFor(f.tw.s, f.tw.p); len(lines) != 1 {
+		t.Errorf("after a login the deleted pointer is back: %q", lines)
+	}
+	f.qe.ReloadCharacter(f.sid)
+	if _, lines := f.qe.JournalFor(f.tw.s, f.tw.p); len(lines) != 1 {
+		t.Errorf("after a fresh read the deleted pointer is back: %q", lines)
+	}
+	var kept int
+	f.qe.db.QueryRow(`SELECT COUNT(*) FROM charquestpointers WHERE serverid = ? AND questid = 20002`, f.sid).Scan(&kept)
+	if kept != 1 {
+		t.Errorf("the delete kept in %d rows", kept)
+	}
+	// a delete forgotten (as an NPC's send-on does) points again
+	if err := f.qe.store.RestorePointer(f.sid, 20002); err != nil {
+		t.Fatal(err)
+	}
+	f.qe.ReloadCharacter(f.sid)
 	if _, lines := f.qe.JournalFor(f.tw.s, f.tw.p); len(lines) != 2 {
-		t.Errorf("after a login the pointer is back: %q", lines)
+		t.Errorf("with the delete forgotten the pointer is not back: %q", lines)
 	}
 
 	// a quest that ended at the next one's giver points nowhere
@@ -223,6 +242,11 @@ func TestTheLastGiverSendsThePlayerOn(t *testing.T) {
 	f.want(f.msgs(), `box:Ozmo da Basher: I have nothing more for you. For "The Breastplate and the Leggings", find Tilvyis S`+"`"+`Lynx in the south of Neriak west of the coachman.`)
 	f.qe.syncPointers()
 	f.want(f.msgs(), "add:"+tilvyisLine)
+	var kept int
+	f.qe.db.QueryRow(`SELECT COUNT(*) FROM charquestpointers WHERE serverid = ?`, f.sid).Scan(&kept)
+	if kept != 0 {
+		t.Errorf("sent on, the delete is still kept (%d rows)", kept)
+	}
 
 	// taken at Tilvyis: Ozmo has nothing to say of it
 	f.tw.talk(tilvyis)

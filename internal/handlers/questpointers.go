@@ -44,8 +44,10 @@ import (
 // S's own. They come last and only into the room the quests under way leave
 // (CLIENT's eight lines), at most pointerCap of them, the last saying how
 // many more there are; a quest taken takes their room first (addLineLocked).
-// A player who deletes one (0x007D) is not shown it again until the next
-// login. quests.next_giver_pointer false turns them off.
+// A player who deletes one (0x007D) is not shown it again, over logins too
+// (table charquestpointers; Heirloom petition 3467: a deleted line came back
+// at every login for three days), until an NPC sends the player on to that
+// quest again (SendOn). quests.next_giver_pointer false turns them off.
 
 // pointerCap is the most pointer lines a journal shows.
 const pointerCap = 3
@@ -299,7 +301,12 @@ func (q *QuestEngine) SendOn(sess *session.Session, p *entity.Player, npc *entit
 				where = " " + where
 			}
 			c.box = nil
-			delete(c.dismissed, s.ID)
+			if c.dismissed[s.ID] {
+				delete(c.dismissed, s.ID)
+				if err := q.store.RestorePointer(c.serverID, s.ID); err != nil {
+					log.Printf("Quests: %s's deleted pointer to %d: %v", p.Name, s.ID, err)
+				}
+			}
 			q.tellLocked(c, sess, npc.Name, fmt.Sprintf(questSendOn, strings.TrimSpace(s.Name), strings.TrimSpace(s.Giver), where))
 			log.Printf("Quests: %s sends %s on to %s for %q", npc.Name, p.Name, s.Giver, s.Name)
 			return true
@@ -522,7 +529,7 @@ func (q *QuestEngine) stripPointersLocked(sess *session.Session, c *questChar) {
 }
 
 // dropPointerLocked is the player's delete of a pointer's line (0x007D at idx,
-// past the quests under way): not shown again this session. It reports
+// past the quests under way): not shown again, kept over logins. It reports
 // whether idx was a pointer's.
 func (q *QuestEngine) dropPointerLocked(sess *session.Session, c *questChar, idx int) bool {
 	first := len(c.shown) - len(c.pointerIDs)
@@ -532,7 +539,11 @@ func (q *QuestEngine) dropPointerLocked(sess *session.Session, c *questChar, idx
 	if c.dismissed == nil {
 		c.dismissed = map[int]bool{}
 	}
-	c.dismissed[c.pointerIDs[idx-first]] = true
+	id := c.pointerIDs[idx-first]
+	c.dismissed[id] = true
+	if err := q.store.DropPointer(c.serverID, id, time.Now()); err != nil {
+		log.Printf("Quests: keeping character %d's deleted pointer to %d: %v", c.serverID, id, err)
+	}
 	q.dropLineLocked(sess, c, idx)
 	q.nudge()
 	return true

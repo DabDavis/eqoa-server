@@ -47,7 +47,7 @@ import (
 //     either: a warning that would break that waits until it does not, and its next comes from when it began.
 //   - Rising Heat pulses every 20 s, starting at 1,000 damage to players and rising to 4,500 at 10 min on the
 //     nominal schedule. Mercenaries take 70% of the damage calculated from a 150 base and the same ramp.
-//     The valve shield doubles each pulse as the ramp continues.
+//     The valve shield boosts each pulse to 5/3 of normal, reaching 7,500 on players at 10 min as the ramp continues.
 //   - A wipe (no living player of the instance on the island for mythicWipeGrace, or the boss out of every fight for
 //     mythicIdleGrace outside a gate) puts the room back to staging: the boss at his spawn at full health, his gates
 //     closed again, the guard and the pools gone. His death completes the instance, once.
@@ -102,6 +102,7 @@ const (
 	mythicHeatMercPct      = 70
 	mythicHeatTargetDamage = 4500
 	mythicHeatTargetTime   = 10 * time.Minute
+	mythicHeatValveTarget  = 7500
 
 	mythicWipeGrace = 3 * time.Second
 	mythicIdleGrace = 6 * time.Second
@@ -145,7 +146,7 @@ const (
 	mythicLineBreath    = "Lord Nagafen draws a furnace breath toward %s! Get out of its path!"
 	mythicLineBreathHit = "Furnace Breath burns you for %d."
 	mythicLineDropped   = "The forge's pull smothers the fire he was gathering."
-	mythicLineGate      = "Lord Nagafen shields himself as a Fire Giant Forgeguard appears! Rising Heat doubles while the shield holds. Slay the guard. Two heroes must turn the East and West Valves within 15 seconds of each other to cool the forge."
+	mythicLineGate      = "Lord Nagafen shields himself as a Fire Giant Forgeguard appears! Rising Heat intensifies while the shield holds. Slay the guard. Two heroes must turn the East and West Valves within 15 seconds of each other to cool the forge."
 	mythicLineTurned    = "%s turns the %s! The %s must turn within 15 seconds, by another hand."
 	mythicLinePair      = "%s turns the %s and both valves stand open."
 	mythicLinePairWait  = "Both valves stand open. The shield fails when the Forgeguard falls."
@@ -970,8 +971,8 @@ func (w *World) mythicHeatStepLocked(f *mythicFight, now time.Time) {
 	}
 	pn, mn := MythicHeat(f.heatPulses)
 	if f.phase == mythicGate {
-		pn *= 2
-		mn *= 2
+		pn = pn * mythicHeatValveTarget / mythicHeatTargetDamage
+		mn = mn * mythicHeatValveTarget / mythicHeatTargetDamage
 	}
 	boss := w.NPCs[f.boss]
 	for _, p := range w.mythicPlayersLocked(f) {

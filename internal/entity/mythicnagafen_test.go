@@ -898,8 +898,8 @@ func TestMythicImpactsApart(t *testing.T) {
 	}
 }
 
-// Rising Heat ramps every 20 s, including through successive valve shields. Each shield doubles the pulse until
-// both valves are open and the guard is down. Mercenaries take 70% of their ordinary amount before doubling.
+// Rising Heat ramps every 20 s, including through successive valve shields. The shield bonus lasts until both
+// valves are open and the guard is down. Mercenaries take 70% of their ordinary amount before the shield bonus.
 func TestMythicRisingHeat(t *testing.T) {
 	const targetPulse = 30
 	if at := targetPulse * mythicHeatEvery; at != 10*time.Minute {
@@ -920,7 +920,7 @@ func TestMythicRisingHeat(t *testing.T) {
 	boss := r.boss(t, inst)
 	tank, player, outsider := r.ps[0], r.ps[1], r.ps[3]
 	r.w.mu.Lock()
-	merc := r.w.spawnMercLocked(player, 1, MercKit{Name: "raid mercenary", Gear: Gear{MaxHP: 2_000}}, MercAssist, r.now).npc
+	merc := r.w.spawnMercLocked(player, 1, MercKit{Name: "raid mercenary", Gear: Gear{MaxHP: 4_000}}, MercAssist, r.now).npc
 	otherMerc := r.w.spawnMercLocked(outsider, 1, MercKit{Name: "solo mercenary"}, MercAssist, r.now).npc
 	r.w.mu.Unlock()
 	r.pull(boss, tank)
@@ -951,26 +951,29 @@ func TestMythicRisingHeat(t *testing.T) {
 	pulse(1121, 189)
 	r.toGate(t, inst, boss, 0)
 	valves := r.state(t, inst).Valves
-	pulse(2482, 546)
+	pulse(2068, 455)
 	r.killGuard(t, inst)
 	r.turn(t, tank, valves[0])
-	pulse(2724, 716)              // the ramp rises even after the guard dies and the first turn expires
+	pulse(2270, 596)              // the ramp rises even after the guard dies and the first turn expires
 	r.turn(t, r.ps[2], valves[0]) // the tank's hands are still burned from the missed pair
 	r.turn(t, player, valves[1])
 	pulse(1483, 443) // the shield's multiplier ends and the ramp advances
 	pulse(1603, 527)
 
 	r.toGate(t, inst, boss, 1)
-	pulse(3448, 1222)
+	pulse(2873, 1018)
 	r.turn(t, tank, valves[1])
 	r.turn(t, player, valves[0])
 	if s := r.state(t, inst); s.Phase != "gate" || !s.Latched {
 		t.Fatalf("the valves should be open while the living guard holds the shield: %+v", s)
 	}
-	pulse(3690, 1392)
-	pulse(3932, 1562)
-	r.killGuard(t, inst)
-	pulse(2086, 865)
+	pulse(3075, 1160)
+	pulse(3276, 1301)
+	for steps := 9; steps < targetPulse-1; steps++ {
+		player, merc := MythicHeat(steps)
+		pulse(player*5/3, merc*5/3)
+	}
+	pulse(7500, 4258)
 }
 
 // A wipe puts the room back to staging: no living player on the island for 3 s, and the boss is home at full

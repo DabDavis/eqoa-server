@@ -157,6 +157,19 @@ type factionCombo struct{ race, class, hum int }
 // raceFroglok is the race slot the froglok takes (handlers.RaceFroglok).
 const raceFroglok = 10
 
+// froglokInHeroicGukLocked checks the character's race and their shared dungeon instance.
+func (w *World) froglokInHeroicGukLocked(p *Player, npc *NPC) bool {
+	if p.Race != raceFroglok || npc.Instance == 0 || p.World != npc.World || p.Instance != npc.Instance {
+		return false
+	}
+	in := w.dungeons.insts[npc.Instance]
+	if in == nil {
+		return false
+	}
+	d := w.dungeons.defs[in.def]
+	return d.Key == "guk" && d.World == npc.World
+}
+
 // comboOf is the combo a character's starts are read for: a froglok as a
 // human of the east (the city it starts in, database.startPlace), a human
 // of no west city (humType 2) as the east's, and every other race's home city
@@ -771,6 +784,9 @@ func (w *World) factionKillLocked(sess *session.Session, p *Player, npc *NPC) {
 	// rule, the experience's and the quests'): each takes the hits (petition
 	// 5078, a player, 2026-11-14: only the killer's standings moved)
 	for _, m := range w.killSharersLocked(p, npc) {
+		if w.froglokInHeroicGukLocked(m, npc) {
+			continue
+		}
 		ms := sess
 		if m != p {
 			ms = w.sessionOfLocked(m)

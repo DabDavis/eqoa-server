@@ -414,7 +414,8 @@ func (w *World) threatensLocked(npc *NPC, p *Player) bool {
 			return false
 		}
 	}
-	if f, ok := w.factionAggroLocked(npc); ok {
+	// Frogloks in Heroic Guk follow the dungeon's aggro rules regardless of standing.
+	if f, ok := w.factionAggroLocked(npc); ok && !w.froglokInHeroicGukLocked(p, npc) {
 		if p.disguised(time.Now()) {
 			return false // a disguise: no faction attacks it on sight (workbookmore.go)
 		}

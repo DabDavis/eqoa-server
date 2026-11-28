@@ -1333,6 +1333,27 @@ var catalog = map[string]tableNote{
 			"source":     {Label: "Source", Help: "gm, or seed for tools/seed_npc_aggro.py's rows (its --undo deletes those)"},
 		},
 	},
+	"npcaggroplace": {
+		Label: "Creature aggro by place", Group: "World", Title: "npc_name", Sort: "npc_name",
+		Help: "Whether the creatures of one name that spawned in one place attack a player on sight, over the " +
+			"Creature aggro row for the name (entity/aggro.go): those that spawned within radius of (x, z) in the world " +
+			"attack on sight (aggressive 1) or never (0); the name's row still gives their radius, leash, see_invis, " +
+			"holds and greens. The smallest place holding a creature decides; a radius of 0 holds nothing. By NPC name " +
+			"as NPC classes key it (any case). Heirloom petition 3508: the Unkempt Woods' werewolves attack, every other " +
+			"werewolf left peaceful by its name's row.",
+		Live:   "At once: the next look round (half a second) and the next target box use it.",
+		Search: []string{"npc_name", "note"},
+		Cols: map[string]colNote{
+			"npc_name":   {Label: "NPC name", Help: "as NPC classes key it: any case, no trailing space or $"},
+			"world":      {Label: "World"},
+			"x":          {Label: "Place x", Help: "the middle of the place"},
+			"z":          {Label: "Place z"},
+			"radius":     {Label: "Radius", Help: "the NPCs that spawned this near (x, z); 0 holds none"},
+			"aggressive": {Label: "Attacks on sight", Help: "1 yes, 0 never"},
+			"note":       {Label: "Note"},
+			"source":     {Label: "Source", Help: "gm"},
+		},
+	},
 	"raidbosslist": {
 		Label: "Raid boss list", Group: "World", Title: "npc_name", Sort: "npc_name",
 		Help: "The raid bosses a GM's #raidboss lists when they are up, by NPC NAME (lower case, no trailing $; every NPC " +

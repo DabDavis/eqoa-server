@@ -37,6 +37,7 @@ const DOS = {
   trigger: 'Fire a GM trigger',
   classquest: "Finish the player's city class quest of a level too",
   die: 'An NPC near the player dies',
+  playerdeath: 'The player dies (no debt); the events after it wait for the respawn',
 };
 
 export async function render(box, parts) {

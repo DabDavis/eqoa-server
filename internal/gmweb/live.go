@@ -39,7 +39,7 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveCharacter(a, action, before, after)
 	case "factions", "factionhits", "factionstart", "npcfaction", "factionrefusetalk":
 		return s.liveFactions(t.Name)
-	case "npcaggro":
+	case "npcaggro", "npcaggroplace":
 		return s.liveAggro()
 	case "npcrespawn":
 		return s.liveRespawn()

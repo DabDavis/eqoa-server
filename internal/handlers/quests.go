@@ -1025,7 +1025,10 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 	// blades, 101674's hand-in at the Akessan Agent, kept the Agent refusing
 	// and never offering 101665, the quest before them in his line)
 	refusal := q.handInRefusalLocked(look, p, c, npc.Name)
-	if q.stepAtLocked(sess, p, c, look, npc.Name, npc.ServerID, false) {
+	// a step the giver will not do for the player's standing is said only
+	// when it has nothing else either (Heirloom petitions 3519/3532)
+	stepped, wontDeal := q.stepAtLineLocked(sess, p, c, look, npc.Name, npc.ServerID, false)
+	if stepped {
 		q.offerAfterFinishLocked(sess, p, c, npc.Name, done)
 		return true
 	}
@@ -1039,6 +1042,11 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 	}
 	if refusal != "" {
 		q.tellLocked(c, sess, npc.Name, refusal)
+		return true
+	}
+	if wontDeal != "" {
+		q.tellLocked(c, sess, "", wontDeal)
+		log.Printf("Quests: %s: %s", p.Name, wontDeal)
 		return true
 	}
 	if line := q.untrustedLocked(look, p, c, npc.Name); line != "" {
@@ -1131,7 +1139,26 @@ func (q *QuestEngine) TalkStep(sess *session.Session, p *entity.Player, name str
 // another quest's at the same NPC (until 2026-11-07 the first in the journal
 // answered, whatever the player held).
 func (q *QuestEngine) stepAtLocked(sess *session.Session, p *entity.Player, c *questChar, look *factionLook, name string, spawn entity.EntityID, ready bool) bool {
-	wontDeal := ""
+	done, wontDeal := q.stepAtLineLocked(sess, p, c, look, name, spawn, ready)
+	if done {
+		return true
+	}
+	if wontDeal != "" && !ready {
+		q.tellLocked(c, sess, "", wontDeal)
+		log.Printf("Quests: %s: %s", p.Name, wontDeal)
+		return true
+	}
+	return false
+}
+
+// stepAtLineLocked is stepAtLocked that does a step but leaves the giver's
+// refusal unsaid: done whether a step answered, else wontDeal the line of the
+// first quest under way whose giver the player's standing keeps from its step
+// ("" none). Talk says it only when the giver has nothing else for the player
+// (Heirloom petitions 3519/3532: a repeatable taken again and left at a cap,
+// Hinder the Siloths, kept Djivan Mertshak saying "too high" and never
+// offering his other quests).
+func (q *QuestEngine) stepAtLineLocked(sess *session.Session, p *entity.Player, c *questChar, look *factionLook, name string, spawn entity.EntityID, ready bool) (done bool, wontDeal string) {
 	for _, cq := range c.active() {
 		qu := q.cat.byID[cq.QuestID]
 		if qu == nil || q.heldLocked(qu.ID) { // held for an edit: questdefgate.go
@@ -1154,15 +1181,10 @@ func (q *QuestEngine) stepAtLocked(sess *session.Session, p *entity.Player, c *q
 				continue
 			}
 			q.atNPCLocked(sess, p, c, qu, cq, st, false, -1)
-			return true
+			return true, ""
 		}
 	}
-	if wontDeal != "" && !ready {
-		q.tellLocked(c, sess, "", wontDeal)
-		log.Printf("Quests: %s: %s", p.Name, wontDeal)
-		return true
-	}
-	return false
+	return false, wontDeal
 }
 
 // nextOfferLocked is the quest a giver offers the player now, or nil: the

@@ -598,3 +598,38 @@ func TestAGiverSaysWhoseTrustItWants(t *testing.T) {
 		t.Errorf("at the standing it asks: %q", m)
 	}
 }
+
+// Heirloom petitions 3519/3532: a quest under way whose giver the player's
+// standing now keeps from its step (Hinder the Siloths taken again, the
+// Gypsies standing past its cap) no longer stands in the way of the giver's
+// other quests: it offers them, and says the refusal only when it has
+// nothing else.
+func TestAGiversRefusedStepDoesNotHideItsOtherQuests(t *testing.T) {
+	f := newQuestFixture(t)
+	f.tw.p.HP = 100
+	holt := f.tw.add(1, &entity.NPC{ServerID: 711, Name: "Warden Holt", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
+	f.exec(`UPDATE quests SET enabled = 0 WHERE questid = 10010`)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, repeatable, factionreq) VALUES (60, 'Low work', 1, 'Warden Holt', 1, 'Testmoor Watch:-2000..100')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (60, 1, 'talk', 'Warden Holt', 'Report to Holt.')`)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, offer, accept) VALUES (61, 'Other work', 1, 'Warden Holt', 'Another job.', 'I will.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (61, 1, 'talk', 'Kellina', 'See Kellina.')`)
+	f.exec(`INSERT INTO charquests (serverid, questid, step, done, updated) VALUES (?, 60, 1, 1, '2026-11-28')`, f.sid)
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	f.qe.ReloadCharacter(f.sid)
+	f.msgs()
+	f.standWith("Testmoor Watch", 2000)
+
+	f.tw.talk(holt)
+	m := f.msgs()
+	f.want(m, "ask#*")
+	f.tw.pick(boxID(m), 0)
+	f.want(f.msgs(), "add:See Kellina.", "box:"+questReceived)
+
+	// nothing else to offer: the refusal is said
+	f.tw.talk(holt)
+	if m := f.msgs(); len(m) != 1 || m[0] != "box:Warden Holt will not deal with you: your standing with Testmoor Watch is too high." {
+		t.Fatalf("with nothing else, the refusal: %q", m)
+	}
+}

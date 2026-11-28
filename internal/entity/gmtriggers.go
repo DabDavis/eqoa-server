@@ -40,6 +40,19 @@ func (w *World) SpawnEventNPCFacingIn(name string, world uint8, inst uint32, cx,
 	if fy, ok := w.GroundFloor(world, x, cy+3, z); ok && fy-cy <= triggerFloorReach && cy-fy <= triggerFloorReach {
 		y = fy
 	}
+	return w.spawnEventNPCAt(name, world, inst, cx, cz, x, y, z, face, hostile)
+}
+
+// SpawnEventNPCExactIn is SpawnEventNPCFacingIn at the place's own height (cy),
+// never put down on the ground's floor: a trigger spawn step's exact (Heirloom
+// petition 3517: the Thulite Golem's anvil in its hut is a floor the ground
+// files lack, so the floor under it, 15.7 down in a tree, took him).
+func (w *World) SpawnEventNPCExactIn(name string, world uint8, inst uint32, cx, cy, cz, x, z, face float32, hostile bool) (EntityID, string, bool) {
+	return w.spawnEventNPCAt(name, world, inst, cx, cz, x, cy, z, face, hostile)
+}
+
+// spawnEventNPCAt is a trigger's spawn at (x, y, z), facing face (negative: (cx, cz)).
+func (w *World) spawnEventNPCAt(name string, world uint8, inst uint32, cx, cz, x, y, z, face float32, hostile bool) (EntityID, string, bool) {
 	facing := float32(0)
 	if face >= 0 {
 		facing = face

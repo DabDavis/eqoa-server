@@ -84,3 +84,31 @@ func TestATriggersSpawnFacesItsCompassPoint(t *testing.T) {
 		t.Error("a face that is no compass point was taken")
 	}
 }
+
+// A spawn step's exact (Heirloom petition 3517): the Thulite Golem woken on his anvil in the
+// hut (y 69.6) stood 15.7 under it in a tree, the floor the ground files hold there (53.9:
+// the hut's is not among them). A plain spawn is still put down on that floor, within
+// triggerFloorReach; an exact one keeps the place's height, in an instance too.
+func TestATriggersExactSpawnKeepsThePlacesHeight(t *testing.T) {
+	f := newAggroFix(t, 60)
+	f.npc(2001, "Thulite Golem", 65, humanBody, 500, 500)
+	f.w.SetGround(flatGround{y: 53.9})
+	plain, _, ok := f.w.SpawnEventNPCFacingIn("thulite golem", 0, 0, 18467.5, 69.6, 25426.5, 18467.5, 25426.5, 0, true)
+	if !ok {
+		t.Fatal("no copy")
+	}
+	exact, _, ok := f.w.SpawnEventNPCExactIn("thulite golem", 0, 0, 18467.5, 69.6, 25426.5, 18467.5, 25426.5, 0, true)
+	if !ok {
+		t.Fatal("no exact copy")
+	}
+	p, e := f.w.NPCs[plain], f.w.NPCs[exact]
+	if p.Y != 53.9 {
+		t.Errorf("the control: a plain spawn stands at %.2f, want the floor's 53.9", p.Y)
+	}
+	if e.Y != 69.6 || e.X != 18467.5 || e.Z != 25426.5 || e.Facing != 0 {
+		t.Errorf("the exact spawn at (%.1f, %.2f, %.1f) facing %.2f, want (18467.5, 69.60, 25426.5) facing 0", e.X, e.Y, e.Z, e.Facing)
+	}
+	if e.NPCType&0x80 != 0 || !e.EventAggro || !e.Temporary {
+		t.Errorf("the exact spawn is a hostile trigger copy as any: type %#x, event aggro %v, temporary %v", e.NPCType, e.EventAggro, e.Temporary)
+	}
+}

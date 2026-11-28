@@ -1828,7 +1828,11 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 		if world != r.world {
 			inst = 0 // a step's own world elsewhere: the world as one
 		}
-		id, sp, ok := e.gw.SpawnEventNPCFacingIn(name, world, inst, cx, cy, cz, x, z, face, s.Hostile)
+		spawn := e.gw.SpawnEventNPCFacingIn
+		if s.Exact {
+			spawn = e.gw.SpawnEventNPCExactIn // the place's own height (petition 3517)
+		}
+		id, sp, ok := spawn(name, world, inst, cx, cy, cz, x, z, face, s.Hostile)
 		if !ok {
 			return fmt.Sprintf("no NPC named %q to spawn", name)
 		}

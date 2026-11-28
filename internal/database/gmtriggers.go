@@ -274,6 +274,10 @@ type TriggerStep struct {
 	// northwest; +z is south); none: each faces the middle of its ring (Heirloom petition
 	// 2253: Bertoxxulous "facing south")
 	Face string `json:"face,omitempty"`
+	// Exact (spawn): its copies stand at the place's own height, never put down on the
+	// ground's floor under it (a floor the ground files lack: Heirloom petition 3517, the
+	// Thulite Golem woken on its anvil in the hut, put down 15.7 under it in the tree)
+	Exact bool `json:"exact,omitempty"`
 	// Season (season): the season it turns (gmseasons, database/seasons.go), Turn on, off
 	// or toggle ("" toggle: the trigger fired again turns it back), Text said to its
 	// players (a broadcast) as it turns on, OffText as it turns off (none: nothing said)

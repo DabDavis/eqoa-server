@@ -169,3 +169,53 @@ func TestReliveRefusesSpellsAboveItsLevel(t *testing.T) {
 		t.Fatalf("not reliving: %q", why)
 	}
 }
+
+// A Relive's lower level sends away what fights beside the player (Heirloom petition 3537, Waldorf: a
+// pet summoned at 60 stayed a 60's): its summoned pet dismissed, a charmed creature let go and its
+// own again, the owner told once; its familiar stays. The control: a Relive refused (one already under
+// way) sends nothing away.
+func TestReliveSendsThePetsAway(t *testing.T) {
+	k := newKillWorld(t, 60)
+	p, s := k.players[0], k.sess[0]
+	p.CharServerID = 78
+	pet := &NPC{ServerID: 3400, Name: "Arch Familiar", Level: 55, HP: 100, MaxHP: 100, Owner: p.ServerID, X: 1001, Z: 1000}
+	crab := &NPC{ServerID: 3401, Name: "a crab", Level: 50, HP: 100, MaxHP: 100, Owner: p.ServerID, X: 1002, Z: 1000,
+		NPCType: charmNPCType, Charm: &charmHold{npcType: 0}}
+	fam := &NPC{ServerID: 3402, Name: "a familiar", Level: 1, HP: 10, MaxHP: 10, X: 1003, Z: 1000}
+	for _, n := range []*NPC{pet, crab, fam} {
+		k.w.NPCs[n.ServerID] = n
+	}
+	k.w.pets = map[EntityID]*petState{p.ServerID: {owner: p, npc: pet}}
+	k.w.sidePets = map[EntityID]*petState{p.ServerID: {owner: p, npc: crab, side: true}}
+	k.w.familiars = map[EntityID]*familiarState{p.ServerID: {owner: p, npc: fam}}
+	if why := k.w.StartRelive(s, 20, 0, 0, time.Now()); why != "" {
+		t.Fatalf("refused: %s", why)
+	}
+	if k.w.pets[p.ServerID] != nil || k.w.sidePets[p.ServerID] != nil {
+		t.Fatalf("still out: pet %v, charmed %v", k.w.pets[p.ServerID], k.w.sidePets[p.ServerID])
+	}
+	if !pet.Dead || crab.Charm != nil || crab.Owner != 0 || fam.Dead || k.w.familiars[p.ServerID] == nil {
+		t.Errorf("the pet dead %v; the crab charmed %v, owner %d; the familiar dead %v, kept %v",
+			pet.Dead, crab.Charm != nil, crab.Owner, fam.Dead, k.w.familiars[p.ServerID] != nil)
+	}
+	lines, _ := sentOf(s)
+	told := 0
+	for _, l := range lines {
+		if l == relivePetGoes {
+			told++
+		}
+	}
+	if told != 1 {
+		t.Errorf("told %d times, want once: %q", told, lines)
+	}
+	// the control: a second Relive is refused and sends nothing away
+	again := &NPC{ServerID: 3403, Name: "Arch Familiar", Level: 20, HP: 100, MaxHP: 100, Owner: p.ServerID}
+	k.w.NPCs[again.ServerID] = again
+	k.w.pets[p.ServerID] = &petState{owner: p, npc: again}
+	if why := k.w.StartRelive(s, 10, 0, 0, time.Now()); why != ReliveAlready {
+		t.Fatalf("a second Relive: %q", why)
+	}
+	if k.w.pets[p.ServerID] == nil || again.Dead {
+		t.Error("a refused Relive sent the pet away")
+	}
+}

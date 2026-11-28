@@ -255,6 +255,7 @@ func (w *World) StartRelive(sess *session.Session, level, xp, debt int, since ti
 		xp = min(max(xp, 0), t-1)
 	}
 	p.Relive = &ReliveState{Level: p.Level, XPInLevel: p.XPInLevel, Debt: p.Debt, Since: since}
+	w.reliveDismissPetsLocked(sess, p, time.Now())
 	w.applyReliveLocked(sess, p, level, xp, max(debt, 0), true)
 	s := reliveSaveOf(p)
 	fn := w.reliveSave
@@ -283,6 +284,30 @@ func (w *World) RestoreRelive(sess *session.Session, level, xp, debt int, since 
 	w.applyReliveLocked(sess, p, level, xp, max(debt, 0), false) // the login reads its gear after
 	log.Printf("Relive: %s logs in reliving at level %d", p.Name, level)
 	return true
+}
+
+// relivePetGoes is told a player whose pet or charmed creature a Relive's lower level sends away (ours).
+const relivePetGoes = "Your pet leaves you as you go back to a lower level. Call it again at your new level."
+
+// reliveDismissPetsLocked sends away what fights beside p as it relives at a lower level: its
+// summoned pet dismissed and a charmed creature let go (a stacking charm's animal beside it too),
+// told once. Until Heirloom petition 3537 (Waldorf: "when lowering your level in FP, any pet you have
+// already casted stays at its existing level and strength") a pet summoned at 60 stayed a 60's. Its
+// familiar (no level, familiar.go) and its mercenaries (their own levels) stay. Must be called with
+// the lock held.
+func (w *World) reliveDismissPetsLocked(sess *session.Session, p *Player, now time.Time) {
+	told := ""
+	if ps := w.pets[p.ServerID]; ps != nil && ps.owner == p {
+		w.dismissPetLocked(ps, sess, relivePetGoes, now)
+		told = relivePetGoes
+	}
+	if ps := w.sidePets[p.ServerID]; ps != nil && ps.owner == p {
+		text := relivePetGoes
+		if told != "" {
+			text = ""
+		}
+		w.releaseCharmLocked(ps, sess, text, false)
+	}
 }
 
 // applyReliveLocked makes p the Relive level, its level's hearers told when hear (the heirlooms'

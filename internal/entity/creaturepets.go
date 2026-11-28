@@ -227,7 +227,7 @@ func (w *World) makeCreaturePetLocked(owner, t *NPC, offset, slot int) *NPC {
 	if slot%2 == 1 {
 		a = float64(owner.Facing) - math.Pi/2 - float64(slot-1)*math.Pi/5
 	}
-	ox, oz := creaturePetBeside*float32(math.Cos(a)), creaturePetBeside*float32(math.Sin(a))
+	ox, oz := w.creaturePetBesideLocked(owner, a)
 	x, z := owner.X+ox, owner.Z+oz
 	y := w.creaturePetFloorLocked(owner.World, x, owner.Y, z)
 	c := w.spawnCopyAsLocked(t, x, y, z, owner.Facing, owner.World, 0)
@@ -250,12 +250,45 @@ func (w *World) makeCreaturePetLocked(owner, t *NPC, offset, slot int) *NPC {
 
 // creaturePetFloorLocked is the ground's floor at (x, z) near height y, or y when none is near.
 func (w *World) creaturePetFloorLocked(world uint8, x, y, z float32) float32 {
-	if w.ground != nil {
-		if fy, ok := w.ground.Floor(world, x, y+3, z); ok && fy-y <= triggerFloorReach && y-fy <= triggerFloorReach {
-			return fy
-		}
+	if fy, ok := w.creaturePetFloorNearLocked(world, x, y, z); ok {
+		return fy
 	}
 	return y
+}
+
+// creaturePetFloorNearLocked is the ground's floor at (x, z) within triggerFloorReach of height y; true with no
+// ground (every place stands).
+func (w *World) creaturePetFloorNearLocked(world uint8, x, y, z float32) (float32, bool) {
+	if w.ground == nil {
+		return y, true
+	}
+	if fy, ok := w.ground.Floor(world, x, y+3, z); ok && fy-y <= triggerFloorReach && y-fy <= triggerFloorReach {
+		return fy, true
+	}
+	return y, false
+}
+
+// creaturePetBesideLocked is the offset from its owner a pet stands at, by angle a first: the first of a ring of
+// places round the owner (a, then the rest of the circle, then half as far) where the ground has a floor near the
+// owner's height both where the owner stands and round its spawn; none such, the owner's own place (0, 0).
+// Heirloom petition 3450: High Priest Vorin, a placeholder's rare against a wall of Envar's tower basement, had his
+// Servant set 1.5 inside the wall, where the only floor is the hill's surface 76 over the basement: its first
+// chase step lifted it out of the ground onto that surface, in the air over the fight.
+func (w *World) creaturePetBesideLocked(owner *NPC, a float64) (float32, float32) {
+	for _, r := range []float32{creaturePetBeside, creaturePetBeside / 2} {
+		for k := 0; k < 8; k++ {
+			b := a + float64(k)*math.Pi/4
+			ox, oz := r*float32(math.Cos(b)), r*float32(math.Sin(b))
+			if _, ok := w.creaturePetFloorNearLocked(owner.World, owner.X+ox, owner.Y, owner.Z+oz); !ok {
+				continue
+			}
+			if _, ok := w.creaturePetFloorNearLocked(owner.World, owner.SpawnX+ox, owner.SpawnY, owner.SpawnZ+oz); !ok {
+				continue
+			}
+			return ox, oz
+		}
+	}
+	return 0, 0
 }
 
 // setCreaturePetLevelLocked gives a pet its level: its combat figures and hit points as a row of that level's

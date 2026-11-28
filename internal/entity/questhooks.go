@@ -42,6 +42,8 @@ type KillCredit struct {
 	// Raid is the killer's raid's loot rule and seats when it has one but free for
 	// all (raidrules.go's RaidKill), nil otherwise
 	Raid *RaidKill
+	// HeroicBoss identifies a credited clear with a mark catalog.
+	HeroicBoss string
 	// OpenAt is when the corpse is anyone's to loot, its kill group's or not: six
 	// minutes after the death, a raid's too; zero never (corpseopen.go)
 	OpenAt time.Time
@@ -119,6 +121,7 @@ func (w *World) creditKillLocked(sess *session.Session, p *Player, npc *NPC) {
 	c.Hardcore = p.HardcoreBound()
 	c.HCEarned = c.Hardcore && !w.hcBarredLocked(npc, p)
 	if !c.Hardcore || c.HCEarned {
+		c.HeroicBoss = w.heroicMarkBossLocked(npc)
 		c.Players = append(c.Players, KillPlayer{Session: sess, ServerID: p.CharServerID, Name: p.Name})
 	}
 	if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil {

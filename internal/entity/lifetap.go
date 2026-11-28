@@ -425,6 +425,7 @@ func (w *World) drainLocked(cs *castState, caster *Player, sess *session.Session
 	}
 	switch e.Kind {
 	case EffectHP:
+		n += heroicHealBonus(caster)
 		for _, p := range w.drainersLocked(cs, caster, e.Drain) {
 			w.healLocked(caster, sess, p, n, cs.spell.healKind()) // a tap's take: its heal (numbertags.go)
 		}

@@ -317,13 +317,14 @@ func StandInVisuals() map[string]uint32 {
 
 // castState is one cast, from its start to its landing.
 type castState struct {
-	spell    CastSpell
-	caster   EntityID
-	targets  []EntityID
-	others   []EntityID // an area spell's others (area.go)
-	ends     time.Time  // the cast time over: the caster may cast again
-	lands    time.Time
-	castEnds time.Time // the cast time itself over (ends less castBusy)
+	spell          CastSpell
+	caster         EntityID
+	targets        []EntityID
+	others         []EntityID // an area spell's others (area.go)
+	ends           time.Time  // the cast time over: the caster may cast again
+	lands          time.Time
+	castEnds       time.Time // the cast time itself over (ends less castBusy)
+	heroicProcUsed *bool
 }
 
 // castLockout is one ability's lockout: 0x00CD again when it is over.
@@ -1518,6 +1519,10 @@ func lockoutReplaced(left, told []castLockout, l castLockout) bool {
 func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate bool) {
 	d := &cs.spell.Def
 	casterSess := w.findSessionByEntityIDLocked(caster.ServerID)
+	if len(caster.Gear.HeroicRelics) > 0 && d.Harmful && !cs.spell.ItemCast && cs.spell.figures != figuresProc {
+		used := false
+		cs.heroicProcUsed = &used
+	}
 	if to := cs.spell.Travel; to != nil { // an item's travel: its caster sent, nothing else lands
 		if casterSess != nil {
 			w.gates.due = append(w.gates.due, GateTravel{Sess: casterSess, P: caster, To: *to, Spell: cs.spell.Name})
@@ -1613,7 +1618,11 @@ func spellAmount(e SpellEffect, caster *Player) int {
 	} else {
 		n += bonus
 	}
-	return capAmount(n, e.Cap)
+	n = capAmount(n, e.Cap)
+	if n > 0 && (e.Kind == EffectHP || e.Kind == EffectHPTick) && len(caster.Gear.HeroicRelics) > 0 {
+		n += heroicHealBonus(caster)
+	}
+	return n
 }
 
 // rollAmount is one effect's figure before any caster's stat: a roll in its
@@ -2094,6 +2103,11 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 		}
 		w.affected[npc.ServerID] = npc
 		w.tickNPCEffectLocked(npc, ae, now)
+	}
+	if !npc.Dead && cs.takeHeroicSpellRoll() {
+		caster.heroicDamageProcs(true, func(amount int, element string) bool {
+			return w.heroicDamageLocked(casterSess, caster, npc, amount, element, now)
+		})
 	}
 }
 

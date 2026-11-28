@@ -361,7 +361,9 @@ type World struct {
 	// The worn pieces' auras by item, table itemaura (pieceaura.go)
 	itemAuras itemAuraState
 	// The masteries a character may buy, table cmcatalog (cmbuy.go)
-	cms *cmCatalog
+	cms          *cmCatalog
+	heroicMarks  bool
+	heroicTaunts map[int][]SpellEffect
 	// NPCs coming to the help of their own (socialaggro.go)
 	npcSocial npcSocialState
 	// companions are the creatures' own pets by owner, companionOf each pet's

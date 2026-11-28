@@ -296,6 +296,9 @@ func vendorTrash(p *database.ItemPatternRecord) bool {
 // raidCovers is whether a raid's rules hold an item (petition 1448: "raid bosses, no trade
 // items and items with stats, not stack items or vendor trash").
 func raidCovers(p *database.ItemPatternRecord, boss bool) bool {
+	if database.HeroicMarkPattern(p.PatternID) {
+		return true
+	}
 	if p.MaxStack > 1 {
 		return false
 	}
@@ -317,7 +320,7 @@ func mayNeed(s entity.RaidSeat, p *database.ItemPatternRecord) bool {
 // heardRaidKill takes a kill from the World (its lock held: never wait here): a raid's is
 // kept to be rolled, by the worker or the corpse's first opening, whichever is first.
 func (h *NPCWindowHandler) heardRaidKill(k entity.KillCredit) {
-	if k.Raid == nil {
+	if k.Raid == nil && k.HeroicBoss == "" {
 		return
 	}
 	h.raids.kills.Store(k.NPCID, k)
@@ -344,23 +347,24 @@ func (h *NPCWindowHandler) raidWorker(wake <-chan struct{}) {
 
 // takeRaidKills rolls every raid kill heard and not yet rolled.
 func (h *NPCWindowHandler) takeRaidKills() {
-	h.raids.kills.Range(func(key, _ any) bool {
-		v, ok := h.raids.kills.LoadAndDelete(key)
-		if !ok {
-			return true
-		}
+	h.raids.kills.Range(func(key, v any) bool {
 		k := v.(entity.KillCredit)
 		var npc *entity.NPC
 		if h.raid.npc != nil {
 			npc = h.raid.npc(k.NPCID)
 		}
+		ls := h.loots()
+		ls.mu.Lock()
+		defer ls.mu.Unlock()
+		pending, ok := h.raids.kills.Load(key)
+		if !ok || !pending.(entity.KillCredit).Died.Equal(k.Died) {
+			return true // claimed by OpenCorpse, or a later death replaced it
+		}
+		h.raids.kills.Delete(key)
 		if npc == nil || !npc.Dead || !npc.DeathTime.Equal(k.Died) {
 			return true // gone, or up again
 		}
-		ls := h.loots()
-		ls.mu.Lock()
 		h.startRaidLootLocked(ls, npc, k)
-		ls.mu.Unlock()
 		return true
 	})
 }
@@ -390,9 +394,15 @@ func (h *NPCWindowHandler) startRaidLootLocked(ls *lootState, npc *entity.NPC, k
 	if npc.Owner != 0 || npc.Charm != nil || npc.Dummy != entity.NotDummy {
 		return // no one's to loot, or nothing to (loot.go)
 	}
-	r := k.Raid
 	c := h.rollCorpse(npc, k.Died, npc.Level) // the spawn's, as every corpse (loot.go)
+	// Each mark gets its own vote. Even identical marks enter as individual
+	// drops, bypassing the corpse's shared no-trade quest stacks.
+	c.items = append(c.items, h.rollHeroicMarks(k.HeroicBoss)...)
 	ls.corpses[npc.ServerID] = c
+	r := k.Raid
+	if r == nil {
+		return
+	}
 	seats := make([]uint32, 0, len(r.Seats))
 	for _, st := range r.Seats {
 		seats = append(seats, st.ServerID)

@@ -40,13 +40,22 @@ func EnsureItemRecord(db *sql.DB, rec ItemPatternRecord, from int) (id int, made
 		}
 		id++
 	}
+	if err := insertItemRecord(tx, id, &rec); err != nil {
+		return 0, false, err
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, false, err
+	}
+	return id, true, nil
+}
+
+func insertItemRecord(tx *sql.Tx, id int, r *ItemPatternRecord) error {
 	z := func(p *int) int {
 		if p == nil {
 			return 0
 		}
 		return *p
 	}
-	r := &rec
 	if _, err := tx.Exec(`
 		INSERT INTO itempattern (
 			patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3,
@@ -68,10 +77,7 @@ func EnsureItemRecord(db *sql.DB, rec ItemPatternRecord, from int) (id int, made
 		z(r.PR), z(r.DR), z(r.FR), z(r.CR), z(r.LR), z(r.AR),
 		z(r.WeaponProc), z(r.Fish),
 	); err != nil {
-		return 0, false, fmt.Errorf("making %q at %d: %w", rec.ItemName, id, err)
+		return fmt.Errorf("making %q at %d: %w", r.ItemName, id, err)
 	}
-	if err := tx.Commit(); err != nil {
-		return 0, false, err
-	}
-	return id, true, nil
+	return nil
 }

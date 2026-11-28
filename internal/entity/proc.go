@@ -287,6 +287,9 @@ func procDebuffedMorePct(pct int, npc *NPC, bearer EntityID, now time.Time) int 
 // proc colour; the owner, 2026-11-25: "you can draw proc heals in green"). Must be called
 // with the lock held.
 func (w *World) procHealLocked(caster *Player, casterSess *session.Session, t *Player, n int) {
+	if n > 0 {
+		n += heroicHealBonus(caster)
+	}
 	if n > 0 && !t.IsDead() && t.HP >= t.MaxHPNow() {
 		w.dpsWorthLocked(0, func() { w.tellAmountLocked(caster, casterSess, t.ServerID, n, numberHeal) }) // the meter's: nothing restored (dpsheal.go)
 		return
@@ -342,7 +345,7 @@ func (w *World) playerProcsLocked(sess *session.Session, p *Player, npc *NPC, no
 	if !npc.Dead && w.weaponProcLocked(sess, p, npc, now) {
 		return true
 	}
-	return npc.Dead
+	return npc.Dead || w.heroicAttackProcsLocked(sess, p, npc, now)
 }
 
 // petProcsLocked runs a pet's procs after one of its melee hits on a

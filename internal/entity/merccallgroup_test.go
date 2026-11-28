@@ -13,7 +13,8 @@ import (
 
 // A group mate's auto-attack, and a mate's hit with no swing, call an
 // aggressive merc and its pet; a crab that aggroed on the mate with no act of
-// hers does not; a player outside the group calls nothing.
+// hers calls the pet alone (Heirloom petition 3471: it defends the group as a
+// player's aggressive pet does); a player outside the group calls nothing.
 func TestAnAggressiveMercAssistsItsGroup(t *testing.T) {
 	r := newMercRig(t)
 	ms := mercWithPet(t, r, MercAggressive)
@@ -26,8 +27,10 @@ func TestAnAggressiveMercAssistsItsGroup(t *testing.T) {
 	r.w.mu.Lock()
 	r.w.addThreatLocked(x, b.ServerID, 10)
 	r.w.mu.Unlock()
-	if m, p := chooseOnce(r, ms); m != 0 || p != 0 {
-		t.Fatalf("a crab aggroed on Bea, uncalled: merc %d, pet %d", m, p)
+	// the merc waits for a call; its pet defends Bea as a player's aggressive
+	// pet would (Heirloom petition 3471)
+	if m, p := chooseOnce(r, ms); m != 0 || p != x.ServerID {
+		t.Fatalf("a crab aggroed on Bea, uncalled: merc %d, pet %d, want 0 and %d", m, p, x.ServerID)
 	}
 	// Cal's auto-attack and hit, out of the group
 	y := bigCrab(r, -6)
@@ -35,7 +38,7 @@ func TestAnAggressiveMercAssistsItsGroup(t *testing.T) {
 	c.AttackTarget, c.AutoAttack = y.ServerID, true
 	r.w.updateAggro(y, c.ServerID, 10)
 	r.w.mu.Unlock()
-	if m, p := chooseOnce(r, ms); m != 0 || p != 0 {
+	if m, p := chooseOnce(r, ms); m != 0 || p == y.ServerID {
 		t.Fatalf("Cal (no group mate) called: merc %d, pet %d", m, p)
 	}
 	// Bea's auto-attack on the crab on her
@@ -132,5 +135,48 @@ func TestAnAggressiveMercHealsItsGroup(t *testing.T) {
 				t.Errorf("the heal (125 and more) did not land on Bea: %d before, %d/%d after", before, b.HP, top)
 			}
 		})
+	}
+}
+
+// An aggressive merc's pet takes on a creature fighting its hirer or a group
+// mate with no call (Heirloom petition 3471, the owner 2026-11-28: "make an
+// aggressive merc's pet defend the group like a player's aggressive pet"), its
+// merc still waiting for a call. The controls: an assist merc's pet leaves
+// them alone, and a creature on a player out of the group is no fight of its.
+func TestAnAggressiveMercsPetDefendsTheGroup(t *testing.T) {
+	r := newMercRig(t)
+	ms := mercWithPet(t, r, MercAggressive)
+	_, b := r.player("Bea", 0, 0)
+	r.group(b)
+	_, c := r.player("Cal", 0, 0) // no group of theirs
+
+	out := bigCrab(r, -6)
+	r.w.mu.Lock()
+	r.w.addThreatLocked(out, c.ServerID, 10)
+	r.w.mu.Unlock()
+	if _, p := chooseOnce(r, ms); p != 0 {
+		t.Fatalf("a crab on Cal (no group mate): pet %d", p)
+	}
+	x := bigCrab(r, 6)
+	r.w.mu.Lock()
+	r.w.addThreatLocked(x, r.p.ServerID, 10) // on the hirer, no act of his
+	r.w.mu.Unlock()
+	if m, p := chooseOnce(r, ms); m != 0 || p != x.ServerID {
+		t.Fatalf("a crab on the hirer: merc %d, pet %d, want 0 and %d", m, p, x.ServerID)
+	}
+	ms.stance = MercAssist
+	if _, p := chooseOnce(r, ms); p != 0 {
+		t.Errorf("an assist merc's pet took on the crab on its hirer: %d", p)
+	}
+	ms.stance = MercAggressive
+	r.w.mu.Lock()
+	r.w.killNPC(x)
+	r.w.mu.Unlock()
+	y := bigCrab(r, 8)
+	r.w.mu.Lock()
+	r.w.addThreatLocked(y, b.ServerID, 10) // on Bea, no act of hers
+	r.w.mu.Unlock()
+	if m, p := chooseOnce(r, ms); m != 0 || p != y.ServerID {
+		t.Fatalf("a crab on Bea: merc %d, pet %d, want 0 and %d", m, p, y.ServerID)
 	}
 }

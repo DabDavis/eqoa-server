@@ -15,11 +15,14 @@ const (
 )
 
 // ConColor is the colour a player of observerLevel sees a target of
-// targetLevel as: the C# server's GenerateConColor, which every 0x0010 reply
-// in the captures agrees with (handlers' concolour_test.go). Red three or
-// more above, yellow one or two, white even, dark blue one or two below;
-// further below light blue, then green: more than three below up to level
-// 15, more than a quarter of the observer's level above it.
+// targetLevel as. Red three or more above, yellow one or two, white even,
+// dark blue one or two below; further below light blue while the kill still
+// pays experience, green once it pays none (expLimit, killexp.go). Live
+// petition 5690 (2026-11-28, a player of the live game): "The con system was
+// in sync with the xp system in that if it conned green it gave no xp. Every
+// other con gave xp." The C# server's GenerateConColor (green past a quarter
+// of the level, or three under up to 15) drew green one level early where a
+// quarter rounds down (a level 20 creature at 27: paid, yet green).
 func ConColor(observerLevel, targetLevel int) byte {
 	diff := observerLevel - targetLevel // positive: the observer is higher
 	switch {
@@ -31,12 +34,7 @@ func ConColor(observerLevel, targetLevel int) byte {
 		return ConWhite
 	case diff <= 2:
 		return ConDarkBlue
-	case observerLevel <= 15:
-		if diff > 3 {
-			return ConGreen
-		}
-		return ConLightBlue
-	case diff > observerLevel/4:
+	case targetLevel < expLimit(observerLevel):
 		return ConGreen
 	default:
 		return ConLightBlue

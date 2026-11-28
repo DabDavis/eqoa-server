@@ -98,6 +98,9 @@ func (w *World) duelLandLocked(cs *castState, caster *Player, casterSess *sessio
 		ae.PowerTick = min(ae.PowerTick, 0)
 		w.addEffectLocked(t, ae, now)
 	}
+	if cs.takeHeroicSpellRoll() && w.heroicDuelProcsLocked(d, caster, duelMark{t: t}, true, now) {
+		return true
+	}
 	d.struck[t.ServerID] = true
 	log.Printf("%s: %s's %q lands on %s (%d/%d HP)", d.tag(), caster.Name, cs.spell.Name, t.Name, t.HP, t.MaxHPNow())
 	return true
@@ -139,6 +142,9 @@ func (w *World) duelLandPetLocked(cs *castState, caster *Player, pet *NPC, now t
 				return true
 			}
 		}
+	}
+	if cs.takeHeroicSpellRoll() {
+		w.heroicDuelProcsLocked(d, caster, duelMark{pet: pet}, true, now)
 	}
 	return true
 }

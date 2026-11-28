@@ -92,7 +92,8 @@ type InteractHandler struct {
 	dabrishLevel   func(*session.Session, *entity.Player, int) (int, error)
 	dabrishMastery func(*session.Session, int) (int, entity.Mastery, bool, error)
 	// dabrishEpic is his epic exchange (dabrishepic.go); nil: not offered
-	dabrishEpic *dabrishEpics
+	dabrishEpic         *dabrishEpics
+	heroicMarkInventory *database.InventoryStore
 	// recharge is Master Lizzlen's (lizzlen.go); nil: not offered
 	recharge rechargeStore
 

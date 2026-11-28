@@ -411,6 +411,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	interactHandler.dabrishEpic = newDabrishEpics(invStore)                                                        // his epic exchange (dabrishepic.go)
 	interactHandler.favor = NewMoogieFavor(invStore, spellStore)                                                   // Mr. Moogie's favor (metalmoogie.go)
 	interactHandler.buffer = NewBuffer(gameWorld, spellStore)                                                      // Buffer's casts (buffer.go)
+	interactHandler.heroicMarkInventory = invStore
 	if invStore != nil {
 		interactHandler.recharge = invStore // Master Lizzlen's recharge (lizzlen.go)
 	}

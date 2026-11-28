@@ -468,13 +468,13 @@ func (r *CMRank) offered(p *Player) bool {
 		// one character's alone (OnlyFor), and of its classes and races
 		return p != nil && p.CharServerID == r.OnlyFor && r.classRaceOffered(p.Class, p.Race)
 	}
-	return r.OfferedTo(p.Class, p.Race)
+	return r.classRaceOffered(p.Class, p.Race)
 }
 
 // OfferedTo is whether the rank is listed for a character of the class and
 // race: enabled, and for both (the Spell Archivist's, handlers/archivistmastery.go).
 func (r *CMRank) OfferedTo(class, race int) bool {
-	return r.OnlyFor == 0 && r.classRaceOffered(class, race)
+	return r.OnlyFor == 0 && database.HeroicMasteryBoss(r.ID) == "" && r.classRaceOffered(class, race)
 }
 
 // classRaceOffered is OfferedTo whoever the rank is for: enabled, and for the
@@ -639,8 +639,14 @@ func CMStateOfPlayer(p *Player) CMState { return p.cmStateLocked() }
 // handler reads them, the book off the database and the quests off the quest
 // engine, before it asks the World).
 type CMKnows struct {
-	Book, Quests map[int]bool
-	QuestNames   map[int]string
+	Book, Quests  map[int]bool
+	QuestNames    map[int]string
+	HeroicUnlocks map[string]bool
+}
+
+func (r *CMRank) unlockedBy(k CMKnows) bool {
+	boss := database.HeroicMasteryBoss(r.ID)
+	return boss == "" || k.HeroicUnlocks[boss]
 }
 
 // cmBlockLocked is why the player cannot buy the rank now, "" when it can
@@ -743,7 +749,7 @@ func (w *World) CMList(sess *session.Session, k CMKnows) []CMEntry {
 	var out []CMEntry
 	for _, r := range w.cms.order {
 		_, owned := p.CMs[r.ID]
-		if !r.offered(p) && !owned {
+		if (!r.offered(p) || !r.unlockedBy(k)) && !owned {
 			continue
 		}
 		out = append(out, CMEntry{ID: r.ID, Parent: r.Parent, Category: r.Category, Cost: r.Cost,
@@ -766,7 +772,7 @@ func (w *World) CMOpenedBy(sess *session.Session, questID int, k CMKnows) []stri
 	}
 	var out []string
 	for _, r := range w.cms.order {
-		if !r.offered(p) || !slices.Contains(r.RequireQuests, questID) {
+		if !r.offered(p) || !r.unlockedBy(k) || !slices.Contains(r.RequireQuests, questID) {
 			continue
 		}
 		if _, owned := p.CMs[r.ID]; owned {
@@ -873,6 +879,9 @@ func (w *World) CMNodeOf(sess *session.Session, id int, k CMKnows) (CMNode, bool
 		return CMNode{}, false
 	}
 	_, owned := p.CMs[r.ID]
+	if !owned && !r.unlockedBy(k) {
+		return CMNode{}, false
+	}
 	block := w.cmBlockLocked(p, r, k)
 	n := CMNode{CMEntry: CMEntry{ID: r.ID, Parent: r.Parent, Category: r.Category, Cost: r.Cost,
 		Owned: owned, Known: !owned && block == "", Name: r.Name},
@@ -1008,7 +1017,7 @@ func (w *World) BuyCM(sess *session.Session, id int, k CMKnows) CMResult {
 		return CMResult{Refusal: "No mastery can be bought here."}
 	}
 	r := w.cms.byID[id]
-	if r == nil || !r.offered(p) {
+	if r == nil || !r.offered(p) || !r.unlockedBy(k) {
 		return CMResult{Refusal: "That mastery is not offered to you."}
 	}
 	if why := w.cmBlockLocked(p, r, k); why != "" {

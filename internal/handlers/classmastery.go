@@ -234,6 +234,17 @@ func (h *ClassMasteryHandler) cmKnowsOf(p *entity.Player) entity.CMKnows {
 	if q := Quests(); q != nil {
 		k.Quests, k.QuestNames = q.FinishedBy(p.CharServerID), q.InGame()
 	}
+	if h.gameWorld.HeroicMarksEnabled() {
+		if s, ok := h.store.(interface {
+			HeroicMasteryUnlocks(uint32) (map[string]bool, error)
+		}); ok {
+			var err error
+			k.HeroicUnlocks, err = s.HeroicMasteryUnlocks(p.CharServerID)
+			if err != nil {
+				log.Printf("ClassMastery: %s's heroic unlocks: %v", p.Name, err)
+			}
+		}
+	}
 	if h.book == nil {
 		return k
 	}
@@ -587,7 +598,7 @@ func (h *ClassMasteryHandler) takeAbilitiesFrom(sess *session.Session, serverID 
 		return nil
 	}
 	defer lockBook(serverID)() // booklock.go: one change to a book at a time
-	index := map[int]int{} // spell -> display index, the book's before the change
+	index := map[int]int{}     // spell -> display index, the book's before the change
 	if h.book != nil {
 		if book, err := h.book.GetCharacterSpells(serverID); err == nil {
 			for _, e := range book {

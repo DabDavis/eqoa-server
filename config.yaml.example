@@ -314,6 +314,7 @@ world:
   # open at once. Only a client that holds the world goes in (vanilla). Off
   # unless enabled; world unset is 14 (claude-notes/dungeon-world-20261112.md).
   # dungeons:
+  #   heroic_marks: false # enable the Heroic Raids mark catalog for encounter testing
   #   enabled: true
   #   world: 14
   #   close_after: 30m

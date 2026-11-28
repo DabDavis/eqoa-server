@@ -909,6 +909,7 @@ type WorldConfig struct {
 // open (unset: 30m) and how many may be open at once (unset: 30).
 type DungeonsConfig struct {
 	Enabled      bool          `yaml:"enabled"`
+	HeroicMarks  bool          `yaml:"heroic_marks"`
 	World        int           `yaml:"world"`
 	CloseAfter   time.Duration `yaml:"close_after"`
 	MaxInstances int           `yaml:"max_instances"`

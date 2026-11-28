@@ -54,6 +54,8 @@ type Gear struct {
 	// SpeedPct is the worn items' own run speed, a percent of the base run
 	// (itemspeed.go)
 	SpeedPct float64
+	// HeroicRelics are the equipped reward patterns.
+	HeroicRelics []int
 }
 
 // Add puts one worn item's stats, by stat id, into the sums.
@@ -185,6 +187,9 @@ func (w *World) SetGear(id EntityID, g Gear, fill bool) {
 	defer w.mu.Unlock()
 	if p, ok := w.Players[id]; ok {
 		speed := p.SpeedNow()
+		if !w.heroicMarks {
+			g.HeroicRelics = nil
+		}
 		p.Gear = g
 		p.RecalcStats(fill)
 		p.ArmorBody = w.armorBodyLocked(p) // armorbody.go

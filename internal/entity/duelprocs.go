@@ -131,7 +131,7 @@ func (w *World) duelProcsLocked(d *Duel, p *Player, m duelMark, now time.Time) b
 	if w.duelOverForLocked(d, p, m) {
 		return true
 	}
-	return w.duelWeaponProcLocked(d, p, sess, m, now)
+	return w.duelWeaponProcLocked(d, p, sess, m, now) || w.heroicDuelProcsLocked(d, p, m, false, now)
 }
 
 // duelOverForLocked reports the duel over for p, or the mark's pet out of it.

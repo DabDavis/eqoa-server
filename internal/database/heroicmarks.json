@@ -1,0 +1,63 @@
+[
+  {
+    "boss": "mythic_nagafen",
+    "name": "Lord Nagafen",
+    "element": "fire",
+    "mastery": {"base": 211, "id": 29211, "name": "God Touched II"},
+    "teleport": {
+      "id": 995309,
+      "name": "Solusek Bridge Stone",
+      "spell": 789901,
+      "world": 3,
+      "x": 4790,
+      "y": -7.5,
+      "z": 4598,
+      "place": "the bridge in Solusek's Eye"
+    },
+    "roles": [
+      {
+        "name": "tank",
+        "classes": 13,
+        "mark_id": 995301,
+        "mark_name": "Nagafen's Mark of Steel",
+        "relic_id": 995305,
+        "relic_name": "Nagafen's Steelfire Ring",
+        "relic_description": "Your landed attacks have a 25% chance to add the threat of Bait.",
+        "attack_chance": 25,
+        "taunts": {"0": 1608, "2": 675, "3": 1608}
+      },
+      {
+        "name": "melee",
+        "classes": 114,
+        "mark_id": 995302,
+        "mark_name": "Nagafen's Mark of Brawn",
+        "relic_id": 995306,
+        "relic_name": "Nagafen's Emberblade Ring",
+        "relic_description": "Your landed auto attacks have a 25% chance to deal 25 fire damage.",
+        "attack_chance": 25,
+        "attack_damage": 25
+      },
+      {
+        "name": "healer",
+        "classes": 896,
+        "mark_id": 995303,
+        "mark_name": "Nagafen's Mark of Wisdom",
+        "relic_id": 995307,
+        "relic_name": "Nagafen's Hearthfire Ring",
+        "relic_description": "Your heals gain 5% of your charisma.",
+        "heal_charisma_pct": 5
+      },
+      {
+        "name": "caster",
+        "classes": 31744,
+        "mark_id": 995304,
+        "mark_name": "Nagafen's Mark of Intellect",
+        "relic_id": 995308,
+        "relic_name": "Nagafen's Wildfire Ring",
+        "relic_description": "Your damaging spells have a 50% chance to deal 75 fire damage on landing.",
+        "spell_chance": 50,
+        "spell_damage": 75
+      }
+    ]
+  }
+]

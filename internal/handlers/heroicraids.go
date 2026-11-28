@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/session"
 )
@@ -44,10 +45,15 @@ const (
 )
 
 type heroicRaidsAsked struct {
-	box  uint32
-	keys []string
-	npc  entity.EntityID
+	box     uint32
+	keys    []string
+	npc     entity.EntityID
+	boss    string
+	rewards []database.HeroicReward
+	confirm database.HeroicReward
 }
+
+const heroicSpendMarks = "#spendmarks"
 
 // heroicRaids is the board's questions asked.
 var heroicRaids = struct {
@@ -97,25 +103,33 @@ func (h *InteractHandler) heroicRaidsTalk(sess *session.Session, p *entity.Playe
 		labels = append(labels, c.Name)
 		keys = append(keys, c.Key)
 	}
+	if h.heroicMarkInventory != nil && gw.HeroicMarksEnabled() {
+		labels = append(labels, "Spend marks")
+		keys = append(keys, heroicSpendMarks)
+	}
 	switch {
-	case len(choices) == 0:
+	case len(keys) == 0 && len(choices) == 0:
 		dungeonsSay(sess, as, heroicRaidsClosed)
 		return true
 	case len(keys) == 0:
 		dungeonsSay(sess, as, fmt.Sprintf(heroicRaidsNoOpen, choices[0].Name))
 		return true
 	}
+	askHeroicRaids(sess, p, heroicRaidsAsked{keys: keys, npc: npc.ServerID}, as+heroicRaidsAsk, labels)
+	log.Printf("Heroic Raids: %s asks at the board (%s)", p.Name, strings.Join(keys, ", "))
+	return true
+}
+
+func askHeroicRaids(sess *session.Session, p *entity.Player, asked heroicRaidsAsked, prompt string, labels []string) {
 	heroicRaids.mu.Lock()
 	heroicRaids.seq++
-	id := uint32(heroicRaidsBoxMark) | (heroicRaids.seq & 0xFFFFFF)
-	heroicRaids.asked[p.CharServerID] = heroicRaidsAsked{box: id, keys: keys, npc: npc.ServerID}
+	asked.box = uint32(heroicRaidsBoxMark) | (heroicRaids.seq & 0xFFFFFF)
+	heroicRaids.asked[p.CharServerID] = asked
 	heroicRaids.mu.Unlock()
 	for i := range labels {
 		labels[i] = clipRunes(labels[i], questAnswerChars)
 	}
-	SendQuestPopupMulti(sess, id, clipRunes(as+heroicRaidsAsk, questAskChars), labels)
-	log.Printf("Heroic Raids: %s asks at the board (%s)", p.Name, strings.Join(keys, ", "))
-	return true
+	SendQuestPopupMulti(sess, asked.box, clipRunes(prompt, questAskChars), labels)
 }
 
 // answerHeroicRaids is HandleDialogueOption's question for the board's box. It reports whether the box was its.
@@ -131,12 +145,23 @@ func (h *InteractHandler) answerHeroicRaids(sess *session.Session, p *entity.Pla
 	heroicRaids.mu.Unlock()
 	ds := dungeonsH.Load()
 	gw := h.gameWorld
-	if option == 255 || !ok || asked.box != box || int(option) >= len(asked.keys) || gw == nil || ds == nil {
+	if option == 255 || !ok || asked.box != box || gw == nil || ds == nil {
 		return true
 	}
 	if !heroicRaidsNear(gw, p, asked.npc, heroicRaidsReach) {
 		dungeonsTell(sess, heroicRaidsTooFar)
 		log.Printf("Heroic Raids: %s answered from afar: refused", p.Name)
+		return true
+	}
+	if asked.boss != "" {
+		h.answerHeroicMarkShop(sess, p, asked, option)
+		return true
+	}
+	if int(option) >= len(asked.keys) {
+		return true
+	}
+	if asked.keys[option] == heroicSpendMarks {
+		h.heroicMarkShop(sess, p, asked.npc, entity.EncounterMythicNagafen)
 		return true
 	}
 	ds.enter(sess, p, asked.keys[option], HeroicRaidsName) // its world held, the party's instance (dungeons.go)

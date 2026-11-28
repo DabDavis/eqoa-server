@@ -36,6 +36,26 @@ import "time"
 // again at the regular tick for whatever of its time is left. It is kept over a
 // logout and a restart as any effect (buffsave.go: its slot with it).
 
+// hotOwnSlots are the heals over time that tick in a slot of their own, beside every other heal over time on the
+// bearer and never held under a stronger one (the owner, 2026-11-28: "elder, faithful, bard heals should stack", then
+// "savage heal should stack also with other HoT"): the cleric's Faithful Healing, the shaman's Savage Healing, and the
+// bard's heal songs, which share one bard slot (a higher Hymn or Celebration still takes a lower's place, as one
+// line). Tribal Ward's heal, the shaman's Elder mastery, is set off by a hit and has its proc's own slot
+// (workbookmore.go's procHoTSlot). A slot here is clear of the workbook's stack types (1-4) and of every proc's.
+var hotOwnSlots = map[int]int{
+	701138: 701138, // Faithful Healing (cleric 60)
+	700643: 700643, // Savage Healing (shaman 49)
+	// the bard's heal songs, one slot
+	144: hotBardSlot, 700034: hotBardSlot, // Celebration / Hymn of Vigor
+	166: hotBardSlot, 700234: hotBardSlot, // of Health
+	181: hotBardSlot, 700380: hotBardSlot, // of Life
+	197: hotBardSlot, 700524: hotBardSlot, // of Vitae
+	701117: hotBardSlot, 700788: hotBardSlot, // of Nife
+}
+
+// hotBardSlot is the bard's heal songs' slot (hotOwnSlots).
+const hotBardSlot = 1_000_005
+
 // hotTicks is how many ticks a heal over time of that duration has.
 func hotTicks(dur time.Duration) int {
 	return max(1, int((dur+effectTick/2)/effectTick))
@@ -45,6 +65,9 @@ func hotTicks(dur time.Duration) int {
 // the workbook's stack type, else its scope's (scopeStack: 1 a single target, 2
 // self, 3 a group).
 func hotSlot(s *CastSpell) int {
+	if slot, ok := hotOwnSlots[s.SpellID]; ok {
+		return slot
+	}
 	if s.Def.Workbook && s.Def.Stack > 0 {
 		return s.Def.Stack
 	}

@@ -148,8 +148,12 @@ func (w *World) procSpellsOnLocked(p *Player, sess *session.Session, defense boo
 			// another hit renews it and never adds a second
 			if len(lasts) > 0 {
 				id := procSpellID(ae.SpellID, i)
+				// its own heal-over-time slot, the proc's spell id (the owner,
+				// 2026-11-28: "elder, faithful, bard heals should stack"): Tribal
+				// Ward's heal (the shaman's Elder mastery) ticks beside every other
+				// heal over time on its bearer, never held under a stronger one
 				proc := CastSpell{SpellID: id, Name: ae.Name, Icon: ae.Icon, Level: p.Level,
-					Def: SpellDef{Effects: lasts, Duration: ps.Duration, Workbook: true}, figures: figuresProc}
+					Def: SpellDef{Effects: lasts, Duration: ps.Duration, Workbook: true, Stack: procHoTSlot(id)}, figures: figuresProc}
 				// a renewal by a later hit (or a landing over another heal over
 				// time) keeps the running heal's next tick and lands nothing at
 				// once, that tick once (placeHoTLocked: the workbook's first tick
@@ -671,3 +675,8 @@ func (w *World) npcDefenseHealsLocked(n *NPC, now time.Time) {
 		}
 	}
 }
+
+// procHoTSlot is a hit-set-off heal over time's own slot (hot.go's hotSlot reads a workbook stack type): its proc
+// spell id made positive (procSpellID is below -2,000,000), clear of the workbook's stack types (1-4) and of every
+// spell's own (Marr's Blessing's 760121).
+func procHoTSlot(procID int) int { return -procID }

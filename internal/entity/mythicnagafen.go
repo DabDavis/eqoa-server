@@ -36,8 +36,8 @@ import (
 //     missed window turns the first back (the guard keeps its wounds); a pair done stays done for that gate. His
 //     hate list stands through the gate.
 //   - Cinder Brand after the second gate: its first warning 10 s after the release, then every 28 s. A living
-//     player not his tank is marked and has six seconds to carry it off; where it stands then a pool of fire five
-//     across lies 12 s, taking 5% of the most hit points every 2 s of each player in it (the first at once). A pool
+//     player other than his tank is marked and has six seconds to carry it away. A fire pool with a five-unit radius
+//     lasts 12 s and burns each player inside for 22% of their maximum HP every 2 s, starting immediately. A pool
 //     is put off the landing, the valves and the way out.
 //   - Avoidable impacts (the breath's, the brand's) at least 10 s apart, a Rising Heat pulse at least 3 s from
 //     either: a warning that would break that waits until it does not, and its next comes from when it began.
@@ -85,7 +85,7 @@ const (
 	mythicBrandWarn  = 6 * time.Second
 	mythicPoolFor    = 12 * time.Second
 	mythicPoolEvery  = 2 * time.Second
-	mythicPoolPct    = 5
+	mythicPoolPct    = 22
 
 	mythicImpactGap = 10 * time.Second
 	mythicHeatGap   = 3 * time.Second
@@ -136,7 +136,7 @@ const (
 	mythicLinePairWait  = "Both valves stand open; the shield fails when the Forgeguard falls."
 	mythicLineMissed    = "The %s grinds shut: both valves must turn within 15 seconds of each other. Try again."
 	mythicLineRelease   = "The forge's shield breaks, and Lord Nagafen fights on!"
-	mythicLineBrandYou  = "You bear a Cinder Brand! Carry it to a dry lane away from the others: it bursts in 6 seconds."
+	mythicLineBrandYou  = "Nagafen has branded you, move away from others"
 	mythicLineBrand     = "%s bears a Cinder Brand!"
 	mythicLinePool      = "The Cinder Brand bursts into a pool of fire."
 	mythicLinePoolHit   = "The cinder pool burns you for %d."

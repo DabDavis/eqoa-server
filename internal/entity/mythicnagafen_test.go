@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"net"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -565,7 +566,7 @@ func TestMythicBreath(t *testing.T) {
 }
 
 // Cinder Brand after the second gate: its warning 10 s after the release on a living player not the tank, its burst
-// 6 s on where that player stands; a pool lies 12 s, burning 5% of the most hit points every 2 s of each player in it
+// 6 s on where that player stands; a pool lies 12 s, burning 22% of each player's maximum HP every 2 s
 // (six burns), and is put off the pads.
 func TestMythicBrandAndPool(t *testing.T) {
 	r := newMythic(t, 3)
@@ -587,9 +588,9 @@ func TestMythicBrandAndPool(t *testing.T) {
 	if st := r.state(t, inst); st.NextBrand.Sub(released.Add(mythicBrandFirst)).Abs() > 150*time.Millisecond {
 		t.Fatalf("the first brand due at %v after the release", st.NextBrand.Sub(released))
 	}
-	// the carrier on the west lane; the other far east
+	// Both players are on the west lane when the pool forms.
 	carrier.X, carrier.Y, carrier.Z = 4790, -28.78, 4425
-	other.X, other.Y, other.Z = 4866, -29.44, 4350
+	other.X, other.Y, other.Z = carrier.X, carrier.Y, carrier.Z
 	r.step(mythicBrandFirst - 100*time.Millisecond)
 	st := r.state(t, inst)
 	for st.BrandOn == 0 && r.now.Sub(released) < mythicBrandFirst+mythicBrandWarn {
@@ -600,13 +601,23 @@ func TestMythicBrandAndPool(t *testing.T) {
 		t.Fatalf("the brand on %d, want the carrier (not the tank %d)", st.BrandOn, tank.ServerID)
 	}
 	marked := r.now
-	if !mythicHasLine(redLines(r.ss[1]), "You bear a Cinder Brand") || !mythicHasLine(redLines(r.ss[2]), "Mythic1 bears a Cinder Brand") {
-		t.Fatal("the brand not told")
+	const personalWarning = "Nagafen has branded you, move away from others"
+	for i, s := range r.ss {
+		lines := redLines(s)
+		if slices.Contains(lines, personalWarning) != (r.ps[i] == carrier) {
+			t.Errorf("wrong personal brand warning for %s: %q", r.ps[i].Name, lines)
+		}
+		if slices.Contains(lines, "Mythic1 bears a Cinder Brand!") != (r.ps[i] != carrier) {
+			t.Errorf("wrong raid brand warning for %s: %q", r.ps[i].Name, lines)
+		}
 	}
 	r.step(mythicBrandWarn - 200*time.Millisecond)
 	if st := r.state(t, inst); st.Pools != 0 {
 		t.Fatalf("the pool before 6 s: %+v", st)
 	}
+	carrier.Mods.MaxHP = 2000 // 10,000 effective maximum HP for the carrier, 8,000 for the other player
+	const startingHP = 6000
+	carrier.HP, other.HP = startingHP, startingHP
 	r.step(200 * time.Millisecond)
 	st = r.state(t, inst)
 	if st.Pools != 1 || st.BrandOn != 0 || r.now.Sub(marked) != mythicBrandWarn {
@@ -616,31 +627,30 @@ func TestMythicBrandAndPool(t *testing.T) {
 	if p := st.PoolSpots[0]; distXZ(p[0], p[2], 4790, 4425) > 0.01 {
 		t.Fatalf("the pool at %v, not where its carrier stood", p)
 	}
-	if carrier.HP != carrier.MaxHP-carrier.MaxHP*5/100 && carrier.HP != carrier.MaxHP {
-		t.Logf("the first burn at the burst: HP %d", carrier.HP)
+	if lost := startingHP - carrier.HP; lost != 2200 {
+		t.Errorf("carrier's first burn took %d, want 2200", lost)
 	}
-	carrier.HP = carrier.MaxHP
-	// it burns 5% every 2 s while the carrier stands in it: from now (the first burn was at the burst) five more
-	burned := 0
-	for i := 0; i < 60; i++ {
-		hp := carrier.HP
-		r.step(200 * time.Millisecond)
-		if carrier.HP < hp {
-			burned++
-			if hp-carrier.HP != carrier.MaxHP*5/100 {
-				t.Fatalf("a burn of %d, want 5%% (%d)", hp-carrier.HP, carrier.MaxHP*5/100)
-			}
+	if lost := startingHP - other.HP; lost != 1760 {
+		t.Errorf("other player's first burn took %d, want 1760", lost)
+	}
+	other.X -= 10 // leave the pool after the first burn
+	for tick := 2; tick <= 6; tick++ {
+		carrier.HP = startingHP // heal between burns to observe the whole lifetime
+		r.step(1900 * time.Millisecond)
+		if carrier.HP != startingHP {
+			t.Fatalf("burn %d landed early", tick)
 		}
-		carrier.HP = max(carrier.HP, 4000) // kept alive; a Rising Heat pulse may land too
+		r.step(100 * time.Millisecond)
+		if lost := startingHP - carrier.HP; lost != 2200 {
+			t.Fatalf("burn %d took %d, want 2200", tick, lost)
+		}
 	}
-	if burned != 5 {
-		t.Fatalf("%d burns over the pool's life", burned)
-	}
+	r.step(2 * time.Second)
 	if st := r.state(t, inst); st.Pools != 0 {
 		t.Fatalf("the pool outlived 12 s: %+v", st)
 	}
-	if other.HP != other.MaxHP && !mythicHasLine(redLines(r.ss[2]), "Rising Heat") {
-		t.Fatalf("the one far off burned: %d", other.HP)
+	if carrier.HP != startingHP-2200 || other.HP != startingHP-1760 {
+		t.Fatalf("unexpected extra burn: carrier HP %d, other HP %d", carrier.HP, other.HP)
 	}
 }
 

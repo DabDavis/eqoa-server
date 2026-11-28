@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -33,6 +34,9 @@ import (
 //     clear takes it off (the wait still runs from the last one taken).
 //   - A GM's #surname clear <character> clears any character's, online or not,
 //     and its wait with it: a GM's answer to a bad name.
+//
+// A merc's surname (mercsurname.go, petition 3430) rides the same list, by
+// the merc's name.
 //
 // Where it shows: after the name in /who (every client), and on vanilla's name
 // plates and its details box (□, a player's), by OpcodeSurnameOffer and
@@ -194,6 +198,22 @@ func (s *Surnames) inWorld() []surnamePair {
 	for _, w := range all {
 		if v := s.Of(w.id); v != "" {
 			out = append(out, surnamePair{w.name, v})
+		}
+	}
+	// and every merc's (mercsurname.go): a merc's name is the world's, so its
+	// pair names it wherever it stands, out or not yet
+	if s.db != nil {
+		mercs, err := s.db.MercSurnames()
+		if err != nil {
+			log.Printf("Surname: the mercs' surnames: %v", err)
+		}
+		names := make([]string, 0, len(mercs))
+		for n := range mercs {
+			names = append(names, n)
+		}
+		sort.Strings(names)
+		for _, n := range names {
+			out = append(out, surnamePair{n, mercs[n]})
 		}
 	}
 	return out

@@ -153,6 +153,9 @@ var snapshotRules = map[string]snapshotRule{
 		why: "the characters, kept whole (the game's own rows); a surname (surname.go, Live petition 5648) is a name a " +
 			"player chose for the character in the game, held to the pets' and mercs' name rules, as public as its " +
 			"first name (shown in /who and over its head), and surname_at when it was taken: no person's name"},
+	"charmerc": {allow: []string{"surname"},
+		why: "the characters' mercs, kept whole; a merc's surname (handlers/mercsurname.go, petition 3430) is a name its " +
+			"hirer chose for it in the game, held to a character's surname's rules and shown over its head: no person's name"},
 	"tokenshop": {allow: []string{"token"},
 		why: "the token shops' stock (handlers/tokenshop.go, the Toy Shoppe): a token is the item a ware is paid in, by " +
 			"its name (Holly Token), no secret"},

@@ -39,7 +39,9 @@ import (
 // every armour piece's look hidden, the helm's too, their auras with them,
 // all still worn; 0, the default, shown: petition 2965's follow-up). were is the were form
 // its hirer gave it (handlers/mercwere.go: the form's spell name, one its hirer's own book
-// holds; "" none: petition 3069). A merc on standby (out of a
+// holds; "" none: petition 3069). surname is its hirer's /merc surname, shown
+// after its name where a character's surname is (handlers/mercsurname.go: ""
+// none; petition 3430, the owner 2026-11-28). A merc on standby (out of a
 // full group for a player: entity/mercbench.go) keeps its row as it is.
 const charMercSchema = `
 	CREATE TABLE IF NOT EXISTS charmerc (
@@ -66,6 +68,7 @@ const charMercSchema = `
 		hide_helm   INTEGER NOT NULL DEFAULT 0,
 		hide_look   INTEGER NOT NULL DEFAULT 0,
 		were        TEXT NOT NULL DEFAULT '',
+		surname     TEXT NOT NULL DEFAULT '',
 		PRIMARY KEY (serverid, slot)
 	);`
 
@@ -109,7 +112,7 @@ func (db *SQLiteDB) ensureMercs() error {
 			{"offensive", "INTEGER NOT NULL DEFAULT 0"}, {"spells_off", "TEXT NOT NULL DEFAULT ''"}, {"aoe", "INTEGER NOT NULL DEFAULT 0"},
 			{"master", "TEXT NOT NULL DEFAULT ''"}, {"spell_slots", "TEXT NOT NULL DEFAULT ''"},
 			{"hide_helm", "INTEGER NOT NULL DEFAULT 0"}, {"hide_look", "INTEGER NOT NULL DEFAULT 0"},
-			{"were", "TEXT NOT NULL DEFAULT ''"}} {
+			{"were", "TEXT NOT NULL DEFAULT ''"}, {"surname", "TEXT NOT NULL DEFAULT ''"}} {
 			if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('charmerc') WHERE name = ?`, col.name).Scan(&n); err != nil {
 				return fmt.Errorf("charmerc: %w", err)
 			}
@@ -180,18 +183,19 @@ type MercRow struct {
 	HideHelm                               bool      // /merc helm off: its helm's look hidden (petition 2965)
 	HideLook                               bool      // /merc look off: every armour piece's look hidden, the helm's too
 	Were                                   string    // /merc were: the were form's spell name, "" none (petition 3069)
+	Surname                                string    // /merc surname: after its name on vanilla's plates, "" none (petition 3430)
 	DeadUntil                              time.Time // zero: alive
 	Hired                                  time.Time
 }
 
-const mercCols = `serverid, slot, name, class, race, sex, face, hair_color, hair_length, hair_style, stance, dead_until, hired, path, pet, offensive, spells_off, aoe, master, spell_slots, hide_helm, hide_look, were`
+const mercCols = `serverid, slot, name, class, race, sex, face, hair_color, hair_length, hair_style, stance, dead_until, hired, path, pet, offensive, spells_off, aoe, master, spell_slots, hide_helm, hide_look, were, surname`
 
 // scanMerc reads a row of mercCols.
 func scanMerc(sc interface{ Scan(...any) error }) (MercRow, error) {
 	var r MercRow
 	var dead, hired, off, slots string
 	if err := sc.Scan(&r.ServerID, &r.Slot, &r.Name, &r.Class, &r.Race, &r.Sex, &r.Face, &r.HairColor, &r.HairLength, &r.HairStyle,
-		&r.Stance, &dead, &hired, &r.Path, &r.Pet, &r.Offensive, &off, &r.AoE, &r.Master, &slots, &r.HideHelm, &r.HideLook, &r.Were); err != nil {
+		&r.Stance, &dead, &hired, &r.Path, &r.Pet, &r.Offensive, &off, &r.AoE, &r.Master, &slots, &r.HideHelm, &r.HideLook, &r.Were, &r.Surname); err != nil {
 		return MercRow{}, err
 	}
 	r.SpellsOff = parseSpellIDs(off)
@@ -285,9 +289,9 @@ func (db *SQLiteDB) SetMerc(r MercRow) error {
 	if !r.Hired.IsZero() {
 		hired = r.Hired.UTC().Format(time.RFC3339)
 	}
-	_, err := db.Exec(`INSERT OR REPLACE INTO charmerc (`+mercCols+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.ServerID,
+	_, err := db.Exec(`INSERT OR REPLACE INTO charmerc (`+mercCols+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.ServerID,
 		max(r.Slot, 1), r.Name, r.Class, r.Race, r.Sex, r.Face, r.HairColor, r.HairLength, r.HairStyle, r.Stance, dead, hired, r.Path, r.Pet,
-		r.Offensive, joinSpellIDs(r.SpellsOff), r.AoE, r.Master, joinMercSpellSlots(r.SpellSlots), r.HideHelm, r.HideLook, r.Were)
+		r.Offensive, joinSpellIDs(r.SpellsOff), r.AoE, r.Master, joinMercSpellSlots(r.SpellSlots), r.HideHelm, r.HideLook, r.Were, r.Surname)
 	return err
 }
 

@@ -1094,3 +1094,24 @@ func TestSelfAndGroupLinesAreNoDuels(t *testing.T) {
 		t.Errorf("in a duel: A's STR %d (want %d), A's effects %+v, B's %+v", d.a.StatNow(StatStr), astr+40, d.a.Effects, d.b.Effects)
 	}
 }
+
+// The arena is 120 round where the duel began (Heirloom petition 3476: at 60 a
+// duelist running round the other forfeit at once); the control: past it, the
+// forfeit as before.
+func TestDuelArenaRoomToRun(t *testing.T) {
+	if DuelArenaRadius != 120 {
+		t.Fatalf("DuelArenaRadius %v, want 120", DuelArenaRadius)
+	}
+	d := newDuelists(t)
+	d.start(t)
+	d.a.X = 102 + 100 // past the old 60, inside the new radius
+	d.tick(5 * time.Second)
+	if d.w.duels.of[d.a.ServerID] == nil {
+		t.Fatal("a duelist 100 from the centre forfeit")
+	}
+	d.a.X = 102 + DuelArenaRadius + 1
+	d.tick(6 * time.Second)
+	if d.w.duels.of[d.a.ServerID] != nil {
+		t.Fatal("the control: still on past the radius")
+	}
+}

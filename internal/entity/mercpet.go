@@ -33,7 +33,9 @@ import (
 //   - it assists the merc and its hirer, by the merc's stance
 //     (mercPetChooseTargetLocked): its hirer's auto-attack's target, the
 //     merc's, what fights it, the merc or the hirer or the hirer hurt; a
-//     passive merc's only what the merc was told to attack. It follows the
+//     passive merc's only what the merc was told to attack; an aggressive
+//     merc's also what fights its hirer or a group mate, uncalled, as a
+//     player's aggressive pet (mercPetDefends, Heirloom petition 3471). It follows the
 //     merc out of a fight; never a player, never a duel's or Mr.
 //     Moogie's (mercMayFight), so it is in no duel, no PvP fight and no
 //     challenge (ownfight.go; duel.go leaves it out as it does the merc);
@@ -342,6 +344,27 @@ func (w *World) mercPetTurnLocked(ms *mercState, sess *session.Session, fight bo
 	}
 }
 
+// mercPetDefends reports a creature fighting the hirer or one of its group mates
+// (mates, mercGroupMatesLocked), which an aggressive merc's pet takes on as a
+// player's aggressive pet does (pet.go petChooseTargetLocked: fightsGroupMate;
+// Heirloom petition 3471, the owner 2026-11-28: "make an aggressive merc's pet
+// defend the group like a player's aggressive pet"). The merc itself still
+// waits for a call (merccall.go).
+func mercPetDefends(owner *Player, mates []*Player, npc *NPC) bool {
+	if npc.CurrentEnemy == 0 {
+		return false
+	}
+	if owner != nil && npc.CurrentEnemy == owner.ServerID {
+		return true
+	}
+	for _, p := range mates {
+		if npc.CurrentEnemy == p.ServerID {
+			return true
+		}
+	}
+	return false
+}
+
 // mercPetChooseTargetLocked gives the merc's pet its target by its merc's
 // stance (the owner, 2026-11-11: "the mercenary pets should attack when player
 // or merc attacks"): a passive merc's pet only what its merc was told to
@@ -399,7 +422,8 @@ func (w *World) mercPetChooseTargetLocked(ms *mercState, ps *petState) {
 	// (self-defence: GM ticket 1959)
 	mates := w.mercGroupMatesLocked(ms) // an aggressive merc's (GM ticket 2025)
 	mine := func(npc *NPC) bool {
-		return npc.CurrentEnemy == pet.ServerID || npc.CurrentEnemy == m.ServerID || w.mercCalledForLocked(ms, mates, npc)
+		return npc.CurrentEnemy == pet.ServerID || npc.CurrentEnemy == m.ServerID || w.mercCalledForLocked(ms, mates, npc) ||
+			ms.stance == MercAggressive && mercPetDefends(owner, mates, npc)
 	}
 	if t := valid(ps.target); t != nil && mine(t) {
 		return // still its fight

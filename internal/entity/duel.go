@@ -61,8 +61,10 @@ const (
 	DuelStartRange float32 = 30
 	// DuelArenaRadius is how far from where the duel began either may go;
 	// past it, or in another world, the duel is forfeit (ours; the live
-	// client points its compass at the duel's centre, 0x1502 sub 8).
-	DuelArenaRadius float32 = 60
+	// client points its compass at the duel's centre, 0x1502 sub 8). 120
+	// since Heirloom petition 3476 ("make the dueling range u can run around
+	// larger"): at 60 a duelist kiting round the other forfeit within seconds.
+	DuelArenaRadius float32 = 120
 	// DuelLoserHP is what a hit the loser could not take leaves it.
 	DuelLoserHP = 1
 	// HardcoreDuelHP is what a Hardcore duelist is healed to at a duel's end

@@ -59,7 +59,8 @@ import (
 //
 // Chosen, where no capture says more:
 //   - the level range: a creature attacks a player below three times its
-//     level (inAggroLevels). It fits the level-51 cut at 17/18; a window of 33
+//     level (inAggroLevels), but for one a GM's aggressive rule names: every
+//     level (the owner, 2026-11-28). It fits the level-51 cut at 17/18; a window of 33
 //     levels below the player fits it as well, and only another player level
 //     would tell them apart;
 //   - who is hostile by nature (hostileNatureLocked): an attackable creature
@@ -128,6 +129,9 @@ type AggroRule struct {
 	// Holds: in a fight they stand where they are, as a rooted creature (npcaggro's
 	// holds; chase.go)
 	Holds bool
+	// Greens: they attack on sight a player they are green to as well (npcaggro's greens; the owner, 2026-11-28:
+	// "make the bandits attack green players too"), as a GM trigger's spawn does
+	Greens bool
 	// PetName: the seed's row for a player's pet's name (database.NPCAggroRule's
 	// PetName), which a dungeon's creature of that name is not (aggroRuleLocked)
 	PetName bool
@@ -399,6 +403,12 @@ func (w *World) threatensLocked(npc *NPC, p *Player) bool {
 		}
 		return Kos(w.standingLocked(p, f))
 	}
+	if r, ok := w.aggroRuleLocked(npc); ok && r.Aggressive {
+		// a GM's aggressive rule for its name: the red face to every level, no level window (the owner,
+		// 2026-11-28: "yes show red face to every level"; Garrak, 60, saw level 18-20 skeletons white). Still no
+		// attack on sight on a player it is green to (the caller's ConColor rule).
+		return w.hostileLocked(npc)
+	}
 	return inAggroLevels(npc.Level, p.Level) && w.hostileLocked(npc)
 }
 
@@ -546,7 +556,7 @@ func (w *World) drawNearLocked(p *Player, now time.Time, onSight bool) {
 		if p.Invisible() && !w.seesInvisLocked(npc, p) { // invisible, to all but those that see it
 			continue
 		}
-		if !w.threatensLocked(npc, p) || onSight && !npc.EventAggro && greenTo(npc, p) {
+		if !w.threatensLocked(npc, p) || onSight && !w.attacksGreensLocked(npc) && greenTo(npc, p) {
 			continue
 		}
 		r := w.aggroRadiusLocked(npc)
@@ -654,7 +664,7 @@ func (w *World) LoadAggroRules(db *database.SQLiteDB) (int, error) {
 	}
 	rules := make(map[string]AggroRule, len(rows))
 	for _, r := range rows {
-		rules[r.Name] = AggroRule{Aggressive: r.Aggressive, Radius: float32(r.Radius), Leash: float32(r.Leash), NoWord: r.NoWord, Holding: r.Holding, SeeInvis: r.SeeInvis, Holds: r.Holds, PetName: r.PetName}
+		rules[r.Name] = AggroRule{Aggressive: r.Aggressive, Radius: float32(r.Radius), Leash: float32(r.Leash), NoWord: r.NoWord, Holding: r.Holding, SeeInvis: r.SeeInvis, Holds: r.Holds, PetName: r.PetName, Greens: r.Greens}
 	}
 	w.SetAggroRules(rules)
 	return len(rules), nil
@@ -736,3 +746,14 @@ const (
 	healFullHatePct = 20
 	healHateReach   = 100
 )
+
+// attacksGreensLocked reports a creature that attacks on sight the players it is green to as well: a GM trigger's
+// spawn (EventAggro), or one whose GM rule says greens (AggroRule.Greens; the owner, 2026-11-28, of bandits). Must be
+// called with the lock held.
+func (w *World) attacksGreensLocked(npc *NPC) bool {
+	if npc.EventAggro {
+		return true
+	}
+	r, ok := w.aggroRuleLocked(npc)
+	return ok && r.Aggressive && r.Greens
+}

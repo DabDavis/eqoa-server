@@ -15,7 +15,8 @@ import "fmt"
 // in a fight they stand where they are, as a rooted creature, so no pull moves
 // them off their post (Tallon Zek's Zek Sentry, eqoa.forumotion.com t218: "cannot
 // be pulled out of position"); their out-of-reach abilities still reach what they
-// see (entity/chase.go). By NAME, as factionhits is: a GM's #spawn
+// see (entity/chase.go). greens 1: they attack on sight a player they are green to too (the
+// owner, 2026-11-28, of bandits). By NAME, as factionhits is: a GM's #spawn
 // copy shares it. source: gm, or seed for tools/seed_npc_aggro.py's rows (its
 // --undo deletes those).
 const npcAggroSchema = `
@@ -53,6 +54,15 @@ func (db *SQLiteDB) ensureNPCAggro() error {
 			return fmt.Errorf("npcaggro see_invis: %w", err)
 		}
 	}
+	has, err = hasColumn(db.DB, "npcaggro", "greens")
+	if err != nil {
+		return fmt.Errorf("npcaggro: %w", err)
+	}
+	if !has {
+		if _, err := db.Exec(`ALTER TABLE npcaggro ADD COLUMN greens INTEGER NOT NULL DEFAULT 0`); err != nil {
+			return fmt.Errorf("npcaggro greens: %w", err)
+		}
+	}
 	has, err = hasColumn(db.DB, "npcaggro", "holds")
 	if err != nil {
 		return fmt.Errorf("npcaggro: %w", err)
@@ -83,6 +93,9 @@ type NPCAggroRule struct {
 	SeeInvis bool
 	// Holds (column holds): in a fight they stand where they are, as rooted
 	Holds bool
+	// Greens (column greens): they attack on sight a player they are green to as well (the owner, 2026-11-28: "make
+	// the bandits attack green players too")
+	Greens bool
 	// PetName: a tools/seed_npc_aggro.py row for a player's pet's name (source
 	// seed, its note "a player's pet recorded beside its owner"): it keeps the
 	// pets the census recorded peaceful, not a dungeon's creatures of that name
@@ -92,7 +105,7 @@ type NPCAggroRule struct {
 
 // NPCAggroRules is every row of npcaggro.
 func (db *SQLiteDB) NPCAggroRules() ([]NPCAggroRule, error) {
-	rows, err := db.Query(`SELECT npc_name, aggressive, radius, leash, holding, see_invis, holds, (source = 'seed' AND instr(note, 'a player''s pet') > 0) FROM npcaggro`)
+	rows, err := db.Query(`SELECT npc_name, aggressive, radius, leash, holding, see_invis, holds, (source = 'seed' AND instr(note, 'a player''s pet') > 0), greens FROM npcaggro`)
 	if err != nil {
 		return nil, err
 	}
@@ -100,8 +113,8 @@ func (db *SQLiteDB) NPCAggroRules() ([]NPCAggroRule, error) {
 	var out []NPCAggroRule
 	for rows.Next() {
 		var r NPCAggroRule
-		var aggressive, seeInvis, holds, petName int
-		if err := rows.Scan(&r.Name, &aggressive, &r.Radius, &r.Leash, &r.Holding, &seeInvis, &holds, &petName); err != nil {
+		var aggressive, seeInvis, holds, petName, greens int
+		if err := rows.Scan(&r.Name, &aggressive, &r.Radius, &r.Leash, &r.Holding, &seeInvis, &holds, &petName, &greens); err != nil {
 			return nil, err
 		}
 		r.Aggressive = aggressive > 0
@@ -109,6 +122,7 @@ func (db *SQLiteDB) NPCAggroRules() ([]NPCAggroRule, error) {
 		r.SeeInvis = seeInvis != 0
 		r.Holds = holds != 0
 		r.PetName = petName != 0
+		r.Greens = greens != 0
 		out = append(out, r)
 	}
 	return out, rows.Err()

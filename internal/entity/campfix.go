@@ -199,7 +199,7 @@ func (w *World) CampfixNewcomerThreat(id EntityID, combos [][3]int) bool {
 	for _, k := range combos {
 		p := &Player{Name: "a new character", Level: 1, Race: k[0], Class: k[1], HumType: k[2],
 			World: c.World, X: c.SpawnX, Y: c.SpawnY, Z: c.SpawnZ}
-		if w.threatensLocked(&c, p) && (c.EventAggro || !greenTo(&c, p)) {
+		if w.threatensLocked(&c, p) && (w.attacksGreensLocked(&c) || !greenTo(&c, p)) {
 			return true
 		}
 	}

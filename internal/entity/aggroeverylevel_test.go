@@ -27,3 +27,17 @@ func TestAGMsAggressiveRuleShowsTheRedFaceToEveryLevel(t *testing.T) {
 		t.Error("the ruled skeleton left a level 20 player alone")
 	}
 }
+
+// The owner, 2026-11-28: "make the bandits attack green players too". A GM rule with greens attacks on sight a player
+// it is green to; the control: the same rule without greens leaves that player alone.
+func TestAGreensRuleAttacksGreenPlayers(t *testing.T) {
+	for _, greens := range []bool{false, true} {
+		f := newAggroFix(t, 60)
+		f.w.SetAggroRules(map[string]AggroRule{"bandit": {Aggressive: true, Greens: greens}})
+		b := f.npc(3301, "bandit", 18, bearBody, 1005, 1000)
+		f.look()
+		if f.attacks(b) != greens {
+			t.Errorf("greens %v: a level 18 bandit attacked a 60 on sight: %v, want %v", greens, f.attacks(b), greens)
+		}
+	}
+}

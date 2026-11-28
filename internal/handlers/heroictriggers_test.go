@@ -294,3 +294,42 @@ func TestHeroicTriggerDeathRowsRunWhereTheyBelong(t *testing.T) {
 		t.Fatalf("a heroic trigger fired outside any instance: %v", err)
 	}
 }
+
+// A fixed trigger of the open world is not fired by its creature's heroic copy's
+// death (an Archon's portal down opening in world 1 for a kill in world 14), nor a
+// fixed heroic trigger by an open world death; the open world's own kill still
+// fires its own.
+func TestFixedTriggersIgnoreOtherWorldsDeaths(t *testing.T) {
+	h := newHeroicTrigRig(t)
+	c := h.enter(h.cora, h.pc)
+	h.gw.NPCs[803] = &entity.NPC{ServerID: 803, Name: "Test Eel", HP: 100, MaxHP: 100, Level: 10,
+		X: 20000, Y: 50, Z: 20000, SpawnX: 20000, SpawnY: 50, SpawnZ: 20000, World: 0}
+	h.setTrigger(907, "Open Portal", 0, 20010, 50, 20010, `[{"do":"spawn","npc":"Test Kraken","minutes":30}]`)
+	h.setTrigger(908, "Heroic Fixed Portal", 14, 1050, 50, 1050, `[{"do":"spawn","npc":"Test Kraken","minutes":30}]`)
+	for _, trig := range []string{"Open Portal", "Heroic Fixed Portal"} {
+		if _, err := h.db.Exec(`INSERT INTO npcdeath (name, trigger, chance) VALUES ('test eel', ?, 100)`, trig); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := h.e.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	eels := h.copies("Test Eel")
+	h.e.Killed(entity.KillCredit{NPCID: eels[c][0].ServerID, NPCName: "Test Eel"})
+	if got := h.copies("Test Kraken"); len(got[0])+len(got[c]) != 1 || len(got[c]) != 1 {
+		t.Fatalf("after Cora's eel: %v (want one kraken, in her copy)", counts(got))
+	}
+	h.e.Killed(entity.KillCredit{NPCID: 803, NPCName: "Test Eel"})
+	got := h.copies("Test Kraken")
+	n0 := 0
+	for _, k := range got[0] {
+		if k.World == 0 {
+			n0++
+		} else {
+			t.Fatalf("a kraken in world %d outside any instance", k.World)
+		}
+	}
+	if n0 != 1 || len(got[c]) != 1 {
+		t.Fatalf("after the open world's eel: %v (want one in world 0, still one in Cora's copy)", counts(got))
+	}
+}

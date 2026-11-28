@@ -417,7 +417,7 @@ func (e *TriggerEngine) Killed(k entity.KillCredit) {
 			continue
 		}
 		if _, err := e.FireNamed(r.Trigger, TriggerFirer{Name: k.NPCName + "'s death", Quiet: true,
-			At: &triggerPlaceAt{world: world, x: x, y: y, z: z, inst: inst}, Waker: wakerOf(k)}); err != nil && !errors.Is(err, ErrTriggerBusy) {
+			At: &triggerPlaceAt{world: world, x: x, y: y, z: z, inst: inst}, Waker: wakerOf(k)}); err != nil && !errors.Is(err, ErrTriggerBusy) && !errors.Is(err, ErrTriggerElsewhere) {
 			log.Printf("Triggers: %q's death fires %q: %v", k.NPCName, r.Trigger, err)
 		}
 	}
@@ -606,6 +606,9 @@ var (
 	ErrTriggerBroken  = errors.New("the trigger cannot run as written")
 	ErrTriggerNoPlace = errors.New("the trigger has no place")
 	ErrTriggerBusy    = errors.New("a run of the trigger's lock lives")
+	// ErrTriggerElsewhere is a run refused where it would go (misplacedRun): a death
+	// row's other world's trigger, not an error to log
+	ErrTriggerElsewhere = errors.New("the trigger runs in another world or instance")
 )
 
 // Fire runs the trigger in slot as by: its steps until a wait (Tick goes on
@@ -664,6 +667,9 @@ func (e *TriggerEngine) prepareRun(slot int, by TriggerFirer) (*triggerRun, []st
 		r.world, r.x, r.y, r.z = world, x, y, z
 	}
 	r.inst = e.runInstance(r, by)
+	if why := e.misplacedRun(r, by); why != "" {
+		return nil, []string{t.Title() + " cannot run here: " + why}, ErrTriggerElsewhere
+	}
 	if r.inst != 0 && r.lock != "" {
 		r.lock = instanceLock(r.lock, r.inst) // each instance's run its own (a heroic raid in every party's copy)
 	}
@@ -691,6 +697,39 @@ func (e *TriggerEngine) runInstance(r *triggerRun, by TriggerFirer) uint32 {
 		}
 	}
 	return 0
+}
+
+// misplacedRun is why a run may not go where it would (none: ""): a heroic raid's
+// trigger (the dungeons' world) outside any party's copy, a run in a copy whose steps
+// place their spawns in another world, or one outside any copy whose steps place them
+// in a dungeon's world; or a fixed trigger of one world fired by a death or a drop
+// (its At) in another when either is a dungeon's (a heroic copy's death opening the
+// open world's portal, a world 14 flesh fiend's raining on the Plane of Sky). A death
+// row matches by name, so a creature of the open world
+// and its heroic copy fire both triggers: each runs where it belongs, the other is
+// refused here (quietly: ErrTriggerElsewhere), and neither stands a spawn in every
+// copy of a dungeon at once (a copy of instance 0 is every copy's) nor a heroic run's
+// in the open world.
+func (e *TriggerEngine) misplacedRun(r *triggerRun, by TriggerFirer) string {
+	if by.At != nil && r.trig.Fixed() && by.At.world != r.world &&
+		(entity.IsDungeonWorld(by.At.world) || entity.IsDungeonWorld(r.world)) {
+		return fmt.Sprintf("its place is in world %d, the death or drop that fired it in world %d", r.world, by.At.world)
+	}
+	if entity.IsDungeonWorld(r.world) && r.inst == 0 {
+		return "a dungeon's world runs its triggers in a party's instance alone"
+	}
+	for _, s := range r.steps {
+		if s.World == nil || *s.World < 0 || uint8(*s.World) == r.world {
+			continue
+		}
+		if r.inst != 0 {
+			return fmt.Sprintf("a step places its spawn in world %d, outside the party's instance", *s.World)
+		}
+		if entity.IsDungeonWorld(uint8(*s.World)) {
+			return fmt.Sprintf("a step places its spawn in world %d, a dungeon's, outside any party's instance", *s.World)
+		}
+	}
+	return ""
 }
 
 // instanceLock is a lock's name in one instance: a run of a heroic raid's trigger in

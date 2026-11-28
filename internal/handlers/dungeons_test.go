@@ -88,6 +88,29 @@ func TestReadDungeonsRecipe(t *testing.T) {
 	if e := kd.Entrance; e.X != 13250 || e.Z != 31040 || e.Y <= 51 {
 		t.Fatalf("Kratas's Deep's landing %+v, want the beach at (13250, 31040) above the water", e)
 	}
+	// the heroic raids' phase 2 (2026-11-28, tools/heroic_raids2_20261128.py): each box holds its encounter's place
+	// (the trigger's), and its landing stands within a cell of it
+	for _, c := range []struct {
+		key  string
+		x, z float32
+	}{{"ct", 25690, 3310}, {"thulite", 18467.5, 25426.5}, {"dynmath", 4765.4, 14028.4}, {"parathior", 7035.4, 4281.6},
+		{"jarek", 24162.3, 9576.8}, {"zek", 20250, 18250}, {"jailor", 17098.4, 13250.5}, {"valkanith", 4160.4, 9809.5},
+		{"sarek", 4700, 2500}} {
+		d, ok := keys[c.key]
+		if !ok {
+			t.Fatalf("no dungeon %q", c.key)
+		}
+		in := false
+		for _, b := range d.Boxes {
+			in = in || c.x >= b.X0 && c.x <= b.X1 && c.z >= b.Z0 && c.z <= b.Z1
+		}
+		if !in {
+			t.Fatalf("%s's boxes %+v leave out its encounter (%v, %v)", c.key, d.Boxes, c.x, c.z)
+		}
+		if dx, dz := d.Entrance.X-c.x, d.Entrance.Z-c.z; dx*dx+dz*dz > 200*200 {
+			t.Fatalf("%s's landing %+v is over 200 from its encounter", c.key, d.Entrance)
+		}
+	}
 	// Guk's entrance faces north (toward smaller z: its gate), a facing of pi
 	if f := keys["guk"].Entrance.Facing; f < 3.1 || f > 3.2 {
 		t.Fatalf("Guk's entrance faces %.2f", f)

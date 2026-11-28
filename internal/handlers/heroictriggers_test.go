@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -237,4 +238,151 @@ func anyHas(lines []string, want string) bool {
 		}
 	}
 	return false
+}
+
+// A death row matches by name, so an eel of the open world and one of a heroic copy
+// fire both of its triggers: each runs where it belongs and the other is refused
+// (misplacedRun). The open world's eel brings the open world's kraken alone (none in
+// world 14, where one in no instance would stand in every copy); the copy's eel brings
+// the heroic kraken in its copy alone (none in world 0).
+func TestHeroicTriggerDeathRowsRunWhereTheyBelong(t *testing.T) {
+	h := newHeroicTrigRig(t)
+	c := h.enter(h.cora, h.pc)
+	h.gw.NPCs[802] = &entity.NPC{ServerID: 802, Name: "Test Eel", HP: 100, MaxHP: 100, Level: 10,
+		X: 20000, Y: 50, Z: 20000, SpawnX: 20000, SpawnY: 50, SpawnZ: 20000, World: 0}
+	// the open world's: its spawn put in world 0 by its step
+	h.setTrigger(904, "Open Eel Calls", -1, 0, 0, 0, `[{"do":"spawn","npc":"Test Kraken","minutes":30,"world":0,"x":20005,"y":50,"z":20005}]`)
+	// the heroic copy's: its spawn put in world 14 by its step
+	h.setTrigger(905, "Heroic Eel Calls", -1, 0, 0, 0, `[{"do":"spawn","npc":"Test Kraken","minutes":30,"world":14,"x":1050,"y":50,"z":1050}]`)
+	for _, trig := range []string{"Open Eel Calls", "Heroic Eel Calls"} {
+		if _, err := h.db.Exec(`INSERT INTO npcdeath (name, trigger, chance) VALUES ('test eel', ?, 100)`, trig); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := h.e.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	h.e.Killed(entity.KillCredit{NPCID: 802, NPCName: "Test Eel"})
+	got := h.copies("Test Kraken")
+	if len(got[0]) != 1 || got[0][0].World != 0 {
+		t.Fatalf("after the open world's eel: %v (want one kraken, in world 0)", counts(got))
+	}
+	for _, n := range got[0] {
+		if n.World == 14 {
+			t.Fatal("a kraken in world 14 outside any instance")
+		}
+	}
+	eels := h.copies("Test Eel")
+	h.e.Killed(entity.KillCredit{NPCID: eels[c][0].ServerID, NPCName: "Test Eel"})
+	got = h.copies("Test Kraken")
+	if len(got[c]) != 1 || got[c][0].World != 14 {
+		t.Fatalf("after Cora's eel: %v (want one kraken in her copy)", counts(got))
+	}
+	if n := 0; true {
+		for _, k := range got[0] {
+			if k.World == 0 {
+				n++
+			}
+		}
+		if n != 1 {
+			t.Fatalf("world 0 has %d krakens after Cora's eel, want still 1", n)
+		}
+	}
+	// a fixed heroic trigger fired by no instance (a GM's panel) is refused
+	h.setTrigger(906, "Heroic Fixed", 14, 1000, 50, 1000, `[{"do":"spawn","npc":"Test Kraken","minutes":30}]`)
+	if _, err := h.e.Fire(906, TriggerFirer{Name: "the panel"}); !errors.Is(err, ErrTriggerElsewhere) {
+		t.Fatalf("a heroic trigger fired outside any instance: %v", err)
+	}
+}
+
+// A fixed trigger of the open world is not fired by its creature's heroic copy's
+// death (an Archon's portal down opening in world 1 for a kill in world 14), nor a
+// fixed heroic trigger by an open world death; the open world's own kill still
+// fires its own.
+func TestFixedTriggersIgnoreOtherWorldsDeaths(t *testing.T) {
+	h := newHeroicTrigRig(t)
+	c := h.enter(h.cora, h.pc)
+	h.gw.NPCs[803] = &entity.NPC{ServerID: 803, Name: "Test Eel", HP: 100, MaxHP: 100, Level: 10,
+		X: 20000, Y: 50, Z: 20000, SpawnX: 20000, SpawnY: 50, SpawnZ: 20000, World: 0}
+	h.setTrigger(907, "Open Portal", 0, 20010, 50, 20010, `[{"do":"spawn","npc":"Test Kraken","minutes":30}]`)
+	h.setTrigger(908, "Heroic Fixed Portal", 14, 1050, 50, 1050, `[{"do":"spawn","npc":"Test Kraken","minutes":30}]`)
+	for _, trig := range []string{"Open Portal", "Heroic Fixed Portal"} {
+		if _, err := h.db.Exec(`INSERT INTO npcdeath (name, trigger, chance) VALUES ('test eel', ?, 100)`, trig); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := h.e.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	eels := h.copies("Test Eel")
+	h.e.Killed(entity.KillCredit{NPCID: eels[c][0].ServerID, NPCName: "Test Eel"})
+	if got := h.copies("Test Kraken"); len(got[0])+len(got[c]) != 1 || len(got[c]) != 1 {
+		t.Fatalf("after Cora's eel: %v (want one kraken, in her copy)", counts(got))
+	}
+	h.e.Killed(entity.KillCredit{NPCID: 803, NPCName: "Test Eel"})
+	got := h.copies("Test Kraken")
+	n0 := 0
+	for _, k := range got[0] {
+		if k.World == 0 {
+			n0++
+		} else {
+			t.Fatalf("a kraken in world %d outside any instance", k.World)
+		}
+	}
+	if n0 != 1 || len(got[c]) != 1 {
+		t.Fatalf("after the open world's eel: %v (want one in world 0, still one in Cora's copy)", counts(got))
+	}
+}
+
+// A heroic raid's end as tools/heroic_raids2_20261128.py writes it: a party that wipes
+// (its copy's place empty past the clock's empty time) has its run end, so the boss
+// rises again for it; a party that kills him keeps its run (a 4-hour clock with no empty
+// time, and a wait as long), so he does not rise again in that copy, until it is over.
+func TestHeroicRaidWipeStartsAgainKillHolds(t *testing.T) {
+	h := newHeroicTrigRig(t)
+	a := h.enter(h.anna, h.pa)
+	c := h.enter(h.cora, h.pc)
+	h.setTrigger(909, "Test Heroic Kraken", 14, 1000, 50, 1000, `[{"do":"awaitnear","start":true,"radius":300},
+		{"do":"lock","lock":"heroic kraken"},{"do":"clock","seconds":3600,"empty":600},
+		{"do":"spawn","npc":"Test Kraken","hostile":true,"minutes":60,"world":14,"x":1000,"y":50,"z":1000},
+		{"do":"awaitdead","npc":"Test Kraken"},{"do":"broadcast","text":"The kraken sinks."},
+		{"do":"clock","seconds":14400},{"do":"wait","seconds":14400},{"do":"end"},{"do":"despawn"}]`)
+	h.e.StartNear()
+	got := h.copies("Test Kraken")
+	if len(got[a]) != 1 || len(got[c]) != 1 {
+		t.Fatalf("krakens: %v", counts(got))
+	}
+	step := func(d time.Duration) {
+		for i := 0; i < 4; i++ {
+			h.now = h.now.Add(d / 4)
+			h.e.Tick()
+		}
+	}
+	got[a][0].Dead = true       // Anna's party kills hers
+	h.pc.X, h.pc.Z = 5000, 5000 // Cora's party is gone from the place (a wipe)
+	step(11 * time.Minute)
+	if got := h.copies("Test Kraken"); len(got[c]) != 0 {
+		t.Fatalf("Cora's kraken after her wipe: %v (want taken away)", counts(got))
+	}
+	if runs := h.e.Runs(); len(runs) != 1 {
+		t.Fatalf("runs after the wipe and the kill: %+v (want Anna's alone)", runs)
+	}
+	h.pc.X, h.pc.Z = 1000, 1150
+	h.e.StartNear()
+	got = h.copies("Test Kraken")
+	if len(got[c]) != 1 {
+		t.Fatalf("Cora back: %v (want her kraken again)", counts(got))
+	}
+	if len(got[a]) != 0 {
+		t.Fatalf("Anna's kraken rose again after her kill: %v", counts(got))
+	}
+	step(3*time.Hour + 50*time.Minute)
+	h.e.StartNear()
+	if got := h.copies("Test Kraken"); len(got[a]) != 0 {
+		t.Fatalf("Anna's kraken rose again within her copy's rest: %v", counts(got))
+	}
+	step(20 * time.Minute)
+	if runs := h.e.Runs(); len(runs) != 1 || runs[0].Spawns != 1 {
+		t.Fatalf("after Anna's rest: %+v (want Cora's new run alone: the look after her first rest started it)", runs)
+	}
 }

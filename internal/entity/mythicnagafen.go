@@ -354,7 +354,7 @@ func (w *World) mythicPlayersLocked(f *mythicFight) []*Player {
 func (w *World) mythicMercsLocked(f *mythicFight) []*NPC {
 	var ns []*NPC
 	for _, ms := range w.allMercsLocked() {
-		if n := ms.npc; n != nil && !n.Dead && n.HP > 0 && n.World == f.world && n.Instance == f.inst {
+		if n := ms.npc; n != nil && !n.Dead && n.HP > 0 && n.World == f.world && w.npcInstanceLocked(n) == f.inst {
 			ns = append(ns, n)
 		}
 	}

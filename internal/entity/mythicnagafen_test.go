@@ -598,7 +598,7 @@ func TestMythicBreath(t *testing.T) {
 	out.X, out.Y, out.Z = boss.X, boss.Y, boss.Z-12
 	r.w.mu.Lock()
 	m := &NPC{ServerID: 932001, Name: "merc", Level: 60, HP: 9000, MaxHP: 9000, X: boss.X - 2, Y: boss.Y, Z: boss.Z + 10,
-		World: 18, Instance: inst, Owner: tank.ServerID}
+		World: 18, Owner: tank.ServerID}
 	m.merc = &mercState{owner: tank, npc: m, slot: 1, body: &Player{ServerID: m.ServerID, Name: "merc", HP: 9000, MaxHP: 9000}}
 	r.w.putNPCLocked(m)
 	if r.w.mercs == nil {
@@ -896,18 +896,20 @@ func TestMythicImpactsApart(t *testing.T) {
 // Drive the encounter clock, guard deaths and actual valve interactions. Both target categories keep the same
 // 24-second pulse schedule while successive gates freeze and restore different ordinary amounts.
 func TestMythicRisingHeat(t *testing.T) {
-	r := newMythic(t, 3)
-	r.group(r.ps...)
+	r := newMythic(t, 4)
+	r.group(r.ps[:3]...)
 	inst := r.enter(t, 0)
 	r.enter(t, 1)
 	r.enter(t, 2)
+	if otherInst := r.enter(t, 3); otherInst == inst {
+		t.Fatal("the solo player joined the raid's instance")
+	}
 	boss := r.boss(t, inst)
-	tank, player := r.ps[0], r.ps[1]
-	merc := &NPC{ServerID: 931000, Name: "healer", Owner: player.ServerID, World: player.World, Instance: inst,
-		X: player.X, Y: player.Y, Z: player.Z, Level: 60, HP: 20000, MaxHP: 20000}
-	merc.merc = &mercState{owner: player, npc: merc, slot: 1, body: &Player{HP: merc.HP, MaxHP: merc.MaxHP}}
-	r.w.putNPCLocked(merc)
-	r.w.mercs = map[EntityID][]*mercState{player.ServerID: {merc.merc}}
+	tank, player, outsider := r.ps[0], r.ps[1], r.ps[3]
+	r.w.mu.Lock()
+	merc := r.w.spawnMercLocked(player, 1, MercKit{Name: "raid mercenary"}, MercAssist, r.now).npc
+	otherMerc := r.w.spawnMercLocked(outsider, 1, MercKit{Name: "solo mercenary"}, MercAssist, r.now).npc
+	r.w.mu.Unlock()
 	r.pull(boss, tank)
 
 	due := r.now.Add(mythicHeatEvery)
@@ -921,6 +923,9 @@ func TestMythicRisingHeat(t *testing.T) {
 		r.step(100 * time.Millisecond)
 		if gotPlayer, gotMerc := playerHP-player.HP, mercHP-merc.HP; gotPlayer != wantPlayer || gotMerc != wantMerc {
 			t.Fatalf("heat at %v took %d / %d, want %d / %d", due, gotPlayer, gotMerc, wantPlayer, wantMerc)
+		}
+		if outsider.HP != outsider.MaxHP || otherMerc.HP != otherMerc.MaxHP {
+			t.Fatal("Rising Heat hit the other instance")
 		}
 		for _, p := range r.ps {
 			p.HP = p.MaxHP

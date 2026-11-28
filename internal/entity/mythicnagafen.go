@@ -8,6 +8,10 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/protocol"
+	"github.com/eqoa/server/internal/session"
 )
 
 // mythicnagafen.go — Mythic Lord Nagafen, an instanced raid on his island (work board 2429, a GM's request
@@ -36,7 +40,7 @@ import (
 //     Each successful turn burns its player's hands for 60 s, locking them out of both valves. A missed window
 //     resets the first valve. A completed pair stays latched, and the guard's wounds and Nagafen's hate persist.
 //   - Cinder Brand after the second gate: its first warning 10 s after the release, then every 28 s. A living
-//     player other than his tank is marked and has six seconds to carry it away. A fire pool with a five-unit radius
+//     player other than his tank is marked and has six seconds to carry it away. A fire pool with a ten-unit radius
 //     lasts 12 s and burns each player inside for 22% of their maximum HP every 2 s, starting immediately. A pool
 //     is put off the landing, the valves and the way out.
 //   - Avoidable impacts (the breath's, the brand's) at least 10 s apart, a Rising Heat pulse at least 3 s from
@@ -103,7 +107,7 @@ const (
 // The fight's places' sizes (world units; the layout's choices, claude-notes/mythic-nagafen-20261127.md).
 const (
 	mythicBreathReach float32 = 35 // the cone's depth from his middle
-	mythicPoolRadius  float32 = 5
+	mythicPoolRadius  float32 = 10
 	mythicPoolHeight  float32 = 4  // how far over or under a pool's floor a player stands in it
 	mythicValveReach  float32 = 10 // how near a valve a player turns it
 	mythicLandingPad  float32 = 6
@@ -184,6 +188,7 @@ type mythicPool struct {
 	until     time.Time
 	nextBurn  time.Time
 	landedAtT time.Time
+	viewers   map[*session.Session]struct{}
 }
 
 // mythicFight is one instance's fight.
@@ -310,6 +315,7 @@ func (w *World) mythicClearSpawnsLocked(f *mythicFight) int {
 	}
 	f.guard = 0
 	for _, p := range f.pools {
+		p.clearBoundary(f)
 		if c := w.NPCs[p.npc]; c != nil && p.npc != 0 && c.Temporary && c.Instance == f.inst {
 			w.removeNPCLocked(c)
 			n++
@@ -869,6 +875,9 @@ func (w *World) mythicPoolsStepLocked(f *mythicFight, now time.Time) {
 	boss := w.NPCs[f.boss]
 	kept := f.pools[:0]
 	for _, pl := range f.pools {
+		if now.Before(pl.until) {
+			w.mythicShowBoundaryLocked(f, &pl, now)
+		}
 		for !pl.nextBurn.After(now) && pl.nextBurn.Before(pl.until) {
 			for _, p := range w.mythicPlayersLocked(f) {
 				if distXZ(p.X, p.Z, pl.x, pl.z) <= mythicPoolRadius && math.Abs(float64(p.Y-pl.y)) <= float64(mythicPoolHeight) {
@@ -884,11 +893,65 @@ func (w *World) mythicPoolsStepLocked(f *mythicFight, now time.Time) {
 			kept = append(kept, pl)
 			continue
 		}
+		pl.clearBoundary(f)
 		if c := w.NPCs[pl.npc]; c != nil && pl.npc != 0 && c.Temporary {
 			w.removeNPCLocked(c)
 		}
 	}
 	f.pools = kept
+}
+
+func (pl *mythicPool) sendBoundary(s *session.Session, f *mythicFight, left uint32) {
+	sendGroupMsg(s, protocol.OpcodeCinderPool, func(b *buffer.Writer) {
+		b.WriteByte(f.world)
+		b.WriteUint32(f.inst)
+		b.WriteUint32(left)
+		if left > 0 {
+			b.WriteFloat32(pl.x)
+			b.WriteFloat32(pl.y)
+			b.WriteFloat32(pl.z)
+			b.WriteFloat32(mythicPoolRadius)
+		}
+	})
+}
+
+func (pl *mythicPool) clearBoundary(f *mythicFight) {
+	for s := range pl.viewers {
+		if s.CharacterInWorld() {
+			pl.sendBoundary(s, f, 0)
+		}
+	}
+	clear(pl.viewers)
+}
+
+// Send on arrival (including a reconnect partway through the burn) and clear on departure.
+// Brands are 28 seconds apart, so each instance has at most one 12-second boundary.
+func (w *World) mythicShowBoundaryLocked(f *mythicFight, pl *mythicPool, now time.Time) {
+	if w.SessionManager == nil {
+		return
+	}
+	for s := range pl.viewers {
+		p := w.sessionPlayerLocked(s)
+		if !s.CharacterInWorld() || p == nil || p.World != f.world || p.Instance != f.inst {
+			if s.CharacterInWorld() {
+				pl.sendBoundary(s, f, 0)
+			}
+			delete(pl.viewers, s)
+		}
+	}
+	if pl.viewers == nil {
+		pl.viewers = make(map[*session.Session]struct{})
+	}
+	w.SessionManager.ForEach(func(s *session.Session) bool {
+		p := w.sessionPlayerLocked(s)
+		if p != nil && p.World == f.world && p.Instance == f.inst && s.CharacterInWorld() {
+			if _, sent := pl.viewers[s]; !sent {
+				pl.sendBoundary(s, f, uint32(max(1, pl.until.Sub(now).Milliseconds())))
+				pl.viewers[s] = struct{}{}
+			}
+		}
+		return true
+	})
 }
 
 // mythicHeatStepLocked is the Rising Heat's pulse when due, away from an impact.

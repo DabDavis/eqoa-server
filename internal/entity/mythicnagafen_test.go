@@ -1,13 +1,16 @@
 package entity
 
 import (
+	"encoding/binary"
 	"fmt"
+	"math"
 	"net"
 	"slices"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -716,8 +719,15 @@ func TestMythicBrandAndPool(t *testing.T) {
 	if lost := startingHP - other.HP; lost != 1760 {
 		t.Errorf("other player's first burn took %d, want 1760", lost)
 	}
-	other.X -= 10 // leave the pool after the first burn
-	for tick := 2; tick <= 6; tick++ {
+	// Each later burn checks a different position relative to the resolved center.
+	positions := []struct {
+		dx, dy, dz float32
+		burns      bool
+	}{{9.99, 0, 0, true}, {6, 0, 8, true}, {10.01, 0, 0, false}, {8, 0, 8, false}, {0, 4.01, 0, false}}
+	for i, pos := range positions {
+		tick := i + 2
+		other.X, other.Y, other.Z = carrier.X+pos.dx, carrier.Y+pos.dy, carrier.Z+pos.dz
+		other.HP = startingHP
 		carrier.HP = startingHP // heal between burns to observe the whole lifetime
 		r.step(1900 * time.Millisecond)
 		if carrier.HP != startingHP {
@@ -727,14 +737,81 @@ func TestMythicBrandAndPool(t *testing.T) {
 		if lost := startingHP - carrier.HP; lost != 2200 {
 			t.Fatalf("burn %d took %d, want 2200", tick, lost)
 		}
+		want := 0
+		if pos.burns {
+			want = 1760
+		}
+		if lost := startingHP - other.HP; lost != want {
+			t.Fatalf("burn %d at offset %+v took %d, want %d", tick, pos, lost, want)
+		}
 	}
 	r.step(2 * time.Second)
 	if st := r.state(t, inst); st.Pools != 0 {
 		t.Fatalf("the pool outlived 12 s: %+v", st)
 	}
-	if carrier.HP != startingHP-2200 || other.HP != startingHP-1760 {
+	if carrier.HP != startingHP-2200 || other.HP != startingHP {
 		t.Fatalf("unexpected extra burn: carrier HP %d, other HP %d", carrier.HP, other.HP)
 	}
+}
+
+func TestMythicPoolSendsBoundaryToItsInstance(t *testing.T) {
+	r := newMythic(t, 3)
+	inst := r.enter(t, 0)
+	f := r.w.dungeons.insts[inst].enc
+	f.brandX, f.brandY, f.brandZ = 4884, -28.72, 4398 // on the east valve, so the pool moves
+	// A witness in another copy of the same arena must never see this marker.
+	r.ps[2].World, r.ps[2].Instance = f.world, inst+1
+	r.w.mythicBrandBurstLocked(r.w.dungeons.insts[inst], f, r.now)
+	r.w.mythicPoolsStepLocked(f, r.now)
+	pool := f.pools[0]
+	if pool.x == f.brandX && pool.z == f.brandZ {
+		t.Fatal("test pool did not move off the valve")
+	}
+	check := func(viewer int, want ...uint32) {
+		t.Helper()
+		var got []uint32
+		for _, msg := range r.ss[viewer].Queue().PeekPending() {
+			b := msg.Data()
+			if len(b) < 2 || protocol.GameOpcode(binary.LittleEndian.Uint16(b)) != protocol.OpcodeCinderPool {
+				continue
+			}
+			if len(b) < 11 || b[2] != 18 || binary.LittleEndian.Uint32(b[3:]) != inst {
+				t.Fatalf("bad boundary header %x", b)
+			}
+			left := binary.LittleEndian.Uint32(b[7:])
+			got = append(got, left)
+			if left == 0 {
+				if len(b) != 11 {
+					t.Fatalf("bad clear %x", b)
+				}
+				continue
+			}
+			if len(b) != 27 {
+				t.Fatalf("bad boundary size %d", len(b))
+			}
+			for i, value := range []float32{pool.x, pool.y, pool.z, 10} {
+				if math.Float32frombits(binary.LittleEndian.Uint32(b[11+4*i:])) != value {
+					t.Fatalf("boundary differs from the damage circle: %x", b)
+				}
+			}
+		}
+		if !slices.Equal(got, want) {
+			t.Fatalf("viewer %d got %v, want %v", viewer, got, want)
+		}
+	}
+	check(0, 12000)
+	check(1)
+	check(2)
+	r.ps[1].World, r.ps[1].Instance = f.world, inst
+	r.w.mythicPoolsStepLocked(f, r.now.Add(5*time.Second))
+	check(0, 12000)
+	check(1, 7000)
+	r.ps[1].Instance = inst + 1
+	r.w.mythicPoolsStepLocked(f, r.now.Add(6*time.Second))
+	check(1, 7000, 0)
+	r.w.mythicClearSpawnsLocked(f) // the wipe, victory and close path
+	check(0, 12000, 0)
+	check(2)
 }
 
 // A pool is put off the landing, the way out and the valves.

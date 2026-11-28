@@ -60,7 +60,7 @@ const surnameLayout = 1
 // The lines.
 var (
 	surnameUsage = fmt.Sprintf("/surname <name>: a surname after your name, from level %d: one word of %d to %d letters, "+
-		"as a character's name. /surname clear takes it off. You may change it once every %d days.",
+		"as a character's name, an apostrophe allowed inside it (Do'Urden). /surname clear takes it off. You may change it once every %d days.",
 		surnameLevel, CharNameMin, CharNameMax, int(surnameEvery/(24*time.Hour)))
 )
 
@@ -73,6 +73,7 @@ const (
 	surnameIs        = "Your surname is %s."
 	surnameCleared   = "Your surname %s is cleared."
 	surnameOwnName   = "%s is your own name: choose another."
+	surnameNotWord   = "%q is not a surname: one word of letters, an apostrophe allowed inside it (Do'Urden)."
 	surnameFailed    = "Your surname could not be kept. Try again."
 	surnameGMUsage   = "#surname clear <character> - clears a character's surname (online or not) and its wait"
 	surnameGMCleared = "%s's surname %q is cleared; it may take another at once."
@@ -318,7 +319,7 @@ func (s *Surnames) take(sess *session.Session, p *entity.Player, asked string, g
 		SendErrorMessage(sess, fmt.Sprintf(surnameLow, surnameLevel))
 		return
 	}
-	v, ok := petNameShape(asked)
+	v, ok := surnameShape(asked)
 	if ok {
 		v = s.checkName(p, v)
 	}
@@ -360,7 +361,51 @@ func (s *Surnames) take(sess *session.Session, p *entity.Player, asked string, g
 	s.tell(surnamePair{p.Name, v.name})
 }
 
-// checkName holds a surname that passed petNameShape to the rules that need the
+// surnameApostrophe is the one mark a surname may hold besides letters (the owner,
+// 2026-11-28: "let drizzt surname be do'urden ... allow that in players
+// surnames"; Heirloom petition 3456 asked for ' and .).
+const surnameApostrophe = '\''
+
+// surnameShape is petNameShape for a character's surname, an apostrophe allowed
+// inside it (Do'Urden, O'Brien): never first or last, never two together. The
+// rules are the letters' (their length, the filter, the staff names, a
+// character's name rules: petNameShape on the surname without its apostrophes),
+// its length counting the apostrophes too. Cased as a name is, and the letter after
+// an apostrophe a capital.
+func surnameShape(asked string) (v petVerdict, ok bool) {
+	asked = strings.TrimSpace(asked)
+	if !strings.ContainsRune(asked, surnameApostrophe) {
+		return petNameShape(asked)
+	}
+	notWord := petVerdict{refusal: fmt.Sprintf(surnameNotWord, asked), reason: "an apostrophe out of place"}
+	if strings.ContainsAny(asked, " \t") {
+		return petVerdict{refusal: fmt.Sprintf(surnameNotWord, asked), reason: "more than one word"}, false
+	}
+	if asked[0] == surnameApostrophe || asked[len(asked)-1] == surnameApostrophe || strings.Contains(asked, "''") {
+		return notWord, false
+	}
+	if len(asked) > petRenameMax {
+		return petVerdict{refusal: fmt.Sprintf(renameLength, asked), reason: fmt.Sprintf("%d characters", len(asked))}, false
+	}
+	letters := strings.ReplaceAll(asked, string(surnameApostrophe), "")
+	lv, ok := petNameShape(letters)
+	if !ok {
+		if lv.reason == "not letters only" {
+			lv.refusal = fmt.Sprintf(surnameNotWord, asked)
+		}
+		return lv, false
+	}
+	out := []byte(strings.ToLower(asked))
+	out[0] = strings.ToUpper(string(out[0]))[0]
+	for i := 1; i < len(out); i++ {
+		if out[i-1] == surnameApostrophe {
+			out[i] = strings.ToUpper(string(out[i]))[0]
+		}
+	}
+	return petVerdict{name: string(out)}, true
+}
+
+// checkName holds a surname that passed surnameShape to the rules that need the
 // world: not the character's own name, nor a character's (a GM's is the
 // filter's), nor a named individual's.
 func (s *Surnames) checkName(p *entity.Player, v petVerdict) petVerdict {

@@ -397,7 +397,10 @@ func (h *NPCWindowHandler) startRaidLootLocked(ls *lootState, npc *entity.NPC, k
 	c := h.rollCorpse(npc, k.Died, npc.Level) // the spawn's, as every corpse (loot.go)
 	// Each mark gets its own vote. Even identical marks enter as individual
 	// drops, bypassing the corpse's shared no-trade quest stacks.
-	c.items = append(c.items, h.rollHeroicMarks(k.HeroicBoss)...)
+	if marks := h.rollHeroicMarks(k.HeroicBoss); len(marks) > 0 {
+		c.items = append(c.items, marks...)
+		log.Printf("Heroic loot: %s in instance %d dropped %d marks (corpse %d)", npc.Name, npc.Instance, len(marks), npc.ServerID)
+	}
 	ls.corpses[npc.ServerID] = c
 	r := k.Raid
 	if r == nil {

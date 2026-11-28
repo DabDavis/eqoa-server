@@ -563,6 +563,7 @@ func main() {
 		if err := gameWorld.LoadHeroicMarks(db); err != nil {
 			log.Fatalf("Heroic marks: %v", err)
 		}
+		log.Print("Heroic marks: enabled")
 	}
 	// The class masteries a character may buy (entity/cmbuy.go, table
 	// cmcatalog): with none, none is offered, and every stat cap is the

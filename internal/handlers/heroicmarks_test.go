@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/binary"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/protocol"
 )
 
 func seedHeroicMarkPrerequisites(t *testing.T, db *database.SQLiteDB) {
@@ -70,6 +72,132 @@ func TestHeroicMarksRaidLoot(t *testing.T) {
 				t.Fatalf("an identical drop was combined: %+v", drop)
 			}
 		}
+	}
+}
+
+func TestHeroicMarksFromTheInstanceCorpse(t *testing.T) {
+	for _, mode := range []struct {
+		name string
+		need bool
+	}{{"free for all", false}, {"raid need before greed", true}} {
+		t.Run(mode.name, func(t *testing.T) {
+			r, board, _ := mythicPortalRig(t)
+			db, err := database.NewSQLite(filepath.Join(t.TempDir(), "corpse.db"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(func() { db.Close() })
+			seedHeroicMarkPrerequisites(t, db)
+			if err := r.gw.LoadHeroicMarks(db); err != nil {
+				t.Fatal(err)
+			}
+			r.pa.Level, r.pc.Level, r.pa.Class, r.pc.Class = 60, 60, 0, 1
+			for _, p := range []*entity.Player{r.pa, r.pc} {
+				if _, err := db.Exec(`INSERT INTO characters
+					(serverid,charName,accountid,modelid,tclass,race,humType,level,haircolor,hairlength,hairstyle,faceoption,sex)
+					VALUES (?, ?, 1, 0, ?, 0, 0, 60, 0, 0, 0, 0, 0)`, p.CharServerID, p.Name, p.Class); err != nil {
+					t.Fatal(err)
+				}
+			}
+			r.anna.SetInventoryList(newInvList(nil))
+			r.cora.SetInventoryList(newInvList(nil))
+			inv := database.NewInventoryStore(db)
+			h := NewNPCWindowHandler(r.sm, inv)
+			h.SetGameWorld(r.gw)
+			// The loot window itself drains the pending death. FFA below also
+			// runs the worker's drain explicitly before the window is opened.
+			h.raids.once.Do(func() {})
+			votes := 0
+			h.raid.intn = func(n int) int {
+				switch n {
+				case 3:
+					return 2 // four drops
+				case 4:
+					return 0 // four Steel marks, which must be separate rolls
+				}
+				votes++
+				if votes%2 == 1 {
+					return n - 1 // Greed
+				}
+				return 1 // Need wins despite the smaller roll
+			}
+			r.ih.heroicMarkInventory = inv
+			r.group(t, r.anna, r.pa, r.cora, r.pc)
+			if mode.need {
+				r.gw.RaidInvite(r.anna, r.pb.Name, 0)
+				r.gw.RaidLootRuleTo(r.anna, entity.LootNeedGreed)
+				r.gw.SetRaidWindows(r.anna, true)
+			}
+			r.talk(r.anna, board)
+			heroicRaids.mu.Lock()
+			box := heroicRaids.asked[r.pa.CharServerID].box
+			heroicRaids.mu.Unlock()
+			r.ih.answerHeroicRaids(r.anna, r.pa, box, 0)
+			r.travel()
+			inst := r.pa.InstanceKey()
+			state, ok := r.gw.MythicStateOf(inst)
+			if !ok || inst == 0 || r.pc.InstanceKey() != inst {
+				t.Fatalf("the party did not enter the same Nagafen instance (%d)", inst)
+			}
+			boss := r.gw.NPCByID(state.Boss)
+			if boss == nil || boss.World != 18 || boss.Instance != inst {
+				t.Fatalf("no Nagafen in world 18 instance %d: %+v", inst, boss)
+			}
+			r.gw.UpdatePosition(r.pa.ServerID, boss.X, boss.Y, boss.Z+2, 0)
+			r.gw.UpdatePosition(r.pc.ServerID, boss.X, boss.Y, boss.Z+3, 0)
+			const objectID = 0x18001ABC
+			vis := entity.GetOrCreateVisibility(r.anna)
+			vis.ChannelEntity[0], vis.ChannelObjectID[0] = boss.ServerID, objectID
+			r.drain()
+			if !r.gw.KillNPCNowBy(r.anna, boss.ServerID) {
+				t.Fatal("could not exercise the actual instance's credited death")
+			}
+			if !mode.need {
+				h.takeRaidKills()
+			}
+			if err := h.HandleLootCorpse(r.anna, incoming(protocol.OpcodeLootCorpse, u32b(objectID))); err != nil {
+				t.Fatal(err)
+			}
+			var rolls []int
+			corpseItems := int64(-1)
+			for _, m := range r.anna.Queue().GetPending() {
+				data := m.Data()
+				switch opOf(data) {
+				case protocol.OpcodeLoot:
+					corpseItems = lootCount(t, data)
+				case protocol.OpcodeRaidRoll:
+					rolls = append(rolls, int(binary.LittleEndian.Uint32(data[2:])))
+				}
+			}
+			if mode.need {
+				if len(rolls) != 4 || corpseItems > 0 {
+					t.Fatalf("expected four separate rolls and no freely lootable marks, got %v and %d", rolls, corpseItems)
+				}
+				for _, id := range rolls {
+					h.RaidRollChoice(r.cora, id, rollNeed) // the melee character is refused
+					h.RaidRollChoice(r.cora, id, rollGreed)
+					h.RaidRollChoice(r.anna, id, rollNeed)
+				}
+				if votes != 8 {
+					t.Fatalf("expected two eligible votes on each mark, got %d", votes)
+				}
+			} else {
+				if len(rolls) != 0 || corpseItems != 4 {
+					t.Fatalf("expected four marks in the corpse window, got %v and %d", rolls, corpseItems)
+				}
+				if err := h.HandleLootAll(r.anna, incoming(protocol.OpcodeLootTakeAll, nil)); err != nil {
+					t.Fatal(err)
+				}
+			}
+			pack, err := inv.GetPackItems(r.pa.CharServerID)
+			if err != nil || len(pack) != 1 || pack[0].Pattern.ItemName != "Nagafen's Mark of Steel" || pack[0].StackLeft != 4 {
+				t.Fatalf("expected four marks together in the winner's pack, got %+v (%v)", pack, err)
+			}
+			pack, err = inv.GetPackItems(r.pc.CharServerID)
+			if err != nil || len(pack) != 0 {
+				t.Fatalf("Greed received a mark over Need: %+v (%v)", pack, err)
+			}
+		})
 	}
 }
 

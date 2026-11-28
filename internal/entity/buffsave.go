@@ -48,8 +48,10 @@ func (w *World) SavedEffects(id EntityID, now time.Time) (rows []database.BuffRo
 // procs reads as none.
 type savedMods struct {
 	StatMods
-	Proc    int `json:",omitempty"`
-	ProcMax int `json:",omitempty"`
+	// Burned hands runs in real time, including time spent logged out.
+	ExpiresAtMS int64 `json:",omitempty"`
+	Proc        int   `json:",omitempty"`
+	ProcMax     int   `json:",omitempty"`
 	// a proc scaled by its bearer's stat, and a proc's cap (proc.go)
 	ProcScale    Stat `json:",omitempty"`
 	ProcScalePct int  `json:",omitempty"`
@@ -128,6 +130,9 @@ func effectRows(effects []*ActiveEffect, now time.Time, keep func(*ActiveEffect)
 			r := e.Rules
 			sm.Rules = &r
 		}
+		if e.SpellID == mythicBurnedHandsID {
+			sm.ExpiresAtMS = e.Until.UnixMilli()
+		}
 		sm.ProcSpells = e.ProcSpells
 		sm.MoreProcs = e.MoreProcs
 		mods, _ := json.Marshal(sm)
@@ -163,6 +168,9 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 			continue
 		}
 		ae := effectFromRow(r, now)
+		if !now.Before(ae.Until) {
+			continue
+		}
 		p.Effects = append(p.Effects, ae)
 		if ae.Name != "" && len(p.Buffs) < MaxEffects {
 			p.Buffs = append(p.Buffs, BuffSlot{Icon: ae.Icon, Name: ae.Name})
@@ -191,6 +199,9 @@ func effectFromRow(r database.BuffRow, now time.Time) *ActiveEffect {
 	if r.Mods != "" {
 		var sm savedMods
 		_ = json.Unmarshal([]byte(r.Mods), &sm)
+		if sm.ExpiresAtMS != 0 {
+			ae.Until = time.UnixMilli(sm.ExpiresAtMS)
+		}
 		ae.Mods, ae.Proc, ae.ProcMax = sm.StatMods, sm.Proc, sm.ProcMax
 		ae.ProcScale, ae.ProcScalePct, ae.ProcCap = sm.ProcScale, sm.ProcScalePct, sm.ProcCap
 		ae.ProcUndead = sm.ProcUndead

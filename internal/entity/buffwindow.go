@@ -105,11 +105,16 @@ func (w *World) buffWindowSetLocked(p *Player, now time.Time) []BuffWindowLine {
 				break
 			}
 		}
-		if mine == BuffWindowPlayerMost {
+		if mine == BuffWindowPlayerMost && e.SpellID != mythicBurnedHandsID {
 			continue
 		}
-		mine++
-		out = append(out, BuffWindowLine{Whose: BuffOnPlayer, Removable: beneficialEffect(e), ID: uint32(e.SpellID), Icon: e.Icon, LeftMS: left(e), Name: petEffectName(e.Name)})
+		line := BuffWindowLine{Whose: BuffOnPlayer, Removable: beneficialEffect(e), ID: uint32(e.SpellID), Icon: e.Icon, LeftMS: left(e), Name: petEffectName(e.Name)}
+		if mine == BuffWindowPlayerMost {
+			out[mine-1] = line
+		} else {
+			out = append(out, line)
+			mine++
+		}
 	}
 	for j, b := range p.Buffs {
 		if backed[j] || mine == BuffWindowPlayerMost {

@@ -176,6 +176,9 @@ func (r *mythicRig) state(t *testing.T, inst uint32) MythicState {
 func (r *mythicRig) gateDone(t *testing.T, inst uint32, a, b *Player) {
 	t.Helper()
 	st := r.state(t, inst)
+	if st.Gates == 1 {
+		r.step(time.Minute) // these fixture clears reuse the first gate's valve operators
+	}
 	r.killGuard(t, inst)
 	r.turn(t, a, st.Valves[0])
 	r.turn(t, b, st.Valves[1])
@@ -399,7 +402,10 @@ func TestMythicGuardAndValvePair(t *testing.T) {
 	if line := r.turn(t, b, east); !strings.Contains(line, "turned already") {
 		t.Fatalf("the same valve again: %q", line)
 	}
-	if line := r.turn(t, a, west); !strings.Contains(line, "One pair of hands") {
+	if b.hasEffect(mythicBurnedHandsID) {
+		t.Fatal("an unsuccessful turn burned the second player's hands")
+	}
+	if line := r.turn(t, a, west); !strings.Contains(line, "hands are still burned") {
 		t.Fatalf("one player turned both: %q", line)
 	}
 	// the guard wounded, then the window passes
@@ -414,6 +420,9 @@ func TestMythicGuardAndValvePair(t *testing.T) {
 	}
 	if !mythicHasLine(redLines(r.ss[2]), "grinds shut") {
 		t.Fatalf("the miss not told: %q", lines(r.ss[2]))
+	}
+	if line := r.turn(t, a, east); !strings.Contains(line, "hands are still burned") {
+		t.Fatalf("the missed pair cleared its operator's lockout: %q", line)
 	}
 	// a dead player turns none
 	c.HP = 0
@@ -443,6 +452,80 @@ func TestMythicGuardAndValvePair(t *testing.T) {
 	// its breath comes 18 s after the release
 	if st := r.state(t, inst); !st.NextBreath.Equal(r.now.Add(mythicBreathFirst)) {
 		t.Fatalf("next breath %v, now %v", st.NextBreath, r.now)
+	}
+}
+
+func TestMythicBurnedHands(t *testing.T) {
+	r := newMythic(t, 2)
+	r.group(r.ps...)
+	inst := r.enter(t, 0)
+	r.enter(t, 1)
+	a, b := r.ps[0], r.ps[1]
+	boss := r.boss(t, inst)
+	r.pull(boss, a)
+	r.toGate(t, inst, boss, 0)
+	valves := r.state(t, inst).Valves
+	firstTurn := r.now
+
+	// A raider can already have both client effects displays full.
+	for i := 0; i < BuffWindowPlayerMost; i++ {
+		r.w.addEffectLocked(a, &ActiveEffect{SpellID: 10000 + i, Name: fmt.Sprintf("Buff %d", i),
+			Icon: uint32(i + 1), Until: r.now.Add(time.Hour)}, r.now)
+	}
+	before := SerializeBuffUpdate(a)
+	if line := r.turn(t, a, valves[0]); line != "" {
+		t.Fatal(line)
+	}
+	window := r.w.buffWindowSetLocked(a, r.now)
+	last := window[len(window)-1]
+	if last.Name != "Burned hands" || last.Icon != 0x31782B37 || last.Removable || last.LeftMS != 60000 {
+		t.Fatalf("timed debuff in the full effects window: %+v", last)
+	}
+	icons, names, _ := channel43(SerializeBuffUpdate(a), EffectRecordSize)
+	if len(names) != MaxEffects || names[MaxEffects-1] != "Burned hands" || icons[MaxEffects-1] != last.Icon {
+		t.Fatalf("legacy effects display: icons %v, names %v", icons, names)
+	}
+
+	r.step(5 * time.Second)
+	r.killGuard(t, inst)
+	if line := r.turn(t, b, valves[1]); line != "" {
+		t.Fatal(line)
+	}
+	r.toGate(t, inst, boss, 1)
+	r.w.clearSpellsLocked(b) // death and resurrection must not give a second turn
+	if !b.hasEffect(mythicBurnedHandsID) {
+		t.Fatal("the player's second valve turn gave no debuff surviving death")
+	}
+	rows := savedEffects(b, r.now)
+	r.w.removeEffectLocked(b, mythicBurnedHandsID)
+
+	r.step(firstTurn.Add(time.Minute - 100*time.Millisecond).Sub(r.now))
+	if n := r.w.RestoreEffects(r.ss[1], rows, r.now); n != 1 {
+		t.Fatalf("restored %d effects before the second operator's deadline", n)
+	}
+	for _, valve := range valves {
+		if line := r.turn(t, a, valve); !strings.Contains(line, "still burned") {
+			t.Fatalf("turn at 59.9 seconds: %q", line)
+		}
+	}
+	r.step(100 * time.Millisecond)
+	r.w.effectSystem(r.now)
+	if !slices.Equal(SerializeBuffUpdate(a), before) {
+		t.Fatal("the original effects display did not return on expiry")
+	}
+	if line := r.turn(t, a, valves[0]); line != "" {
+		t.Fatalf("turn at exactly 60 seconds: %q", line)
+	}
+	if line := r.turn(t, b, valves[1]); !strings.Contains(line, "5s") {
+		t.Fatalf("second operator's remaining cooldown after reconnect: %q", line)
+	}
+	r.w.removeEffectLocked(b, mythicBurnedHandsID)
+	r.step(5 * time.Second)
+	if n := r.w.RestoreEffects(r.ss[1], rows, r.now); n != 0 {
+		t.Fatal("reconnecting restored an expired Burned hands")
+	}
+	if line := r.turn(t, b, valves[1]); line != "" || !r.state(t, inst).Latched {
+		t.Fatalf("second operator could not complete the pair at their own 60-second deadline: %q", line)
 	}
 }
 
@@ -728,10 +811,11 @@ func TestMythicImpactsApart(t *testing.T) {
 // Drive the encounter clock, guard deaths and actual valve interactions. Both target categories keep the same
 // 24-second pulse schedule while the two gates freeze and restore different ordinary amounts.
 func TestMythicRisingHeat(t *testing.T) {
-	r := newMythic(t, 2)
+	r := newMythic(t, 3)
 	r.group(r.ps...)
 	inst := r.enter(t, 0)
 	r.enter(t, 1)
+	r.enter(t, 2)
 	boss := r.boss(t, inst)
 	tank, player := r.ps[0], r.ps[1]
 	merc := &NPC{ServerID: 931000, Name: "healer", Owner: player.ServerID, World: player.World, Instance: inst,
@@ -767,8 +851,8 @@ func TestMythicRisingHeat(t *testing.T) {
 	pulse(1020, 600)
 	r.killGuard(t, inst)
 	r.turn(t, tank, valves[0])
-	pulse(1020, 600) // killing the guard and letting one valve expire leaves overdrive active
-	r.turn(t, tank, valves[0])
+	pulse(1020, 600)              // killing the guard and letting one valve expire leaves overdrive active
+	r.turn(t, r.ps[2], valves[0]) // the tank's hands are still burned from the missed pair
 	r.turn(t, player, valves[1])
 	pulse(510, 300) // restore the amount before the giant appeared
 	pulse(660, 450)
